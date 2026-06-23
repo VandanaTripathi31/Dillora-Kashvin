@@ -1,0 +1,123 @@
+/* ============================================================
+   DILORA — Design tokens & global styles
+   Palette: soft lilac + blush + warm cream (no green)
+   ============================================================ */
+
+:root {
+  /* Palette derived from the Dillora logo:
+     orchid #c060e0 · electric violet #8050f0 · soft lilac-pink #e0a0f0 */
+  --lilac-50:  #f9f2fd;
+  --lilac-100: #f1e2fb;
+  --lilac-200: #e3c7f5;
+  --lilac-300: #cf9eec;
+  --lilac-400: #bd7ce2;
+  --lilac-500: #a64fd6;   /* primary — orchid from logo */
+  --lilac-600: #8a39bd;
+
+  --blush-50:  #fdf3fb;
+  --blush-100: #fbe2f4;
+  --blush-200: #f6c4e6;
+  --blush-300: #efa0d4;
+  --blush-400: #e57fc4;
+
+  --violet-50:  #f1ecfe;
+  --violet-100: #e2d6fd;
+  --violet-200: #c7b0fb;
+  --violet-300: #a585f6;
+  --violet-400: #8b63ef;
+  --violet-500: #7a4ff0;   /* electric violet from logo core */
+
+  --peach-50:  #fff5ef;
+  --peach-100: #ffe7d8;
+  --peach-200: #ffd0b3;
+  --peach-300: #f7b58a;
+
+  --butter-50: #fffaf0;
+  --butter-100:#fdf0d5;
+  --sky-50:    #eef4fc;
+  --sky-100:   #d8e6f7;
+  --sky-300:   #a9c2e4;
+
+  --cream:     #fcf8fd;
+  --cream-2:   #f4ecf6;
+
+  --ink:       #2c2340;
+  --ink-soft:  #6b6080;
+  --line:      #eee3f3;
+
+  --primary:      var(--lilac-500);
+  --primary-dark: #8a39bd;
+  --accent:       var(--violet-500);
+
+  --bg:        var(--cream);
+  --surface:   #ffffff;
+
+  --ok:    #3f9d6b;
+  --warn:  #c9892f;
+  --danger:#c4495b;
+
+  --radius:    18px;
+  --radius-sm: 12px;
+  --radius-lg: 30px;
+  --radius-xl: 44px;
+  --shadow-sm: 0 1px 3px rgba(46,39,64,.05), 0 1px 2px rgba(46,39,64,.04);
+  --shadow:    0 10px 40px rgba(80,40,140,.08);
+  --shadow-lg: 0 30px 80px rgba(80,40,140,.16);
+  --shadow-glow: 0 20px 50px rgba(166,79,214,.22);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --maxw: 1240px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+}
+h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; color: var(--ink); }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; font-size: 1rem; }
+
+.container { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: none; border-radius: 999px; padding: 12px 24px;
+  font-weight: 600; font-size: .95rem; transition: transform .12s ease, box-shadow .2s ease, background .2s;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 6px 18px rgba(141,99,196,.28); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-ghost { background: var(--surface); color: var(--ink); border: 1.5px solid var(--line); }
+.btn-ghost:hover { border-color: var(--lilac-300); }
+.btn-accent { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(229,127,160,.28); }
+.btn-accent:hover { background: var(--blush-300); }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--lilac-100); color: var(--primary-dark);
+  border-radius: 999px; padding: 4px 12px; font-size: .8rem; font-weight: 600;
+}
+
+.muted { color: var(--ink-soft); }
+.price { font-weight: 700; color: var(--ink); }
+.strike { color: var(--ink-soft); text-decoration: line-through; font-weight: 500; margin-left: 8px; font-size: .9em; }
+
+:focus-visible { outline: 3px solid var(--lilac-300); outline-offset: 2px; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
