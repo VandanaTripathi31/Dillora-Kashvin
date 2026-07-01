@@ -113,7 +113,7 @@ function Dashboard({ user, logout, addresses, removeAddress }) {
         <aside>
           <h3 className="acct__h">Saved addresses</h3>
           {addresses.length === 0 ? (
-            <div className="card acct__empty"><p className="muted">No saved addresses yet. They'll save when you checkout.</p></div>
+            <div className="card acct__empty"><p className="muted">No saved addresses yet. They&apos;ll save when you checkout.</p></div>
           ) : (
             <div className="acct__addrs">
               {addresses.map(a => (

@@ -40,7 +40,7 @@ export default function Checkout() {
   // Redirect to home only if the cart is empty AND we did not just place an order.
   useEffect(() => {
     if (count === 0 && !placing && !placed) router.push('/');
-  }, [count, placing, placed, navigate]);
+  }, [count, placing, placed, router]);
 
   if (count === 0 && !placed) return null;
 

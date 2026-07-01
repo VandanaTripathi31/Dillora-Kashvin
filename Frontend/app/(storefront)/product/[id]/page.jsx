@@ -115,8 +115,9 @@ export default function Product() {
   // build the human-readable option string + validate
   const buildOptions = () => {
     if (product.optionType === 'phone') {
-      if (!brand || !model) return { ok:false, msg:'Please select your phone brand and model.' };
-      return { ok:true, str:`${brand} · ${model}${material ? ' · ' + material.name : ''}` };
+      if (!brand) return { ok:false, msg:'Please select your phone brand.' };
+      if (!model.trim()) return { ok:false, msg:'Please enter your phone model.' };
+      return { ok:true, str:`${brand} · ${model.trim()}${material ? ' · ' + material.name : ''}` };
     }
     if (product.optionType === 'size') {
       if (!size) return { ok:false, msg:'Please select a size.' };
@@ -170,6 +171,8 @@ export default function Product() {
             onClick={() => { if (zoom) setZoom(null); }}
           >
             <img
+              key={activeImg}
+              className="pdp__fadeimg"
               src={gallery[activeImg]}
               alt={product.name}
               style={zoom ? { transform: 'scale(2)', transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
@@ -211,25 +214,36 @@ export default function Product() {
             </div>
           )}
 
-          {/* Phone brand + model */}
+          {/* Phone brand + model (model is free text so any new phone works) */}
           {product.optionType === 'phone' && (
             <>
-              <p className="opt__note">Select your phone — the same design is made for your model.</p>
+              <p className="opt__note">Tell us your phone — the same design is made to fit your exact model.</p>
               <div className="opt">
                 <label className="opt__label">Phone brand</label>
                 <select className="opt__select" value={brand}
                         onChange={e => { setBrand(e.target.value); setModel(''); }}>
                   <option value="">Choose brand</option>
-                  {Object.keys(PHONE_BRANDS).map(b => <option key={b} value={b}>{b}</option>)}
+                  {PHONE_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
               {brand && (
                 <div className="opt">
-                  <label className="opt__label">Model</label>
-                  <select className="opt__select" value={model} onChange={e => setModel(e.target.value)}>
-                    <option value="">Choose model</option>
-                    {PHONE_BRANDS[brand].map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
+                  <label className="opt__label">Phone model</label>
+                  <input
+                    className="opt__select"
+                    value={model}
+                    onChange={e => setModel(e.target.value)}
+                    placeholder={
+                      brand === 'Apple' ? 'e.g. iPhone 16 Pro Max'
+                      : brand === 'Samsung' ? 'e.g. Galaxy S25 Ultra'
+                      : brand === 'OnePlus' ? 'e.g. OnePlus 13'
+                      : brand === 'Other' ? 'e.g. brand + model'
+                      : 'e.g. your exact model'
+                    }
+                  />
+                  <p className="opt__note" style={{ margin: '8px 0 0' }}>
+                    Type your exact model so we craft the cover to fit perfectly.
+                  </p>
                 </div>
               )}
             </>
@@ -268,7 +282,7 @@ export default function Product() {
                        placeholder="e.g. marble white, floral, galaxy" />
               </div>
               <div className="opt">
-                <label className="opt__label">Anything else you'd like</label>
+                <label className="opt__label">Anything else you&apos;d like</label>
                 <textarea className="opt__select opt__textarea" value={resinNotes} onChange={e => setResinNotes(e.target.value)}
                           placeholder="Names, dates, size, ideas — anything that helps us make it perfect" rows={3} />
               </div>
@@ -361,16 +375,16 @@ export default function Product() {
           <div className="modal__box modal__box--sm" onClick={e => e.stopPropagation()}>
             <div className="modal__head">
               <h3>Size guide</h3>
-              <button className="modal__x" onClick={() => setShowGuide(false)}>✕</button>
+              <button className="modal__x" onClick={() => setShowGuide(false)} aria-label="Close">✕</button>
             </div>
             <p className="muted" style={{ fontSize: '.88rem', marginBottom: 12 }}>
-              Measurements in inches. Oversize fit — if you're between sizes, size down for a less roomy look.
+              Measurements in inches. Oversize fit — if you&apos;re between sizes, size down for a less roomy look.
             </p>
             <table className="sizeguide">
               <thead><tr><th>Size</th><th>Chest</th><th>Length</th></tr></thead>
               <tbody>
                 {SIZE_GUIDE.map(r => (
-                  <tr key={r.size}><td><strong>{r.size}</strong></td><td>{r.chest}"</td><td>{r.length}"</td></tr>
+                  <tr key={r.size}><td><strong>{r.size}</strong></td><td>{r.chest}&quot;</td><td>{r.length}&quot;</td></tr>
                 ))}
               </tbody>
             </table>

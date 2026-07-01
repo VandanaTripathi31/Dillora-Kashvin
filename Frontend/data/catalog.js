@@ -1,153 +1,143 @@
 // ============================================================
-// DILORA — Catalog seed data
-// This mirrors the MongoDB "products" + "categories" shape.
-// When the real backend is ready, the API module (api.js) swaps
-// these arrays for fetch() calls — components don't change.
+// DILORA — Catalog (real product photos, auto-generated)
+// Images live in /public/images/<category>/<sub>/NN.jpg
+// Mirrors the MongoDB "products" + "categories" shape; the API
+// module (api.js) swaps these arrays for fetch() when the backend
+// is connected — components don't change.
 // ============================================================
 
-// ---- Option presets (reused across products) ----------------
-export const PHONE_BRANDS = {
-  Apple: ['iPhone 16 Pro Max','iPhone 16 Pro','iPhone 16','iPhone 15 Pro Max','iPhone 15 Pro','iPhone 15','iPhone 14 Pro Max','iPhone 14 Pro','iPhone 14','iPhone 13','iPhone 12','iPhone 11','iPhone SE'],
-  Samsung: ['Galaxy S24 Ultra','Galaxy S24','Galaxy S23','Galaxy A55','Galaxy A35','Galaxy M34','Galaxy F15'],
-  OnePlus: ['OnePlus 12','OnePlus 11','OnePlus Nord 4','OnePlus Nord CE 4','OnePlus Nord CE 3 Lite'],
-  Xiaomi: ['Redmi Note 13 Pro','Redmi Note 13','Redmi 13C','Mi 11X','Poco X6 Pro'],
-  Vivo: ['Vivo V30','Vivo V29','Vivo Y200','Vivo T3'],
-  Oppo: ['Oppo Reno 12','Oppo Reno 11','Oppo A79','Oppo F25'],
-  Realme: ['Realme 12 Pro','Realme 11','Realme Narzo 70','Realme C67'],
-  Motorola: ['Moto Edge 50','Moto G84','Moto G54'],
-};
+// Just the brands — the customer types their exact model in a text field, so
+// the list never goes stale when new phones launch. Keep "Other" last as a
+// catch-all for any brand not listed.
+export const PHONE_BRANDS = [
+  'Apple', 'Samsung', 'OnePlus', 'Xiaomi', 'Redmi', 'Poco', 'Vivo', 'iQOO',
+  'Oppo', 'Realme', 'Motorola', 'Google Pixel', 'Nothing', 'Infinix', 'Tecno', 'Lava',
+  'Other',
+];
 
 export const TSHIRT_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 
-// ---- Categories (with sub-categories) -----------------------
-// `optionType` tells the product page which selectors to render.
 export const CATEGORIES = [
-  {
-    id: 'mobile-covers',
-    name: 'Mobile Covers',
-    tagline: 'Designed for your phone, made to order',
+  { id: 'mobile-covers', name: 'Mobile Covers', tagline: 'Designed for your phone, made to order',
+    subs: [{ id: 'soft-case', name: 'Soft Silicon Case' }] },
+  { id: 'mobile-charms', name: 'Mobile Charms', tagline: 'The little finishing touch',
+    subs: [{ id: 'charms', name: 'Charms' }] },
+  { id: 'crochet', name: 'Crochet', tagline: 'Handmade with love, stitch by stitch',
     subs: [
-      { id: 'silicon-printed', name: 'Silicon Printed Case' },
-      { id: 'resin-cover',     name: 'Resin Cover' },
-      { id: 'crochet-cover',   name: 'Crochet Cover' },
-    ],
-  },
-  {
-    id: 'mobile-charms',
-    name: 'Mobile Charms',
-    tagline: 'The little finishing touch',
+      { id: 'coin-pouch', name: 'Coin Pouch' },
+      { id: 'coaster', name: 'Coasters' },
+      { id: 'earbuds-case', name: 'Earbuds Case' },
+      { id: 'laptop-cover', name: 'Laptop Sleeve' },
+      { id: 'sunglass-holder', name: 'Sunglass Holder' },
+    ] },
+  { id: 'resin-art', name: 'Resin Art', tagline: 'Poured, set and polished by hand',
     subs: [
-      { id: 'beads',          name: 'Beads' },
-      { id: 'crochet-charm',  name: 'Crochet' },
-    ],
-  },
-  {
-    id: 'crochet',
-    name: 'Crochet',
-    tagline: 'Handmade with love, stitch by stitch',
-    subs: [
-      { id: 'fruits',     name: 'Fruits' },
-      { id: 'flower',     name: 'Flower' },
-      { id: 'evil-eye',   name: 'Evil Eye' },
-      { id: 'spiderman',  name: 'Spiderman' },
-    ],
-  },
-  {
-    id: 'resin-art',
-    name: 'Resin Art',
-    tagline: 'Poured, set and polished by hand',
-    subs: [
-      { id: 'wall-watch',     name: 'Wall Watch' },
-      { id: 'puja-plates',    name: 'Puja Plates' },
-      { id: 'bookmarks',      name: 'Bookmarks' },
-      { id: 'flower-frame',   name: 'Pressed Flower Frame' },
-      { id: 'name-plate',     name: 'Name Plate' },
-      { id: 'wall-hanging',   name: 'Wall Hanging' },
-    ],
-  },
-  {
-    id: 'tshirts',
-    name: 'Oversize T-Shirts',
-    tagline: 'Relaxed fits in soft cotton',
-    subs: [
-      { id: 'his', name: 'His' },
-      { id: 'her', name: 'Her' },
-    ],
-  },
+      { id: 'wall-clock', name: 'Wall Clock' },
+      { id: 'coaster-set', name: 'Coaster & Tray Set' },
+    ] },
+  { id: 'tshirts', name: 'Oversize T-Shirts', tagline: 'Relaxed fits in soft cotton',
+    subs: [{ id: 'him', name: 'His' }, { id: 'her', name: 'Her' }] },
 ];
 
-// helper to build product image urls (Unsplash demo photos)
-const img = (id, w = 800) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
-
-// ---- Products ------------------------------------------------
-// optionType: 'phone' | 'size' | 'none'
-// material:  array of {name, price} (covers only)
-let _id = 0;
-const uid = () => `p${++_id}`;
+// Representative image per category (used by the homepage category circles & hero).
+export const CATEGORY_IMG = {
+  "mobile-covers": "/images/mobile-covers/soft-case/01.jpg",
+  "mobile-charms": "/images/mobile-charms/charms/01.jpg",
+  "crochet": "/images/crochet/coin-pouch/01.jpg",
+  "resin-art": "/images/resin-art/wall-clock/01.jpg",
+  "tshirts": "/images/tshirts/him/01.jpg"
+};
 
 export const PRODUCTS = [
-  // ----- Mobile Covers : Silicon Printed -----
-  { id: uid(), category:'mobile-covers', sub:'silicon-printed', name:'Lilac Daydream Silicon Case', price:299, mrp:449, stock:40, optionType:'phone',
-    materials:[{name:'Soft Silicon',price:299},{name:'Slim Matte',price:279}], image: img('photo-1601784551446-20c9e07cdbdb'), gallery:[img('photo-1601784551446-20c9e07cdbdb'),img('photo-1556656793-08538906a9f8')] },
-  { id: uid(), category:'mobile-covers', sub:'silicon-printed', name:'Blush Hearts Silicon Case', price:299, mrp:449, stock:35, optionType:'phone',
-    materials:[{name:'Soft Silicon',price:299},{name:'Slim Matte',price:279}], image: img('photo-1592890288564-76628a30a657') },
-  { id: uid(), category:'mobile-covers', sub:'silicon-printed', name:'Pastel Cloud Silicon Case', price:299, mrp:449, stock:28, optionType:'phone',
-    materials:[{name:'Soft Silicon',price:299},{name:'Slim Matte',price:279}], image: img('photo-1511707171634-5f897ff02aa9') },
-  // ----- Mobile Covers : Resin -----
-  { id: uid(), category:'mobile-covers', sub:'resin-cover', name:'Pressed Petal Resin Cover', price:549, mrp:699, stock:18, optionType:'phone',
-    materials:[{name:'Resin on Clear',price:549}], image: img('photo-1574755393849-623942496936') },
-  { id: uid(), category:'mobile-covers', sub:'resin-cover', name:'Ocean Wave Resin Cover', price:549, mrp:699, stock:12, optionType:'phone',
-    materials:[{name:'Resin on Clear',price:549}], image: img('photo-1609081219090-a6d81d3085bf') },
-  // ----- Mobile Covers : Crochet -----
-  { id: uid(), category:'mobile-covers', sub:'crochet-cover', name:'Handmade Crochet Phone Sleeve', price:399, mrp:599, stock:20, optionType:'phone',
-    materials:[{name:'Wool Crochet Sleeve',price:399}], image: img('photo-1631125915902-d8abe9225ff2') },
-
-  // ----- Mobile Charms : Beads -----
-  { id: uid(), category:'mobile-charms', sub:'beads', name:'Beaded Daisy Phone Charm', price:149, mrp:249, stock:50, optionType:'none', image: img('photo-1611652022419-a9419f74343d') },
-  { id: uid(), category:'mobile-charms', sub:'beads', name:'Pearl Drop Bead Charm', price:129, mrp:199, stock:60, optionType:'none', image: img('photo-1535632787350-4e68ef0ac584') },
-  // ----- Mobile Charms : Crochet -----
-  { id: uid(), category:'mobile-charms', sub:'crochet-charm', name:'Crochet Flower Charm', price:120, mrp:200, stock:45, optionType:'none', image: img('photo-1617038260897-41a1f14a8ca0') },
-  { id: uid(), category:'mobile-charms', sub:'crochet-charm', name:'Tiny Crochet Bear Charm', price:140, mrp:220, stock:30, optionType:'none', image: img('photo-1559563458-527698bf5295') },
-
-  // ----- T-Shirts : His -----
-  { id: uid(), category:'tshirts', sub:'his', name:'Oversize Tee — Stone', price:699, mrp:999, stock:25, optionType:'size', sizes:TSHIRT_SIZES, image: img('photo-1521572163474-6864f9cf17ab') },
-  { id: uid(), category:'tshirts', sub:'his', name:'Oversize Tee — Charcoal', price:699, mrp:999, stock:22, optionType:'size', sizes:TSHIRT_SIZES, image: img('photo-1583743814966-8936f5b7be1a') },
-  // ----- T-Shirts : Her -----
-  { id: uid(), category:'tshirts', sub:'her', name:'Oversize Tee — Lilac', price:699, mrp:999, stock:30, optionType:'size', sizes:TSHIRT_SIZES, image: img('photo-1576566588028-4147f3842f27') },
-  { id: uid(), category:'tshirts', sub:'her', name:'Oversize Tee — Blush', price:699, mrp:999, stock:27, optionType:'size', sizes:TSHIRT_SIZES, image: img('photo-1503342217505-b0a15ec3261c') },
-
-  // ----- Crochet -----
-  { id: uid(), category:'crochet', sub:'fruits', name:'Crochet Strawberry', price:249, mrp:399, stock:15, optionType:'none', image: img('photo-1587049352846-4a222e784d38') },
-  { id: uid(), category:'crochet', sub:'flower', name:'Crochet Tulip Bouquet', price:349, mrp:549, stock:12, optionType:'none', image: img('photo-1606041008023-472dfb5e530f') },
-  { id: uid(), category:'crochet', sub:'evil-eye', name:'Crochet Evil Eye Hanging', price:199, mrp:299, stock:20, optionType:'none', image: img('photo-1620656798579-1984d9e87df7') },
-  { id: uid(), category:'crochet', sub:'spiderman', name:'Crochet Spiderman Plushie', price:449, mrp:699, stock:8, optionType:'none', image: img('photo-1608889175123-8ee362201f81') },
-
-  // ----- Resin Art -----
-  { id: uid(), category:'resin-art', sub:'wall-watch', name:'Resin Marble Wall Watch', price:1299, mrp:1799, stock:6, optionType:'resin', image: img('photo-1563861826100-9cb868fdbe1c') },
-  { id: uid(), category:'resin-art', sub:'puja-plates', name:'Resin Puja Plate Set', price:899, mrp:1299, stock:10, optionType:'resin', image: img('photo-1604608672516-f1b9b1d37076') },
-  { id: uid(), category:'resin-art', sub:'bookmarks', name:'Pressed Flower Bookmark', price:149, mrp:249, stock:40, optionType:'resin', image: img('photo-1544716278-ca5e3f4abd8c') },
-  { id: uid(), category:'resin-art', sub:'flower-frame', name:'Pressed Flower Frame', price:799, mrp:1199, stock:9, optionType:'resin', image: img('photo-1513519245088-0e12902e35ca') },
-  { id: uid(), category:'resin-art', sub:'name-plate', name:'Personalised Resin Name Plate', price:699, mrp:999, stock:14, optionType:'resin', image: img('photo-1545239351-1141bd82e8a6') },
-  { id: uid(), category:'resin-art', sub:'wall-hanging', name:'Resin Geode Wall Hanging', price:1099, mrp:1599, stock:5, optionType:'resin', image: img('photo-1502082553048-f009c37129b9') },
+  {"id":"p1","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 01","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/01.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p2","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 02","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/02.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p3","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 03","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/03.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p4","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 04","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/04.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p5","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 05","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/05.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p6","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 06","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/06.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p7","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 07","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/07.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p8","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 08","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/08.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p9","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 09","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/09.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p10","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 10","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/10.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p11","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 11","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/11.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p12","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 12","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/12.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p13","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 13","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/13.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p14","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 14","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/14.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p15","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 15","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/15.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p16","category":"mobile-covers","sub":"soft-case","name":"Soft Silicon Phone Case — 16","price":299,"mrp":449,"stock":25,"optionType":"phone","image":"/images/mobile-covers/soft-case/16.jpg","materials":[{"name":"Soft Silicon","price":299}]},
+  {"id":"p17","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 01","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/01.jpg"},
+  {"id":"p18","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 02","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/02.jpg"},
+  {"id":"p19","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 03","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/03.jpg"},
+  {"id":"p20","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 04","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/04.jpg"},
+  {"id":"p21","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 05","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/05.jpg"},
+  {"id":"p22","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 06","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/06.jpg"},
+  {"id":"p23","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 07","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/07.jpg"},
+  {"id":"p24","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 08","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/08.jpg"},
+  {"id":"p25","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 09","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/09.jpg"},
+  {"id":"p26","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 10","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/10.jpg"},
+  {"id":"p27","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 11","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/11.jpg"},
+  {"id":"p28","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 12","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/12.jpg"},
+  {"id":"p29","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 13","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/13.jpg"},
+  {"id":"p30","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 14","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/14.jpg"},
+  {"id":"p31","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 15","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/15.jpg"},
+  {"id":"p32","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 16","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/16.jpg"},
+  {"id":"p33","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 17","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/17.jpg"},
+  {"id":"p34","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 18","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/18.jpg"},
+  {"id":"p35","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 19","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/19.jpg"},
+  {"id":"p36","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 20","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/20.jpg"},
+  {"id":"p37","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 21","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/21.jpg"},
+  {"id":"p38","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 22","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/22.jpg"},
+  {"id":"p39","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 23","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/23.jpg"},
+  {"id":"p40","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 24","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/24.jpg"},
+  {"id":"p41","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 25","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/25.jpg"},
+  {"id":"p42","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 26","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/26.jpg"},
+  {"id":"p43","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 27","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/27.jpg"},
+  {"id":"p44","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 28","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/28.jpg"},
+  {"id":"p45","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 29","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/29.jpg"},
+  {"id":"p46","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 30","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/30.jpg"},
+  {"id":"p47","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 31","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/31.jpg"},
+  {"id":"p48","category":"mobile-charms","sub":"charms","name":"Handmade Mobile Charm — 32","price":149,"mrp":249,"stock":25,"optionType":"none","image":"/images/mobile-charms/charms/32.jpg"},
+  {"id":"p49","category":"crochet","sub":"coin-pouch","name":"Crochet Coin Pouch","price":299,"mrp":449,"stock":12,"optionType":"none","image":"/images/crochet/coin-pouch/01.jpg","gallery":["/images/crochet/coin-pouch/01.jpg","/images/crochet/coin-pouch/02.jpg","/images/crochet/coin-pouch/03.jpg","/images/crochet/coin-pouch/04.jpg","/images/crochet/coin-pouch/05.jpg"]},
+  {"id":"p50","category":"crochet","sub":"coaster","name":"Crochet Coasters (Set of 4)","price":349,"mrp":549,"stock":12,"optionType":"none","image":"/images/crochet/coaster/01.jpg","gallery":["/images/crochet/coaster/01.jpg","/images/crochet/coaster/02.jpg","/images/crochet/coaster/03.jpg","/images/crochet/coaster/04.jpg","/images/crochet/coaster/05.jpg","/images/crochet/coaster/06.jpg"]},
+  {"id":"p51","category":"crochet","sub":"earbuds-case","name":"Crochet Earbuds Case","price":249,"mrp":399,"stock":12,"optionType":"none","image":"/images/crochet/earbuds-case/01.jpg","gallery":["/images/crochet/earbuds-case/01.jpg","/images/crochet/earbuds-case/02.jpg","/images/crochet/earbuds-case/03.jpg","/images/crochet/earbuds-case/04.jpg"]},
+  {"id":"p52","category":"crochet","sub":"laptop-cover","name":"Crochet Laptop Sleeve","price":699,"mrp":999,"stock":12,"optionType":"none","image":"/images/crochet/laptop-cover/01.jpg","gallery":["/images/crochet/laptop-cover/01.jpg","/images/crochet/laptop-cover/02.jpg","/images/crochet/laptop-cover/03.jpg"]},
+  {"id":"p53","category":"crochet","sub":"sunglass-holder","name":"Crochet Sunglass Holder","price":299,"mrp":449,"stock":12,"optionType":"none","image":"/images/crochet/sunglass-holder/01.jpg","gallery":["/images/crochet/sunglass-holder/01.jpg","/images/crochet/sunglass-holder/02.jpg","/images/crochet/sunglass-holder/03.jpg","/images/crochet/sunglass-holder/04.jpg"]},
+  {"id":"p54","category":"resin-art","sub":"wall-clock","name":"Resin Wall Clock","price":1299,"mrp":1799,"stock":12,"optionType":"resin","image":"/images/resin-art/wall-clock/01.jpg","gallery":["/images/resin-art/wall-clock/01.jpg","/images/resin-art/wall-clock/02.jpg","/images/resin-art/wall-clock/03.jpg","/images/resin-art/wall-clock/04.jpg","/images/resin-art/wall-clock/05.jpg"]},
+  {"id":"p55","category":"resin-art","sub":"coaster-set","name":"Resin Coaster, Tray & Holder Set","price":999,"mrp":1499,"stock":12,"optionType":"resin","image":"/images/resin-art/coaster-set/01.jpg","gallery":["/images/resin-art/coaster-set/01.jpg","/images/resin-art/coaster-set/02.jpg","/images/resin-art/coaster-set/03.jpg","/images/resin-art/coaster-set/04.jpg","/images/resin-art/coaster-set/05.jpg","/images/resin-art/coaster-set/06.jpg","/images/resin-art/coaster-set/07.jpg"]},
+  {"id":"p56","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 01","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/01.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p57","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 02","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/02.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p58","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 03","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/03.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p59","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 04","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/04.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p60","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 05","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/05.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p61","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 06","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/06.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p62","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 07","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/07.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p63","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 08","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/08.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p64","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 09","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/09.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p65","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 10","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/10.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p66","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 11","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/11.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p67","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 12","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/12.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p68","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 13","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/13.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p69","category":"tshirts","sub":"him","name":"Oversize Printed Tee · His — 14","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/him/14.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p70","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 01","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/01.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p71","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 02","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/02.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p72","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 03","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/03.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p73","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 04","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/04.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p74","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 05","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/05.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p75","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 06","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/06.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p76","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 07","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/07.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p77","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 08","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/08.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p78","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 09","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/09.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p79","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 10","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/10.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p80","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 11","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/11.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p81","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 12","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/12.jpg","sizes":["S","M","L","XL","XXL"]},
+  {"id":"p82","category":"tshirts","sub":"her","name":"Oversize Printed Tee · Her — 13","price":699,"mrp":999,"stock":25,"optionType":"size","image":"/images/tshirts/her/13.jpg","sizes":["S","M","L","XL","XXL"]},
 ];
 
 export const findCategory = (id) => CATEGORIES.find(c => c.id === id);
 
-// Secondary "detail/lifestyle" image per category — used for card hover-swap,
-// product galleries and zoom when a product has no explicit gallery of its own.
-const CAT_ALT = {
-  'mobile-covers': img('photo-1556656793-08538906a9f8'),
-  'mobile-charms': img('photo-1535632787350-4e68ef0ac584'),
-  'tshirts':       img('photo-1503342217505-b0a15ec3261c'),
-  'crochet':       img('photo-1620656798579-1984d9e87df7'),
-  'resin-art':     img('photo-1513519245088-0e12902e35ca'),
-};
-
-// Build a 2-image gallery for any product (its own gallery wins if present).
+// Gallery: a product's own gallery if it has one, otherwise just its single image.
 export function galleryFor(product) {
-  if (product.gallery && product.gallery.length) return product.gallery;
-  const alt = CAT_ALT[product.category] || product.image;
-  return alt === product.image ? [product.image] : [product.image, alt];
+  return (product.gallery && product.gallery.length) ? product.gallery : [product.image];
 }
 
 // Stable "newness" ordering — later in the array = newer (for "newest" sort).

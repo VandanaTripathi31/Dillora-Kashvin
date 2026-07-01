@@ -2,16 +2,17 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { SearchX, Sparkles } from 'lucide-react';
 import { api } from '@/data/api';
-import { CATEGORIES } from '@/data/catalog';
-
-const catName = (id) => CATEGORIES.find(c => c.id === id)?.name || '';
+import { useCategories } from '@/context/CategoriesContext';
 
 export default function Search({ open, onClose }) {
   const [all, setAll] = useState([]);
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
   const router = useRouter();
+  const { categories } = useCategories();
+  const catName = (id) => categories.find(c => c.id === id)?.name || '';
 
   useEffect(() => { if (open) api.getProducts().then(setAll); }, [open]);
   useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 50); else setQ(''); }, [open]);
@@ -47,22 +48,33 @@ export default function Search({ open, onClose }) {
         </div>
         <div className="searchbox__results">
           {term && results.length === 0 && (
-            <div className="searchempty">No products match “{q}”.</div>
+            <div className="searchempty">
+              <span className="searchempty__icon"><SearchX className="w-6 h-6" /></span>
+              <strong>No matches for “{q}”</strong>
+              <span>Try a different word, or browse our categories instead.</span>
+            </div>
           )}
           {!term && (
-            <div className="searchempty">Start typing to search products.</div>
+            <div className="searchempty">
+              <span className="searchempty__icon"><Sparkles className="w-6 h-6" /></span>
+              <strong>Find something handmade</strong>
+              <span>Search covers, charms, crochet, resin art &amp; tees.</span>
+            </div>
           )}
           {results.map(p => (
-            <div key={p.id} className="searchres" onClick={() => goto(p.id)}>
+            <button key={p.id} className="searchres" onClick={() => goto(p.id)} aria-label={`View ${p.name}`}>
               <img src={p.image} alt="" />
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, textAlign: 'left' }}>
                 <div className="searchres__name">{p.name}</div>
                 <div className="searchres__cat">{catName(p.category)}</div>
               </div>
               <span className="price">₹{p.price.toLocaleString('en-IN')}</span>
-            </div>
+            </button>
           ))}
         </div>
+        {results.length > 0 && (
+          <div className="searchbox__hint"><span>Showing {results.length} result{results.length === 1 ? '' : 's'}</span><span><kbd>Esc</kbd> to close</span></div>
+        )}
       </div>
     </div>
   );

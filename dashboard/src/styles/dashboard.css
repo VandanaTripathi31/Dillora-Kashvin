@@ -1,0 +1,39 @@
+/* Dashboard-only styles (login screen + small helpers).
+   The bulk of the admin look comes from the shared app.css copied from the
+   storefront (adm__*, card, btn, field, tbl, modal, pill…). */
+
+.adm__login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(166, 79, 214, 0.14), transparent 60%),
+    radial-gradient(1000px 500px at 100% 110%, rgba(122, 79, 240, 0.14), transparent 60%),
+    #fdfbf7;
+}
+
+.adm__loginbox {
+  width: 100%;
+  max-width: 400px;
+  padding: 30px 28px;
+}
+
+.adm__loginbrand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.adm__logintitle {
+  font-family: var(--font-display, serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink, #2c2336);
+  margin: 0 0 2px;
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}

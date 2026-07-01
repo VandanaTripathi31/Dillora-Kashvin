@@ -10,21 +10,32 @@ import { useWishlist } from '@/context/WishlistContext';
 import { useSettings } from '@/context/SettingsContext';
 
 export function Logo({ size = 26, light = false }) {
+  // On dark / purple backgrounds (footer, mobile drawer) the brand logo PNG —
+  // purple artwork + dark script — wouldn't read, so we keep a white wordmark
+  // there. On the light header we show the real brand logo image.
+  if (light) {
+    return (
+      <Link href="/" className="dilora-logo" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
+        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.02 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: size, letterSpacing: '.3px', color: '#fff' }}>
+            Dillora
+          </span>
+          <span style={{ fontSize: size * 0.38, color: 'rgba(255,255,255,.8)', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
+            by Kashvin
+          </span>
+        </span>
+      </Link>
+    );
+  }
+
   return (
-    <Link href="/" className="dilora-logo" style={{ display:'flex', alignItems:'center', gap:10 }}>
-      <img src="/logo-header.png" alt="Dillora by Kashvin emblem"
-           style={{ height: size*1.55, width:'auto', display:'block' }} />
-      <span style={{ display:'flex', flexDirection:'column', lineHeight:1.05 }}>
-        <span style={{
-          fontFamily:'var(--font-display)', fontWeight:600, fontSize:size, letterSpacing:'.5px',
-          color: light ? '#fff' : 'var(--ink)'
-        }}>
-          Dillora
-        </span>
-        <span style={{ fontSize: size*0.4, color: light ? 'rgba(255,255,255,.8)':'var(--ink-soft)', fontWeight:500, letterSpacing:'.5px' }}>
-          by Kashvin
-        </span>
-      </span>
+    <Link href="/" className="dilora-logo group" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }} aria-label="Dillora by Kashvin — home">
+      <img
+        src="/logo.png"
+        alt="Dillora by Kashvin"
+        className="transition-transform duration-300 group-hover:scale-[1.04]"
+        style={{ height: size * 2.15, width: 'auto', display: 'block' }}
+      />
     </Link>
   );
 }

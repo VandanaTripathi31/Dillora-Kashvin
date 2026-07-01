@@ -1,0 +1,43 @@
+# ---- dependencies ----
+node_modules/
+**/node_modules/
+
+# ---- next.js / build output ----
+.next/
+**/.next/
+out/
+build/
+dist/
+
+# ---- env / secrets (NEVER commit real values) ----
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+# keep the examples
+!.env.example
+!**/.env.example
+!.env.local.example
+!**/.env.local.example
+
+# ---- logs ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- misc ----
+.DS_Store
+*.pem
+coverage/
+.vscode/
+.idea/
+
+# ---- backend uploads (keep the folder, not its contents) ----
+Backend/uploads/*
+!Backend/uploads/.gitkeep
+
+# ---- temporary local-demo helper (in-memory Mongo runner) ----
+Backend/_*.mjs

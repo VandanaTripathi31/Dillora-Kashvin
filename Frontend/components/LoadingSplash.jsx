@@ -3,28 +3,29 @@ import { useEffect, useState } from 'react';
 
 // Branded splash shown briefly while the app boots (first load only per session).
 export default function LoadingSplash() {
-  const [gone, setGone] = useState(() => {
-    try { return sessionStorage.getItem('dilora_booted') === '1'; } catch { return false; }
-  });
+  // Start false on BOTH server and client so the first render matches (no
+  // hydration mismatch). The sessionStorage check runs after mount instead.
+  const [gone, setGone] = useState(false);
   const [fade, setFade] = useState(false);
 
   useEffect(() => {
-    if (gone) return;
-    const t1 = setTimeout(() => setFade(true), 900);
+    let booted = false;
+    try { booted = sessionStorage.getItem('dilora_booted') === '1'; } catch {}
+    if (booted) { setGone(true); return; }
+    const t1 = setTimeout(() => setFade(true), 500);
     const t2 = setTimeout(() => {
       setGone(true);
       try { sessionStorage.setItem('dilora_booted', '1'); } catch {}
-    }, 1300);
+    }, 750);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [gone]);
+  }, []);
 
   if (gone) return null;
 
   return (
     <div className={`splash ${fade ? 'splash--out' : ''}`} aria-hidden="true">
       <div className="splash__inner">
-        <img src="/logo-header.png" alt="" className="splash__logo" />
-        <div className="splash__name">Dillora <span>by Kashvin</span></div>
+        <img src="/logo.png" alt="Dillora by Kashvin" className="splash__logo" />
         <div className="splash__bar"><span /></div>
       </div>
     </div>

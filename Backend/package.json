@@ -1,15 +1,24 @@
 {
-  "name": "backend",
+  "name": "dillora-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Dillora storefront REST API — Node.js + Express + MongoDB",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node seed/seed.js",
+    "seed:destroy": "node seed/seed.js --destroy",
+    "migrate:images": "node seed/migrateImages.js"
   },
-  "keywords": [],
+  "keywords": [
+    "dillora",
+    "ecommerce",
+    "express",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",

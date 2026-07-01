@@ -1,0 +1,4 @@
+/* Only utilities + components — NOT base — so Tailwind classes work
+   without resetting the existing app.css design (preflight off). */
+@tailwind components;
+@tailwind utilities;

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/data/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -33,11 +33,11 @@ export default function ProductReviews({ productId }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
 
-  const load = () => {
+  const load = useCallback(() => {
     api.getReviews(productId).then(setReviews);
     api.canReview(productId, user?.phone).then(setEligible);
-  };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [productId, user?.phone]);
+  }, [productId, user?.phone]);
+  useEffect(() => { load(); }, [load]);
 
   const submit = async () => {
     if (!rating) { setMsg('Please pick a star rating.'); return; }

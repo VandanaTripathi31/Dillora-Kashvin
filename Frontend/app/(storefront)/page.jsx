@@ -1,25 +1,21 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Sparkles, ArrowRight, Heart, Truck } from 'lucide-react';
 
-import { CATEGORIES } from '@/data/catalog';
+import { useCategories } from '@/context/CategoriesContext';
 import { api } from '@/data/api';
 import { ProductCard, Spinner } from '@/components/UI';
 import Reveal from '@/components/Reveal';
+import Testimonials from '@/components/Testimonials';
+import CategoryStrip from '@/components/CategoryStrip';
 import Reels from '@/components/Reels';
 import HeroSparkles from '@/components/HeroSparkles';
 import AnimatedCounter from '@/components/AnimatedCounter';
 
-const CAT_IMG = {
-  'mobile-covers': 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&w=600&q=80',
-  'mobile-charms': 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=600&q=80',
-  'tshirts':       'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80',
-  'crochet':       'https://images.unsplash.com/photo-1606041008023-472dfb5e530f?auto=format&fit=crop&w=600&q=80',
-  'resin-art':     'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?auto=format&fit=crop&w=600&q=80',
-};
-
 export default function Home() {
   const [best, setBest] = useState(null);
+  const { categories } = useCategories();
   useEffect(() => { api.getBestsellers(8).then(setBest); }, []);
 
   return (
@@ -31,10 +27,10 @@ export default function Home() {
           <div className="hero__mesh hero__mesh--2" />
           <div className="hero__mesh hero__mesh--3" />
         </div>
-        <HeroSparkles count={16} />
+        <HeroSparkles count={18} />
         <div className="container hero__inner">
           <div className="hero__copy">
-            <span className="hero__eyebrow">Handmade in India · Made to order</span>
+            <span className="hero__eyebrow"><Sparkles /> Handmade in India · Made to order</span>
             <h1 className="hero__title">Little things,<br/><span className="hero__title-italic">made with love.</span></h1>
             <p className="hero__sub">
               Phone covers, charms, crochet &amp; resin art — each piece crafted by hand,
@@ -44,49 +40,66 @@ export default function Home() {
               <Link href="/c/mobile-covers" className="btn btn-primary btn-lg">Shop the collection</Link>
               <Link href="/c/resin-art" className="btn btn-ghost btn-lg">Explore Resin Art</Link>
             </div>
-            <div className="hero__trust">
-              <span>★ 4.8 rated</span><i/><span>8,000+ happy customers</span><i/><span>Free shipping ₹299+</span>
+            <div className="hero__social">
+              <div className="hero__avatars" aria-hidden="true">
+                {[['A','#a64fd6','#7a4ff0'],['K','#e57fc4','#a64fd6'],['M','#8b63ef','#bd80e0'],['R','#f5a623','#e57fc4']].map(([l,c1,c2]) => (
+                  <span key={l} style={{ background:`linear-gradient(135deg,${c1},${c2})` }}>{l}</span>
+                ))}
+              </div>
+              <div className="hero__socialtext">
+                <strong>8,000+</strong><span>happy customers</span>
+              </div>
+              <div className="hero__socialdiv" />
+              <div className="hero__rate">
+                <b>★★★★★</b><span>4.8 average rating</span>
+              </div>
             </div>
           </div>
+
           <div className="hero__art" aria-hidden="true">
-            <div className="hero__card hero__card--1">
-              <img src="https://images.unsplash.com/photo-1606041008023-472dfb5e530f?auto=format&fit=crop&w=600&q=80" alt="" />
+            <div className="hero__halo" />
+            <div className="hero__blob hero__blob--main">
+              <img src="/images/resin-art/wall-clock/01.jpg" alt="" />
             </div>
-            <div className="hero__card hero__card--2">
-              <img src="https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&w=400&q=80" alt="" />
+            <div className="hero__blob hero__blob--2">
+              <img src="/images/mobile-covers/soft-case/01.jpg" alt="" />
             </div>
-            <div className="hero__card hero__card--3">
-              <img src="https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?auto=format&fit=crop&w=400&q=80" alt="" />
+            <div className="hero__blob hero__blob--3">
+              <img src="/images/crochet/coin-pouch/01.jpg" alt="" />
             </div>
+            <div className="hero__badge hero__badge--rating">
+              <span className="hero__badgeicon">★</span>
+              <div><b>4.8 / 5</b><span>2,000+ reviews</span></div>
+            </div>
+            <div className="hero__badge hero__badge--made">🧶 100% Handmade</div>
           </div>
         </div>
       </section>
 
       {/* Category strip */}
-      <section className="container catstrip">
-        {CATEGORIES.map(c => (
-          <Link key={c.id} href={`/c/${c.id}`} className="catstrip__item">
-            <div className="catstrip__circle"><img src={CAT_IMG[c.id]} alt={c.name} /></div>
-            <span>{c.name}</span>
-          </Link>
-        ))}
-      </section>
+      <CategoryStrip />
 
-      {/* Craft story band */}
-      <section className="craft">
+      {/* About us / craft story band */}
+      <section className="craft" id="about">
         <div className="container craft__inner">
-          <Reveal className="craft__media">
+          <Reveal className="craft__media shine-img">
             <img src="https://images.unsplash.com/photo-1632765854612-9b02b6ec2b15?auto=format&fit=crop&w=700&q=80" alt="Handmade crafting" />
           </Reveal>
           <Reveal className="craft__copy" delay={120}>
-            <span className="eyebrow">Our craft</span>
+            <span className="craft__eyebrow">About us · Our craft</span>
             <h2>Made by hand,<br/>made to last.</h2>
             <p>
-              Every Dillora piece begins as an idea and is shaped slowly, by hand — poured,
+              Dillora by Kashvin began with a simple idea — that the little things we carry
+              every day should feel personal. Each piece is shaped slowly, by hand — poured,
               stitched, beaded and finished with care. No mass production, no shortcuts.
               Just little things made with a lot of love.
             </p>
-            <Link href="/c/crochet" className="craft__link">See how it's made →</Link>
+            <ul className="craft__points">
+              <li><span className="craft__ico"><Sparkles /></span> Hand-poured, stitched &amp; beaded in-house</li>
+              <li><span className="craft__ico"><Heart /></span> Made to order — crafted just for you</li>
+              <li><span className="craft__ico"><Truck /></span> Lovingly packed &amp; delivered pan-India</li>
+            </ul>
+            <Link href="/c/crochet" className="btn btn-primary craft__btn">See how it&apos;s made <ArrowRight /></Link>
           </Reveal>
         </div>
       </section>
@@ -117,7 +130,7 @@ export default function Home() {
       <Reels />
 
       {/* Per-category sections */}
-      {CATEGORIES.map(cat => <CategorySection key={cat.id} cat={cat} />)}
+      {categories.map(cat => <CategorySection key={cat.id} cat={cat} />)}
 
       {/* Bestsellers */}
       <section className="container section">
@@ -135,27 +148,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section className="testi">
-        <div className="container">
-          <div className="testi__head">
-            <span className="eyebrow">Loved &amp; shared</span>
-            <h2>What our customers say</h2>
-          </div>
-          <div className="testi__grid">
-            {[
-              { q: 'The resin wall clock is even prettier in person. You can tell it was made by hand.', n: 'Aarohi M.', t: 'Pune' },
-              { q: 'My phone cover is exactly the design I wanted. So many compliments already!', n: 'Sara K.', t: 'Bengaluru' },
-              { q: 'Ordered crochet flowers for my mom — packaging and quality were lovely.', n: 'Rohan V.', t: 'Mumbai' },
-            ].map((t, i) => (
-              <Reveal key={i} delay={i * 90} className="testi__card">
-                <div className="testi__stars">★★★★★</div>
-                <p>"{t.q}"</p>
-                <span className="testi__name">{t.n} · <em>{t.t}</em></span>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Testimonials />
 
       {/* Reassurance band */}
       <section className="band">
@@ -170,31 +163,70 @@ export default function Home() {
   );
 }
 
+// Each category gets a soft, on-brand panel theme so the homepage reads as a
+// sequence of distinct collections instead of one long white canvas.
+const CAT_THEME = {
+  'mobile-covers': { panel: 'linear-gradient(135deg,#faf5fe 0%,#f3e9fb 100%)', border: 'rgba(166,79,214,.16)', blob: 'rgba(166,79,214,.22)', accent: '#7a2c98', bar: 'linear-gradient(90deg,#a64fd6,#7a4ff0)' },
+  'mobile-charms': { panel: 'linear-gradient(135deg,#fdf5fb 0%,#fbe6f3 100%)', border: 'rgba(229,127,196,.20)', blob: 'rgba(229,127,196,.24)', accent: '#a32c83', bar: 'linear-gradient(90deg,#e57fc4,#a64fd6)' },
+  'crochet':       { panel: 'linear-gradient(135deg,#f6f2fe 0%,#ece4fd 100%)', border: 'rgba(139,99,239,.18)', blob: 'rgba(139,99,239,.22)', accent: '#5a34c2', bar: 'linear-gradient(90deg,#8b63ef,#a64fd6)' },
+  'resin-art':     { panel: 'linear-gradient(135deg,#f3f1fe 0%,#eaeefb 100%)', border: 'rgba(122,79,240,.18)', blob: 'rgba(122,79,240,.22)', accent: '#5733c9', bar: 'linear-gradient(90deg,#7a4ff0,#e57fc4)' },
+  'tshirts':       { panel: 'linear-gradient(135deg,#fff8f2 0%,#ffe9da 100%)', border: 'rgba(247,181,138,.30)', blob: 'rgba(247,181,138,.30)', accent: '#9a5a2a', bar: 'linear-gradient(90deg,#f7b58a,#e57fc4)' },
+};
+
 function CategorySection({ cat }) {
   const [items, setItems] = useState(null);
   useEffect(() => { api.getByCategory(cat.id).then(list => setItems(list.slice(0, 4))); }, [cat.id]);
 
+  const t = CAT_THEME[cat.id] || CAT_THEME['mobile-covers'];
+
   return (
-    <section className="container section">
-      <div className="section__head">
-        <div>
-          <h2>{cat.name}</h2>
-          <span className="muted">{cat.tagline}</span>
+    <section className="max-w-[1240px] mx-auto px-4 sm:px-5 py-6 sm:py-8">
+      <div
+        className="relative overflow-hidden rounded-[28px] sm:rounded-[34px] border px-5 sm:px-10 py-9 sm:py-12"
+        style={{ background: t.panel, borderColor: t.border, boxShadow: '0 12px 40px -18px rgba(122,79,240,.28)' }}
+      >
+        {/* decorative colour blob */}
+        <div className="pointer-events-none absolute -top-20 -right-16 w-72 h-72 rounded-full blur-3xl"
+             style={{ background: t.blob }} aria-hidden="true" />
+
+        {/* header */}
+        <div className="relative flex items-end justify-between gap-4 flex-wrap mb-6">
+          <div>
+            <h2 className="font-display text-[1.7rem] sm:text-4xl font-semibold leading-tight" style={{ color: '#2c2336' }}>{cat.name}</h2>
+            <div className="h-[3px] w-11 rounded-full mt-3 mb-2.5" style={{ background: t.bar }} />
+            <p className="text-sm" style={{ color: '#6b5f78' }}>{cat.tagline}</p>
+          </div>
+          <Link
+            href={`/c/${cat.id}`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold bg-white/80 backdrop-blur border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md whitespace-nowrap"
+            style={{ color: t.accent, borderColor: t.border }}
+          >
+            View all <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
-        <Link href={`/c/${cat.id}`} className="section__all">View all →</Link>
-      </div>
-      <div className="subpills">
-        {cat.subs.map(s => (
-          <Link key={s.id} href={`/c/${cat.id}/${s.id}`} className="subpill">{s.name}</Link>
-        ))}
-      </div>
-      {!items ? <Spinner /> : (
-        <div className="grid">
-          {items.map((p, i) => (
-            <Reveal key={p.id} delay={i * 70}><ProductCard product={p} /></Reveal>
+
+        {/* sub-category chips */}
+        <div className="relative flex flex-wrap gap-2.5 mb-8">
+          {cat.subs.map(s => (
+            <Link
+              key={s.id}
+              href={`/c/${cat.id}/${s.id}`}
+              className="px-4 py-2 rounded-full text-[0.84rem] font-semibold text-ink-soft bg-white/85 backdrop-blur border border-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:text-white hover:border-transparent hover:shadow-lg hover:bg-gradient-to-br hover:from-orchid-500 hover:to-violet-500"
+            >
+              {s.name}
+            </Link>
           ))}
         </div>
-      )}
+
+        {/* products */}
+        {!items ? <Spinner /> : (
+          <div className="grid relative">
+            {items.map((p, i) => (
+              <Reveal key={p.id} delay={i * 70}><ProductCard product={p} /></Reveal>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
