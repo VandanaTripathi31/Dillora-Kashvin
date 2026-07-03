@@ -1,17 +1,20 @@
 import { v2 as cloudinary } from "cloudinary";
-
+console.log("CLOUDINARY ENV CHECK:", {
+  cloud: process.env.CLOUDINARY_CLOUD_NAME,
+  key: process.env.CLOUDINARY_API_KEY,
+  secret: process.env.CLOUDINARY_API_SECRET ? "present" : "MISSING",
+});
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true,
 });
-
 export const isCloudinaryConfigured = () =>
   Boolean(
     process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET,
   );
 
 /**
@@ -20,7 +23,10 @@ export const isCloudinaryConfigured = () =>
  * @param {object} options  { folder, resourceType }
  * @returns {Promise<{url:string, publicId:string, resourceType:string}>}
  */
-export const uploadBuffer = (buffer, { folder = "dillora", resourceType = "image" } = {}) =>
+export const uploadBuffer = (
+  buffer,
+  { folder = "dillora", resourceType = "image" } = {},
+) =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: resourceType },
@@ -31,7 +37,7 @@ export const uploadBuffer = (buffer, { folder = "dillora", resourceType = "image
           publicId: result.public_id,
           resourceType: result.resource_type,
         });
-      }
+      },
     );
     stream.end(buffer);
   });
