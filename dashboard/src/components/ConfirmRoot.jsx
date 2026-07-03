@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 // Promise-based confirm dialog. Usage:
@@ -18,6 +18,11 @@ export function confirmDialog(opts) {
 export default function ConfirmRoot() {
   const [state, setState] = useState(null);
 
+  const done = useCallback((val) => {
+    setState(null);
+    if (resolver) { resolver(val); resolver = null; }
+  }, []);
+
   useEffect(() => {
     const onAsk = (e) => setState(e.detail || {});
     window.addEventListener('dilora:confirm', onAsk);
@@ -32,11 +37,10 @@ export default function ConfirmRoot() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [state]);
+  }, [state, done]);
 
   if (!state) return null;
 
-  const done = (val) => { setState(null); if (resolver) { resolver(val); resolver = null; } };
   const danger = state.danger !== false; // default to danger styling
 
   return (

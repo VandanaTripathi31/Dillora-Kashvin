@@ -99,7 +99,7 @@ export default function Home() {
               <li><span className="craft__ico"><Heart /></span> Made to order — crafted just for you</li>
               <li><span className="craft__ico"><Truck /></span> Lovingly packed &amp; delivered pan-India</li>
             </ul>
-            <Link href="/c/crochet" className="btn btn-primary craft__btn">See how it&apos;s made <ArrowRight /></Link>
+            <Link href="/about" className="btn btn-primary craft__btn">See how it&apos;s made <ArrowRight /></Link>
           </Reveal>
         </div>
       </section>
@@ -151,12 +151,19 @@ export default function Home() {
       <Testimonials />
 
       {/* Reassurance band */}
-      <section className="band">
-        <div className="container band__grid">
-          <div><strong>Made to order</strong><span>Every piece crafted after you order</span></div>
-          <div><strong>Free shipping</strong><span>On prepaid orders over ₹299</span></div>
-          <div><strong>Pan-India delivery</strong><span>Delivered across the country</span></div>
-          <div><strong>Pay your way</strong><span>Online or half-COD</span></div>
+      <section className="mx-auto mt-6 max-w-[1240px] rounded-[28px] bg-[linear-gradient(120deg,#f1e2fb,#fbe2f4_50%,#ffe7d8)]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-10 py-10">
+          {[
+            ['Made to order', 'Every piece crafted after you order'],
+            ['Free shipping', 'On prepaid orders over ₹299'],
+            ['Pan-India delivery', 'Delivered across the country'],
+            ['Pay your way', 'Online or half-COD'],
+          ].map(([title, desc]) => (
+            <div key={title} className="flex flex-col gap-1">
+              <strong className="font-display text-[1.05rem] text-orchid-600">{title}</strong>
+              <span className="text-[0.88rem] text-ink-soft">{desc}</span>
+            </div>
+          ))}
         </div>
       </section>
     </div>

@@ -14,6 +14,7 @@ import couponRoutes from "./routes/couponRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/settings", settingRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // --- Errors ---
 app.use(notFound);

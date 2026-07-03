@@ -102,23 +102,42 @@ export function ProductCard({ product }) {
   const heart = (e) => { e.preventDefault(); toggle(product.id); };
 
   return (
-    <Link href={`/product/${product.id}`} className="product-card">
-      <div className="product-card__media">
-        <Image src={product.image} alt={product.name} fill sizes="(max-width: 600px) 50vw, 25vw" style={{ objectFit: 'cover' }} />
-        {off > 0 && <span className="product-card__badge">{off}% off</span>}
-        <button className={`product-card__heart ${wished ? 'product-card__heart--on' : ''}`}
-                onClick={heart} aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}>
+    <Link
+      href={`/product/${product.id}`}
+      className="group relative block overflow-hidden rounded-[18px] border border-transparent bg-white shadow-card transition-[transform,box-shadow] duration-300 ease-brand hover:-translate-y-1.5 hover:border-orchid-100 hover:shadow-glow-brand"
+    >
+      <div className="relative aspect-square overflow-hidden bg-cream-2">
+        <Image
+          src={product.image}
+          alt={product.name}
+          fill
+          sizes="(max-width: 600px) 50vw, 25vw"
+          className="object-cover transition-transform duration-[550ms] ease-brand group-hover:scale-[1.07]"
+        />
+        {off > 0 && (
+          <span className="absolute left-3 top-3 rounded-full bg-violet-500 px-[11px] py-[5px] text-[0.72rem] font-bold text-white shadow-[0_4px_12px_rgba(122,79,240,.3)]">
+            {off}% off
+          </span>
+        )}
+        <button
+          onClick={heart}
+          aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
+          className={`absolute right-2.5 top-2.5 z-[3] grid h-[34px] w-[34px] place-items-center rounded-full bg-white/[.92] shadow-soft backdrop-blur-[6px] transition duration-150 hover:scale-[1.08] hover:text-violet-500 ${wished ? 'text-violet-500' : 'text-ink-soft'}`}
+        >
           <svg width="18" height="18" viewBox="0 0 24 24" fill={wished ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
             <path d="M12 21s-7.5-4.7-10-9.3C.5 8.5 2 5 5.3 5c2 0 3.3 1.2 4.2 2.4C10.4 6.2 11.7 5 13.7 5 17 5 18.5 8.5 17 11.7 14.5 16.3 12 21 12 21z"/>
           </svg>
         </button>
-        <button className="product-card__quick" onClick={quickAdd}>
+        <button
+          onClick={quickAdd}
+          className="absolute inset-x-3 bottom-3 z-[3] translate-y-3.5 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-0 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
+        >
           {needsOptions ? 'Choose options' : '+ Quick add'}
         </button>
       </div>
-      <div className="product-card__body">
-        <h3 className="product-card__name">{product.name}</h3>
-        <div style={{ margin: '2px 0 6px' }}><Rating id={product.id} showCount={false} /></div>
+      <div className="px-[18px] pb-5 pt-4">
+        <h3 className="mb-1.5 font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">{product.name}</h3>
+        <div className="mb-1.5 mt-0.5"><Rating id={product.id} showCount={false} /></div>
         <Price price={product.price} mrp={product.mrp} />
       </div>
     </Link>

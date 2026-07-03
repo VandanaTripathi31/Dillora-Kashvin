@@ -29,6 +29,14 @@ const orderSchema = new mongoose.Schema(
     total: Number,
     coupon: { type: mongoose.Schema.Types.Mixed, default: undefined },
     payment: { type: String, default: "online" },
+    // Razorpay (or other gateway) specifics — only set for verified online payments.
+    paymentDetails: {
+      provider: String,
+      status: String,
+      razorpayOrderId: String,
+      razorpayPaymentId: String,
+      razorpaySignature: String,
+    },
     status: { type: String, default: "Processing" },
     // Stored as a numeric ms timestamp to match the storefront's shape.
     createdAt: { type: Number, default: () => Date.now() },

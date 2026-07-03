@@ -28,8 +28,13 @@ export default function DashLayout({ children }) {
   const { ready, isAuthed, admin, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
-  // close the mobile drawer on navigation
-  useEffect(() => { setOpen(false); }, [pathname]);
+  // close the mobile drawer on navigation — adjust state during render (the
+  // React-recommended alternative to calling setState inside an effect)
+  const [navPath, setNavPath] = useState(pathname);
+  if (pathname !== navPath) {
+    setNavPath(pathname);
+    setOpen(false);
+  }
 
   // route guard — send unauthenticated visitors to the login page
   useEffect(() => {

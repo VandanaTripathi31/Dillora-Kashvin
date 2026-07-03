@@ -5,10 +5,11 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/data/api';
+import { loadRazorpayScript } from '@/lib/razorpay';
 
-// NOTE: Payment is mocked for the demo. When Razorpay is integrated later,
-// 'online' and the online half of 'half-cod' will open Razorpay checkout
-// from here. The order shape sent to api.createOrder stays the same.
+// Both options collect an online payment now (full amount, or the 50% "pay now"
+// for half-cod), so both open Razorpay Checkout. The order is only persisted
+// after the payment signature is verified on the backend.
 const PAYMENTS = [
   { id:'online',  title:'Pay online',        desc:'UPI / Card / Netbanking (full amount)' },
   { id:'half-cod',title:'Half online + COD', desc:'Pay 50% now, rest on delivery' },
@@ -57,6 +58,24 @@ export default function Checkout() {
 
   const removeCoupon = () => { setCoupon(null); setCouponInput(''); setCouponMsg(''); };
 
+  // Build the order payload sent to the backend (shape unchanged).
+  const buildOrderPayload = () => ({
+    customer: { name: form.name, phone: form.phone, email: form.email,
+                address: `${form.address}, ${form.city} ${form.pincode}` },
+    userPhone: user?.phone || form.phone,
+    items: items.map(l => ({ name:l.name, options:l.options, qty:l.qty, price:l.price, refPhoto:l.refPhoto || null, category:l.category || null, productId:l.productId, image:l.image })),
+    subtotal, discount, coupon: coupon?.code || null,
+    total, payment, payNow,
+  });
+
+  const finishOrder = (order) => {
+    // save address for signed-in users
+    if (user) saveAddress({ name: form.name, phone: form.phone, address: form.address, city: form.city, pincode: form.pincode });
+    setPlaced(true);
+    clear();
+    router.push(`/order/${order.id}`);
+  };
+
   const placeOrder = async () => {
     if (!form.name || !form.phone || !form.address || !form.city || !form.pincode) {
       setError('Please fill in your name, phone, address, city and pincode.'); return;
@@ -65,20 +84,57 @@ export default function Checkout() {
     if (!/^\d{6}$/.test(form.pincode)) { setError('Enter a valid 6-digit pincode.'); return; }
     setError(''); setPlacing(true);
 
-    const order = await api.createOrder({
-      customer: { name: form.name, phone: form.phone, email: form.email,
-                  address: `${form.address}, ${form.city} ${form.pincode}` },
-      userPhone: user?.phone || form.phone,
-      items: items.map(l => ({ name:l.name, options:l.options, qty:l.qty, price:l.price, refPhoto:l.refPhoto || null, category:l.category || null, productId:l.productId, image:l.image })),
-      subtotal, discount, coupon: coupon?.code || null,
-      total, payment,
-      payNow,
-    });
-    // save address for signed-in users
-    if (user) saveAddress({ name: form.name, phone: form.phone, address: form.address, city: form.city, pincode: form.pincode });
-    clear();
-    setPlaced(true);
-    router.push(`/order/${order.id}`);
+    const orderPayload = buildOrderPayload();
+
+    try {
+      // 1) Make sure the Razorpay Checkout script is available.
+      const ready = await loadRazorpayScript();
+      if (!ready) throw new Error('Could not load the payment gateway. Check your connection and try again.');
+
+      // 2) Ask the backend to create a Razorpay order for the "pay now" amount.
+      const rzp = await api.createPaymentOrder(payNow);
+
+      // 3) Open Razorpay Checkout.
+      const options = {
+        key: rzp.keyId,
+        amount: rzp.amount,
+        currency: rzp.currency,
+        order_id: rzp.orderId,
+        name: 'Dillora by Kashvin',
+        description: payment === 'half-cod' ? 'Pay 50% now — balance on delivery' : 'Order payment',
+        prefill: { name: form.name, email: form.email, contact: form.phone },
+        theme: { color: '#a64fd6' },
+        // 4) On success, verify the signature server-side; the order is created only if valid.
+        handler: async (response) => {
+          try {
+            const order = await api.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              order: orderPayload,
+            });
+            finishOrder(order);
+          } catch (err) {
+            setPlacing(false);
+            setError(err.message || 'We could not confirm your payment. If you were charged, contact us with your payment id.');
+          }
+        },
+        modal: {
+          // User closed the popup without paying.
+          ondismiss: () => { setPlacing(false); setError('Payment cancelled. Your cart is saved — you can try again.'); },
+        },
+      };
+
+      const rzpCheckout = new window.Razorpay(options);
+      rzpCheckout.on('payment.failed', (resp) => {
+        setPlacing(false);
+        setError(resp?.error?.description || 'Payment failed. Please try again.');
+      });
+      rzpCheckout.open();
+    } catch (err) {
+      setPlacing(false);
+      setError(err.message || 'Something went wrong while starting the payment.');
+    }
   };
 
   return (
@@ -111,7 +167,7 @@ export default function Checkout() {
                 </label>
               ))}
             </div>
-            <p className="checkout__demo">Demo mode — no real payment is charged. Razorpay connects here later.</p>
+            <p className="checkout__demo">🔒 Secure payment powered by Razorpay — UPI, cards &amp; netbanking supported.</p>
           </section>
         </div>
 

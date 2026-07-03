@@ -11,20 +11,24 @@ export function AuthProvider({ children }) {
   // Restore session on mount: if a token exists, verify it via /auth/me.
   useEffect(() => {
     let alive = true;
-    const token = getToken();
-    if (!token) {
-      setReady(true);
-      return;
-    }
-    api
-      .me()
-      .then((res) => {
+    const restore = async () => {
+      const token = getToken();
+      if (!token) {
+        if (alive) setReady(true);
+        return;
+      }
+      try {
+        const res = await api.me();
         if (!alive) return;
         if (res && res.admin) setAdmin(res.admin);
         else setToken(null);
-      })
-      .catch(() => setToken(null))
-      .finally(() => alive && setReady(true));
+      } catch {
+        setToken(null);
+      } finally {
+        if (alive) setReady(true);
+      }
+    };
+    restore();
     return () => {
       alive = false;
     };

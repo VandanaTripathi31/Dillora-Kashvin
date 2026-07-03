@@ -15,6 +15,10 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // Cart/wishlist counts come from localStorage, so they're 0 on the server and
+  // real on the client. Gate the badges behind `mounted` to avoid a hydration
+  // mismatch (badge only renders after the first client render).
+  const [mounted, setMounted] = useState(false);
   const { count } = useCart();
   const { count: wishCount } = useWishlist();
   const { categories } = useCategories();
@@ -32,6 +36,8 @@ export default function Header() {
     mql.addEventListener('change', check);
     return () => mql.removeEventListener('change', check);
   }, []);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     document.body.style.overflow = (drawer || searchOpen) ? 'hidden' : '';
@@ -99,14 +105,14 @@ export default function Header() {
             </button>
             <Link href="/wishlist" className="dlr-ic" aria-label="Wishlist">
               <Heart className="w-[20px] h-[20px]" strokeWidth={2} />
-              {wishCount > 0 && <span className="dlr-badge" style={{ background:'#e57fc4' }}>{wishCount}</span>}
+              {mounted && wishCount > 0 && <span className="dlr-badge" style={{ background:'#e57fc4' }}>{wishCount}</span>}
             </Link>
             <Link href="/account" className="dlr-ic" aria-label="Account">
               <User className="w-[20px] h-[20px]" strokeWidth={2} />
             </Link>
             <Link href="/cart" className="dlr-ic" aria-label="Cart">
               <ShoppingBag className="w-[20px] h-[20px]" strokeWidth={2} />
-              {count > 0 && <span className="dlr-badge" style={{ background:'linear-gradient(135deg,#a64fd6,#7a4ff0)' }}>{count}</span>}
+              {mounted && count > 0 && <span className="dlr-badge" style={{ background:'linear-gradient(135deg,#a64fd6,#7a4ff0)' }}>{count}</span>}
             </Link>
           </div>
         </div>
