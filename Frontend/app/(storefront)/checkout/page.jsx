@@ -71,6 +71,9 @@ export default function Checkout() {
   const finishOrder = (order) => {
     // save address for signed-in users
     if (user) saveAddress({ name: form.name, phone: form.phone, address: form.address, city: form.city, pincode: form.pincode });
+    // Stash the just-placed order so the confirmation page can show it without
+    // needing an admin token (GET /api/orders is admin-only).
+    try { sessionStorage.setItem('dilora_last_order', JSON.stringify(order)); } catch { /* ignore */ }
     setPlaced(true);
     clear();
     router.push(`/order/${order.id}`);
@@ -140,11 +143,11 @@ export default function Checkout() {
   return (
     <div className="container section">
       <h1 className="pagetitle">Checkout</h1>
-      <div className="checkout">
-        <div className="checkout__main">
-          <section className="card checkout__card">
-            <h3>Delivery details</h3>
-            <div className="formgrid">
+      <div className="grid grid-cols-1 items-start gap-7 min-[981px]:grid-cols-[1fr_360px]">
+        <div className="flex flex-col gap-5">
+          <section className="card p-6">
+            <h3 className="mb-[18px]">Delivery details</h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Full name" value={form.name} onChange={set('name')} span2 />
               <Field label="Phone (10-digit)" value={form.phone} onChange={set('phone')} />
               <Field label="Email (optional)" value={form.email} onChange={set('email')} />
@@ -154,64 +157,64 @@ export default function Checkout() {
             </div>
           </section>
 
-          <section className="card checkout__card">
-            <h3>Payment method</h3>
-            <div className="paylist">
+          <section className="card p-6">
+            <h3 className="mb-[18px]">Payment method</h3>
+            <div className="flex flex-col gap-3">
               {PAYMENTS.map(p => (
-                <label key={p.id} className={`payopt ${payment===p.id?'payopt--on':''}`}>
-                  <input type="radio" name="pay" value={p.id} checked={payment===p.id} onChange={() => setPayment(p.id)} />
-                  <div>
+                <label key={p.id} className={`flex cursor-pointer items-center gap-3.5 rounded-[14px] border-[1.5px] p-4 transition-colors duration-150 ${payment===p.id ? 'border-orchid-500 bg-[#f9f2fd]' : 'border-[#eee3f3]'}`}>
+                  <input type="radio" name="pay" value={p.id} checked={payment===p.id} onChange={() => setPayment(p.id)} className="h-[18px] w-[18px] accent-orchid-500" />
+                  <div className="flex flex-col">
                     <strong>{p.title}</strong>
-                    <span className="muted">{p.desc}</span>
+                    <span className="muted text-[0.85rem]">{p.desc}</span>
                   </div>
                 </label>
               ))}
             </div>
-            <p className="checkout__demo">🔒 Secure payment powered by Razorpay — UPI, cards &amp; netbanking supported.</p>
+            <p className="mt-3.5 rounded-[10px] bg-cream-2 px-3 py-2.5 text-[0.82rem] text-ink-soft">🔒 Secure payment powered by Razorpay — UPI, cards &amp; netbanking supported.</p>
           </section>
         </div>
 
-        <aside className="summary card">
-          <h3>Order summary</h3>
+        <aside className="card static p-[22px] min-[981px]:sticky min-[981px]:top-[90px]">
+          <h3 className="mb-4">Order summary</h3>
           {items.map(l => (
-            <div key={l.lineId} className="summary__item">
+            <div key={l.lineId} className="flex justify-between gap-2.5 border-b border-dashed border-[#eee3f3] py-2 text-[0.9rem]">
               <span>{l.name} <em className="muted">×{l.qty}</em></span>
               <span>₹{(l.price*l.qty).toLocaleString('en-IN')}</span>
             </div>
           ))}
-          <div className="summary__row"><span>Subtotal</span><span>₹{subtotal.toLocaleString('en-IN')}</span></div>
+          <div className="flex justify-between py-2 text-[0.95rem]"><span>Subtotal</span><span>₹{subtotal.toLocaleString('en-IN')}</span></div>
 
           {/* Coupon */}
-          <div className="coupon">
+          <div className="mb-1 border-b border-dashed border-[#eee3f3] py-3">
             {!coupon ? (
               <>
-                <div className="coupon__row">
-                  <input className="coupon__input" value={couponInput}
+                <div className="flex gap-2">
+                  <input className="flex-1 rounded-[10px] border-[1.5px] border-[#eee3f3] px-3 py-2.5 font-semibold uppercase tracking-[0.05em]" value={couponInput}
                          onChange={e => setCouponInput(e.target.value.toUpperCase())}
                          placeholder="Discount code" />
-                  <button className="btn btn-ghost coupon__btn" disabled={checking || !couponInput} onClick={applyCoupon}>
+                  <button className="btn btn-ghost px-4 py-2.5" disabled={checking || !couponInput} onClick={applyCoupon}>
                     {checking ? '…' : 'Apply'}
                   </button>
                 </div>
-                {couponMsg && <p className="coupon__msg">{couponMsg}</p>}
+                {couponMsg && <p className="mt-2 text-[0.82rem] text-[#c4495b]">{couponMsg}</p>}
               </>
             ) : (
-              <div className="coupon__applied">
+              <div className="flex items-center justify-between rounded-[10px] bg-[#f9f2fd] px-3.5 py-2.5 text-[0.9rem] text-orchid-600">
                 <span>✓ <strong>{coupon.code}</strong> applied</span>
-                <button className="cartline__rm" onClick={removeCoupon}>Remove</button>
+                <button className="text-[0.82rem] font-semibold text-[#c4495b]" onClick={removeCoupon}>Remove</button>
               </div>
             )}
           </div>
 
           {discount > 0 && (
-            <div className="summary__row summary__discount"><span>Discount</span><span>−₹{discount.toLocaleString('en-IN')}</span></div>
+            <div className="flex justify-between py-2 text-[0.95rem] font-semibold text-[#3f9d6b]"><span>Discount</span><span>−₹{discount.toLocaleString('en-IN')}</span></div>
           )}
-          <div className="summary__row"><span>Shipping</span><span>{shipping===0?'Free':`₹${shipping}`}</span></div>
-          <div className="summary__row summary__total"><span>Total</span><span>₹{total.toLocaleString('en-IN')}</span></div>
+          <div className="flex justify-between py-2 text-[0.95rem]"><span>Shipping</span><span>{shipping===0?'Free':`₹${shipping}`}</span></div>
+          <div className="mt-2 flex justify-between border-t-[1.5px] border-[#eee3f3] pb-2 pt-3.5 text-[1.1rem] font-bold"><span>Total</span><span>₹{total.toLocaleString('en-IN')}</span></div>
           {payNow > 0 && payNow < total &&
-            <div className="summary__row summary__paynow"><span>Pay now</span><span>₹{payNow.toLocaleString('en-IN')}</span></div>}
-          {error && <p className="opt__err">{error}</p>}
-          <button className="btn btn-primary btn-block" disabled={placing} onClick={placeOrder}>
+            <div className="flex justify-between py-2 text-[0.95rem] font-bold text-orchid-600"><span>Pay now</span><span>₹{payNow.toLocaleString('en-IN')}</span></div>}
+          {error && <p className="my-2 text-[0.9rem] font-semibold text-[#c4495b]">{error}</p>}
+          <button className="btn btn-primary btn-block mt-4" disabled={placing} onClick={placeOrder}>
             {placing ? 'Placing order…' : 'Place order'}
           </button>
         </aside>
@@ -222,9 +225,10 @@ export default function Checkout() {
 
 function Field({ label, value, onChange, span2 }) {
   return (
-    <label className={`field ${span2 ? 'field--2' : ''}`}>
-      <span>{label}</span>
-      <input value={value} onChange={onChange} />
+    <label className={`flex flex-col gap-1.5 ${span2 ? 'sm:col-span-2' : ''}`}>
+      <span className="text-[0.82rem] font-semibold text-ink-soft">{label}</span>
+      <input value={value} onChange={onChange}
+             className="rounded-[10px] border-[1.5px] border-[#eee3f3] bg-white px-[13px] py-[11px] text-ink focus:border-[#cf9eec] focus:outline-none" />
     </label>
   );
 }

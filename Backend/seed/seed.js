@@ -20,8 +20,9 @@ import Video from "../models/Video.js";
 import Setting from "../models/Setting.js";
 import Order from "../models/Order.js";
 import Admin from "../models/Admin.js";
+import Feedback from "../models/Feedback.js";
 
-import { COUPONS, VIDEOS, SETTINGS, DEMO_ORDERS } from "./seedData.js";
+import { COUPONS, VIDEOS, SETTINGS, DEMO_ORDERS, FEEDBACK } from "./seedData.js";
 
 dotenv.config();
 
@@ -79,6 +80,11 @@ async function seed() {
   // Videos
   for (const v of VIDEOS) {
     await Video.updateOne({ id: v.id }, { $set: v }, { upsert: true });
+  }
+
+  // Site testimonials / feedback
+  for (const f of FEEDBACK) {
+    await Feedback.updateOne({ id: f.id }, { $set: f }, { upsert: true });
   }
 
   // Settings (singleton)

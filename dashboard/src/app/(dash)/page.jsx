@@ -57,7 +57,7 @@ export default function Dashboard() {
         <p className="muted">A quick look at how the store is doing.</p>
       </header>
 
-      <div className="stats">
+      <div className="mb-6 grid grid-cols-2 gap-4 min-[901px]:grid-cols-4">
         <Stat icon={Wallet} label="Revenue" value={`₹${revenue.toLocaleString('en-IN')}`} hint="All orders" />
         <Stat icon={ShoppingBag} label="Orders" value={orders.length} hint={`${pending} processing`} />
         <Stat icon={Package} label="Products" value={products.length} hint={`${lowStock} low on stock`} />
@@ -67,11 +67,11 @@ export default function Dashboard() {
       <div className="adm__row">
         <section className="card adm__panel">
           <h3>Last 7 days</h3>
-          <div className="chart">
+          <div className="flex h-[180px] items-end gap-3 pt-4">
             {days.map((d, i) => (
-              <div key={i} className="chart__col">
-                <div className="chart__bar" style={{ height: `${(d.total/max)*100}%` }} title={`₹${d.total}`} />
-                <span>{d.label}</span>
+              <div key={i} className="group flex h-full flex-1 flex-col items-center justify-end gap-2">
+                <div className="min-h-1 w-full max-w-[36px] rounded-t-lg bg-[linear-gradient(#bd7ce2,#cf9eec)] transition-[height,filter] duration-[400ms] group-hover:brightness-[1.08] group-hover:saturate-[1.1]" style={{ height: `${(d.total/max)*100}%` }} title={`₹${d.total}`} />
+                <span className="text-[0.72rem] text-ink-soft">{d.label}</span>
               </div>
             ))}
           </div>
@@ -101,8 +101,8 @@ export default function Dashboard() {
       <div className="adm__row">
         <section className="card adm__panel">
           <h3>Top products</h3>
-          {topProducts.length === 0 ? <p className="muted" style={{marginTop:10}}>No sales yet.</p> : (
-            <table className="tbl" style={{ marginTop: 6 }}>
+          {topProducts.length === 0 ? <p className="muted mt-2.5">No sales yet.</p> : (
+            <table className="tbl mt-1.5">
               <thead><tr><th>Product</th><th>Sold</th><th>Revenue</th></tr></thead>
               <tbody>
                 {topProducts.map(p => (
@@ -119,14 +119,14 @@ export default function Dashboard() {
 
         <section className="card adm__panel">
           <h3>Best categories</h3>
-          <div className="catbars">
-            {topCats.length === 0 ? <p className="muted" style={{marginTop:10}}>No sales yet.</p> : topCats.map(c => (
-              <div key={c.cat} className="catbar">
-                <div className="catbar__row">
+          <div className="mt-2.5 flex flex-col gap-3.5">
+            {topCats.length === 0 ? <p className="muted mt-2.5">No sales yet.</p> : topCats.map(c => (
+              <div key={c.cat}>
+                <div className="mb-1.5 flex justify-between text-[0.88rem] font-semibold">
                   <span>{c.cat}</span>
                   <span className="muted">₹{c.revenue.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="catbar__track"><div className="catbar__fill" style={{ width: `${(c.revenue/catMaxRev)*100}%` }} /></div>
+                <div className="h-2 overflow-hidden rounded-full bg-[#f9f2fd]"><div className="h-full rounded-full bg-[linear-gradient(90deg,#bd7ce2,#8b63ef)] transition-[width] duration-500" style={{ width: `${(c.revenue/catMaxRev)*100}%` }} /></div>
               </div>
             ))}
           </div>
@@ -138,11 +138,11 @@ export default function Dashboard() {
 
 function Stat({ label, value, hint, icon: Icon }) {
   return (
-    <div className="card stat">
-      {Icon && <span className="stat__icon"><Icon className="w-[19px] h-[19px]" /></span>}
-      <span className="stat__label">{label}</span>
-      <span className="stat__value">{value}</span>
-      <span className="stat__hint muted">{hint}</span>
+    <div className="card relative flex flex-col gap-1 rounded-[18px] border border-[rgba(122,79,240,.08)] px-[22px] py-5 transition-[transform,box-shadow] duration-[250ms] ease-brand hover:-translate-y-[3px] hover:shadow-[0_14px_30px_-14px_rgba(122,79,240,.28)]">
+      {Icon && <span className="absolute right-4 top-4 grid h-[38px] w-[38px] place-items-center rounded-[11px] bg-[linear-gradient(135deg,#f9f2fd,#f1e2fb)] text-orchid-600"><Icon className="h-[19px] w-[19px]" /></span>}
+      <span className="text-[0.8rem] font-semibold uppercase tracking-[0.04em] text-ink-soft">{label}</span>
+      <span className="bg-grad-brand bg-clip-text font-display text-[1.9rem] font-semibold text-transparent">{value}</span>
+      <span className="muted text-[0.82rem]">{hint}</span>
     </div>
   );
 }

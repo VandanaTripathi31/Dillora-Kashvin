@@ -39,6 +39,12 @@ module.exports = {
         glow: '0 8px 30px rgba(122,79,240,0.25)',
         'glow-lg': '0 16px 50px rgba(122,79,240,0.30)',
       },
+      backgroundImage: {
+        'grad-brand': 'linear-gradient(135deg, #a64fd6 0%, #8b63ef 55%, #7a4ff0 100%)',
+      },
+      transitionTimingFunction: {
+        brand: 'cubic-bezier(.22,.61,.36,1)',
+      },
       keyframes: {
         shimmer: {
           '0%': { backgroundPosition: '0% center' },

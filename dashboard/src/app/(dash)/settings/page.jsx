@@ -31,30 +31,30 @@ export default function SettingsPage() {
       </header>
 
       {/* Account */}
-      <section className="card adm__panel" style={{ marginBottom: 20 }}>
+      <section className="card adm__panel mb-5">
         <h3>Account</h3>
-        <div className="formgrid" style={{ marginTop: 14 }}>
-          <div className="field field--2" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="stat__icon"><User className="w-[18px] h-[18px]" /></span>
+        <div className="mt-3.5 grid gap-4 sm:grid-cols-2">
+          <div className="flex items-center gap-2.5">
+            <span className="stat__icon"><User className="h-[18px] w-[18px]" /></span>
             <div><strong>{admin?.name || 'Admin'}</strong><br /><small className="muted">Signed-in admin</small></div>
           </div>
-          <div className="field field--2" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="stat__icon"><Mail className="w-[18px] h-[18px]" /></span>
+          <div className="flex items-center gap-2.5">
+            <span className="stat__icon"><Mail className="h-[18px] w-[18px]" /></span>
             <div><strong>{admin?.email || '—'}</strong><br /><small className="muted">Email</small></div>
           </div>
         </div>
       </section>
 
       {/* Store preferences */}
-      <section className="card adm__panel" style={{ marginBottom: 20 }}>
+      <section className="card adm__panel mb-5">
         <div className="adm__panelhead">
-          <h3><Percent className="w-[18px] h-[18px]" style={{ display: 'inline', verticalAlign: '-3px', marginRight: 6 }} />Show sale prices</h3>
+          <h3><Percent className="mr-1.5 inline h-[18px] w-[18px] align-[-3px]" />Show sale prices</h3>
           <label className="switch">
             <input type="checkbox" checked={!!settings.showDiscounts} onChange={e => saveShowDiscounts(e.target.checked)} />
             <span className="switch__slider" />
           </label>
         </div>
-        <p className="muted adm__hint" style={{ marginTop: 0 }}>
+        <p className="muted adm__hint mt-0">
           When <strong>off</strong> (default), every product shows a single clean price. Turn this
           <strong> on</strong> only during a sale — then the cut price and “% off” badges appear across the site.
           (Also available on the Offers page.)
@@ -64,10 +64,10 @@ export default function SettingsPage() {
       {/* Store link */}
       <section className="card adm__panel">
         <div className="adm__panelhead">
-          <h3><Store className="w-[18px] h-[18px]" style={{ display: 'inline', verticalAlign: '-3px', marginRight: 6 }} />Storefront</h3>
+          <h3><Store className="mr-1.5 inline h-[18px] w-[18px] align-[-3px]" />Storefront</h3>
           <a className="btn btn-ghost" href={STORE_URL} target="_blank" rel="noreferrer">Open store ↗</a>
         </div>
-        <p className="muted adm__hint" style={{ marginTop: 0 }}>The public customer website this dashboard manages.</p>
+        <p className="muted adm__hint mt-0">The public customer website this dashboard manages.</p>
       </section>
     </div>
   );

@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag,
-  Clapperboard, Tag, Settings, Store, LogOut, Menu, X,
+  Clapperboard, Tag, Settings, Store, LogOut, Menu, X, MessageSquare,
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -19,6 +19,7 @@ const NAV = [
   { href: '/orders',     label: 'Orders',     icon: ShoppingBag },
   { href: '/reels',      label: 'Reels',      icon: Clapperboard },
   { href: '/offers',     label: 'Offers',     icon: Tag },
+  { href: '/feedback',   label: 'Feedback',   icon: MessageSquare },
   { href: '/settings',   label: 'Settings',   icon: Settings },
 ];
 
@@ -49,52 +50,56 @@ export default function DashLayout({ children }) {
 
   const doLogout = () => { logout(); router.replace('/login'); };
 
+  const navLink = 'flex items-center gap-3 rounded-xl px-[13px] py-[11px] text-[0.92rem] font-semibold transition-[background,color,transform] duration-200';
+  const navOff = 'text-white/70 hover:translate-x-0.5 hover:bg-white/[.08] hover:text-white';
+  const navOn = 'bg-[linear-gradient(135deg,rgba(166,79,214,.95),rgba(122,79,240,.95))] text-white shadow-[0_8px_20px_-6px_rgba(122,79,240,.6)]';
+
   return (
-    <div className="adm">
+    <div className="grid min-h-screen grid-cols-1 bg-[#f5f2fb] min-[901px]:grid-cols-[256px_1fr]">
       {/* Mobile top bar */}
-      <div className="adm__topbar">
-        <button className="adm__burger" aria-label="Open menu" onClick={() => setOpen(true)}><Menu /></button>
-        <span className="adm__topbartitle">{current?.label || 'Admin'}</span>
-        <a className="adm__topstore" href={STORE_URL} target="_blank" rel="noreferrer" aria-label="View store"><Store /></a>
+      <div className="sticky top-0 z-[60] flex items-center justify-between gap-3 border-b border-[#eee3f3] bg-white px-3.5 py-[11px] min-[901px]:hidden">
+        <button className="grid h-10 w-10 cursor-pointer place-items-center rounded-[10px] border-none bg-transparent text-ink hover:bg-[#f9f2fd]" aria-label="Open menu" onClick={() => setOpen(true)}><Menu /></button>
+        <span className="font-display text-[1.1rem] font-semibold">{current?.label || 'Admin'}</span>
+        <a className="grid h-10 w-10 cursor-pointer place-items-center rounded-[10px] border-none bg-transparent text-ink hover:bg-[#f9f2fd]" href={STORE_URL} target="_blank" rel="noreferrer" aria-label="View store"><Store /></a>
       </div>
 
-      {open && <div className="adm__scrim" onClick={() => setOpen(false)} />}
+      {open && <div className="fixed inset-0 z-[110] animate-[admFade_0.2s_ease] bg-[rgba(20,12,30,.5)] min-[901px]:hidden" onClick={() => setOpen(false)} />}
 
-      <aside className={`adm__side ${open ? 'adm__side--open' : ''}`}>
-        <div className="adm__brand">
-          <span className="adm__brandmark">D</span>
-          <span className="adm__brandtext">
-            <strong>Dillora</strong>
-            <span>Admin panel</span>
+      <aside className={`sticky top-0 flex h-screen flex-col gap-1.5 border-r border-white/[.06] bg-[linear-gradient(185deg,#3a2456_0%,#2c2336_58%,#221830_100%)] px-3.5 py-5 text-white max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[120] max-[900px]:w-[min(82vw,280px)] max-[900px]:border-r-0 max-[900px]:transition-transform max-[900px]:duration-[280ms] ${open ? 'max-[900px]:translate-x-0 max-[900px]:shadow-[0_30px_80px_rgba(0,0,0,.45)]' : 'max-[900px]:-translate-x-full'}`}>
+        <div className="flex items-center gap-[11px] px-2 pb-5 pt-1.5">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[linear-gradient(135deg,#a64fd6,#7a4ff0)] font-display text-2xl font-bold leading-none text-white shadow-[0_6px_18px_rgba(122,79,240,.45)]">D</span>
+          <span className="flex flex-col leading-[1.15]">
+            <strong className="font-display text-[1.2rem] font-bold text-white">Dillora</strong>
+            <span className="font-body text-[0.68rem] uppercase tracking-[0.12em] text-white/50">Admin panel</span>
           </span>
-          <button className="adm__sideclose" aria-label="Close menu" onClick={() => setOpen(false)}><X /></button>
+          <button className="ml-auto hidden cursor-pointer border-none bg-transparent text-white/70 max-[900px]:block" aria-label="Close menu" onClick={() => setOpen(false)}><X /></button>
         </div>
 
-        <nav className="adm__nav">
+        <nav className="flex flex-col gap-1">
           {NAV.map(n => {
             const Icon = n.icon;
             const active = n.exact ? pathname === n.href : pathname.startsWith(n.href);
             return (
-              <Link key={n.href} href={n.href} className={`adm__navlink ${active ? 'adm__navlink--on' : ''}`}>
-                <Icon className="adm__navicon" strokeWidth={2} />
+              <Link key={n.href} href={n.href} className={`${navLink} ${active ? navOn : navOff}`}>
+                <Icon className={`h-[19px] w-[19px] shrink-0 ${active ? 'opacity-100' : 'opacity-85'}`} strokeWidth={2} />
                 <span>{n.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="adm__sidefoot">
-          {admin && <div className="muted" style={{ fontSize: 12, padding: '0 4px 8px' }}>Signed in as <strong>{admin.email}</strong></div>}
-          <a className="btn btn-ghost btn-block adm__viewstore" href={STORE_URL} target="_blank" rel="noreferrer">
-            <Store className="w-[18px] h-[18px]" /> View store
+        <div className="mt-auto flex flex-col gap-2 border-t border-white/[.08] pt-3.5">
+          {admin && <div className="muted px-1 pb-2 text-[12px]">Signed in as <strong>{admin.email}</strong></div>}
+          <a className="btn btn-block flex justify-center gap-2 !border !border-white/[.14] !bg-white/[.08] !text-white" href={STORE_URL} target="_blank" rel="noreferrer">
+            <Store className="h-[18px] w-[18px]" /> View store
           </a>
-          <button className="adm__reset" onClick={doLogout}>
-            <LogOut className="w-4 h-4" /> Log out
+          <button className="flex cursor-pointer items-center justify-center gap-2 border-none bg-transparent p-1.5 text-[0.8rem] text-white/45 hover:text-white/80" onClick={doLogout}>
+            <LogOut className="h-4 w-4" /> Log out
           </button>
         </div>
       </aside>
 
-      <main className="adm__main">{children}</main>
+      <main className="overflow-x-auto bg-[#f5f2fb]">{children}</main>
     </div>
   );
 }

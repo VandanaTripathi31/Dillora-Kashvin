@@ -73,6 +73,13 @@
 }
 
 * { box-sizing: border-box; }
+/* Tailwind composes translate/scale/rotate into one `transform` from these CSS
+   vars. Preflight is disabled, so their defaults aren't auto-injected — without
+   them any var-based transform (hover lifts, image zoom, centering) computes to `none`. */
+*, ::before, ::after {
+  --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0;
+  --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1;
+}
 html { scroll-behavior: smooth; }
 body {
   margin: 0;

@@ -6,7 +6,7 @@ export function Spinner({ label = 'Loading' }) {
       <div className="spinner__dot" />
       <div className="spinner__dot" />
       <div className="spinner__dot" />
-      <span className="sr-only" style={{ position: 'absolute', left: -9999 }}>{label}</span>
+      <span className="sr-only">{label}</span>
     </div>
   );
 }

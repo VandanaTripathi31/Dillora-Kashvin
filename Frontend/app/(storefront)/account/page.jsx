@@ -14,6 +14,8 @@ export default function Account() {
   return <Dashboard user={user} logout={logout} addresses={addresses} removeAddress={removeAddress} />;
 }
 
+const fieldInput = 'rounded-[10px] border-[1.5px] border-[#eee3f3] bg-white px-[13px] py-[11px] text-ink focus:border-[#cf9eec] focus:outline-none';
+
 function LoginForm({ onLogin }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,23 +29,23 @@ function LoginForm({ onLogin }) {
   };
 
   return (
-    <div className="container section" style={{ maxWidth: 440 }}>
+    <div className="container section max-w-[440px]">
       <h1 className="pagetitle">Sign in</h1>
-      <p className="muted" style={{ marginTop: -16, marginBottom: 22 }}>
+      <p className="muted -mt-4 mb-[22px]">
         Sign in to see your orders, save addresses and your wishlist.
       </p>
-      <div className="card checkout__card">
-        <label className="field" style={{ marginBottom: 14 }}>
-          <span>Full name</span>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
+      <div className="card p-6">
+        <label className="mb-3.5 flex flex-col gap-1.5">
+          <span className="text-[0.82rem] font-semibold text-ink-soft">Full name</span>
+          <input className={fieldInput} value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
         </label>
-        <label className="field" style={{ marginBottom: 14 }}>
-          <span>Phone (10-digit)</span>
-          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="9876543210" />
+        <label className="mb-3.5 flex flex-col gap-1.5">
+          <span className="text-[0.82rem] font-semibold text-ink-soft">Phone (10-digit)</span>
+          <input className={fieldInput} value={phone} onChange={e => setPhone(e.target.value)} placeholder="9876543210" />
         </label>
-        {err && <p className="opt__err">{err}</p>}
+        {err && <p className="my-2 text-[0.9rem] font-semibold text-[#c4495b]">{err}</p>}
         <button className="btn btn-primary btn-block" onClick={submit}>Continue</button>
-        <p className="checkout__demo" style={{ marginTop: 14 }}>
+        <p className="mt-3.5 rounded-[10px] bg-cream-2 px-3 py-2.5 text-[0.82rem] text-ink-soft">
           Demo sign-in — phone OTP verification will be added here later.
         </p>
       </div>
@@ -69,38 +71,38 @@ function Dashboard({ user, logout, addresses, removeAddress }) {
 
   return (
     <div className="container section">
-      <div className="acct__head">
+      <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="pagetitle" style={{ marginBottom: 4 }}>Hi, {user.name.split(' ')[0]} 👋</h1>
+          <h1 className="pagetitle mb-1">Hi, {user.name.split(' ')[0]} 👋</h1>
           <p className="muted">{user.phone}</p>
         </div>
         <button className="btn btn-ghost" onClick={logout}>Sign out</button>
       </div>
 
-      <div className="acct__grid">
+      <div className="grid grid-cols-1 items-start gap-7 min-[901px]:grid-cols-[1.5fr_1fr]">
         <section>
-          <h3 className="acct__h">Your orders</h3>
+          <h3 className="mb-3.5 text-[1.1rem]">Your orders</h3>
           {!orders ? <Spinner /> :
             orders.length === 0 ? (
-              <div className="card acct__empty">
+              <div className="card flex flex-col items-center gap-3 p-7 text-center">
                 <p className="muted">No orders yet.</p>
                 <button className="btn btn-primary" onClick={() => router.push('/')}>Start shopping</button>
               </div>
             ) : (
-              <div className="acct__orders">
+              <div className="flex flex-col gap-3">
                 {orders.map(o => (
-                  <div key={o.id} className="card acct__order">
-                    <div className="acct__orderhead">
+                  <div key={o.id} className="card p-4">
+                    <div className="mb-2 flex items-center justify-between">
                       <div>
                         <strong>{o.id}</strong>
                         <span className="muted"> · {new Date(o.createdAt).toLocaleDateString('en-IN')}</span>
                       </div>
                       <StatusPill status={o.status} />
                     </div>
-                    <div className="acct__orderitems muted">
+                    <div className="muted mb-3 text-[0.85rem]">
                       {o.items.map((it, i) => <span key={i}>{it.name} ×{it.qty}{i < o.items.length - 1 ? ', ' : ''}</span>)}
                     </div>
-                    <div className="acct__orderfoot">
+                    <div className="flex items-center justify-between">
                       <span className="price">₹{o.total.toLocaleString('en-IN')}</span>
                       <button className="btn btn-ghost" onClick={() => reorder(o)}>Reorder</button>
                     </div>
@@ -111,19 +113,19 @@ function Dashboard({ user, logout, addresses, removeAddress }) {
         </section>
 
         <aside>
-          <h3 className="acct__h">Saved addresses</h3>
+          <h3 className="mb-3.5 text-[1.1rem]">Saved addresses</h3>
           {addresses.length === 0 ? (
-            <div className="card acct__empty"><p className="muted">No saved addresses yet. They&apos;ll save when you checkout.</p></div>
+            <div className="card flex flex-col items-center gap-3 p-7 text-center"><p className="muted">No saved addresses yet. They&apos;ll save when you checkout.</p></div>
           ) : (
-            <div className="acct__addrs">
+            <div className="flex flex-col gap-3">
               {addresses.map(a => (
-                <div key={a.id} className="card acct__addr">
+                <div key={a.id} className="card flex justify-between gap-3 p-4">
                   <div>
                     <strong>{a.name}</strong>
-                    <p className="muted">{a.address}, {a.city} {a.pincode}</p>
-                    <p className="muted">{a.phone}</p>
+                    <p className="muted mt-1 text-[0.85rem]">{a.address}, {a.city} {a.pincode}</p>
+                    <p className="muted mt-1 text-[0.85rem]">{a.phone}</p>
                   </div>
-                  <button className="cartline__rm" onClick={() => removeAddress(a.id)}>Remove</button>
+                  <button className="text-[0.82rem] font-semibold text-[#c4495b]" onClick={() => removeAddress(a.id)}>Remove</button>
                 </div>
               ))}
             </div>

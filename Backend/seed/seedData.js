@@ -9,6 +9,16 @@ export const COUPONS = [
   { code: "FLAT50", type: "flat", value: 50, minOrder: 0, active: false, expiry: "2026-12-31" },
 ];
 
+// Initial site testimonials (approved) so the storefront isn't empty at launch.
+export const FEEDBACK = [
+  { id: "f1", name: "Aarohi M.", location: "Pune",      rating: 5, text: "The resin wall clock is even prettier in person. You can tell it was made by hand.", approved: true, phone: "" },
+  { id: "f2", name: "Sara K.",   location: "Bengaluru", rating: 5, text: "My phone cover is exactly the design I wanted. So many compliments already!",        approved: true, phone: "" },
+  { id: "f3", name: "Rohan V.",  location: "Mumbai",    rating: 4, text: "Ordered crochet flowers for my mom — packaging and quality were lovely.",           approved: true, phone: "" },
+  { id: "f4", name: "Ishita R.", location: "Delhi",     rating: 5, text: "The charm is so dainty and cute. Exactly like the photos, shipped fast too.",         approved: true, phone: "" },
+  { id: "f5", name: "Karan S.",  location: "Jaipur",    rating: 5, text: "Oversize tee fits perfectly and the print quality is premium. Will reorder.",         approved: true, phone: "" },
+  { id: "f6", name: "Meera P.",  location: "Kochi",     rating: 5, text: "You can feel the love in every stitch. My new favourite small brand.",               approved: true, phone: "" },
+];
+
 export const VIDEOS = [
   {
     id: "v1",

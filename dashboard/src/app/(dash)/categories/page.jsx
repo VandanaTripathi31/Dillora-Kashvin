@@ -41,37 +41,37 @@ export default function AdminCategories() {
         <p className="muted">Add or remove sub-categories inside each category. New ones appear on the website instantly. The 5 main categories are fixed.</p>
       </header>
 
-      {err && <div className="adm__error" style={{ marginBottom: 14 }}>{err}</div>}
+      {err && <div className="mb-4 rounded-xl border border-[#f3c0c8] bg-[#fdeaed] px-4 py-3 text-sm font-semibold text-[#b03a4c]">{err}</div>}
 
-      <div className="formgrid" style={{ display: 'grid', gap: 16 }}>
+      <div className="grid gap-5 lg:grid-cols-2">
         {cats.map(cat => (
           <section key={cat.id} className="card adm__panel">
             <div className="adm__panelhead">
               <h3>{cat.name}</h3>
-              <span className="muted" style={{ fontSize: 13 }}>{cat.subs.length} sub-categories</span>
+              <span className="muted text-[13px]">{cat.subs.length} sub-categories</span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
-              {cat.subs.map(s => (
-                <span key={s.id} className="subchip"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px',
-                               background: 'var(--lilac-100, #f3e9fb)', borderRadius: 999, fontSize: 14 }}>
+            <div className="my-3 flex flex-wrap gap-2">
+              {cat.subs.length === 0 ? (
+                <span className="muted text-sm">No sub-categories yet — add one below.</span>
+              ) : cat.subs.map(s => (
+                <span key={s.id} className="inline-flex items-center gap-1.5 rounded-full bg-orchid-100 px-2.5 py-1.5 text-sm">
                   {s.name}
                   <button onClick={() => removeSub(cat.id, s.id)} aria-label={`Remove ${s.name}`}
-                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#a64fd6', fontWeight: 700, lineHeight: 1 }}>
+                          className="cursor-pointer border-none bg-transparent font-bold leading-none text-orchid-500 hover:text-orchid-700">
                     ✕
                   </button>
                 </span>
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="flex gap-2">
               <input
                 value={drafts[cat.id] || ''}
                 onChange={e => setDrafts(d => ({ ...d, [cat.id]: e.target.value }))}
                 onKeyDown={e => { if (e.key === 'Enter') addSub(cat.id); }}
                 placeholder={`New sub-category in ${cat.name}…`}
-                style={{ flex: 1 }}
+                className="h-11 flex-1 rounded-[10px] border-[1.5px] border-[#eee3f3] bg-white px-3.5 text-ink focus:border-orchid-500 focus:outline-none"
               />
               <button className="btn btn-primary" onClick={() => addSub(cat.id)} disabled={busy === cat.id}>
                 {busy === cat.id ? 'Adding…' : 'Add'}
@@ -81,7 +81,7 @@ export default function AdminCategories() {
         ))}
       </div>
 
-      <p className="muted" style={{ marginTop: 18, fontSize: 13 }}>
+      <p className="muted mt-[18px] text-[13px]">
         Sub-categories you add are saved to the database and appear on the storefront instantly.
       </p>
     </div>

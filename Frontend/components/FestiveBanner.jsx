@@ -22,12 +22,12 @@ export default function FestiveBanner() {
   const text = banner.text?.trim() || preset.text;
 
   return (
-    <div className="fbanner" style={{ background: preset.bg }}>
-      <span className="fbanner__text">{text}</span>
+    <div className="relative flex items-center justify-center gap-4 py-[9px] pl-4 pr-11 text-center text-[0.9rem] font-semibold text-white" style={{ background: preset.bg }}>
+      <span>{text}</span>
       {banner.code && (
-        <span className="fbanner__code">Use code <strong>{banner.code}</strong></span>
+        <span className="rounded-full bg-white/[.22] px-2.5 py-0.5 text-[0.82rem]">Use code <strong>{banner.code}</strong></span>
       )}
-      <button className="fbanner__close" aria-label="Dismiss" onClick={() => setClosed(true)}>✕</button>
+      <button className="absolute right-3 border-none bg-transparent text-[0.9rem] text-white opacity-85 transition-opacity hover:opacity-100" aria-label="Dismiss" onClick={() => setClosed(true)}>✕</button>
     </div>
   );
 }

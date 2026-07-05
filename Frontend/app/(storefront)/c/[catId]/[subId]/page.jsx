@@ -54,35 +54,42 @@ export default function Category() {
 
   const activeSub = subId ? cat.subs.find(s => s.id === subId) : null;
 
+  const subtabClass = (on) =>
+    `rounded-full border-[1.5px] px-[18px] py-2 text-[0.88rem] font-semibold transition-colors duration-150 ${
+      on ? 'border-orchid-500 bg-orchid-500 text-white'
+         : 'border-[#eee3f3] bg-white text-ink-soft hover:border-orchid-500 hover:bg-orchid-500 hover:text-white'
+    }`;
+
   return (
     <div className="container section">
-      <nav className="crumbs">
+      <nav className="mb-[18px] flex flex-wrap gap-2 text-[0.85rem] text-ink-soft [&_a:hover]:text-orchid-600">
         <Link href="/">Home</Link> <span>/</span>
         <Link href={`/c/${cat.id}`}>{cat.name}</Link>
         {activeSub && <><span>/</span> <span>{activeSub.name}</span></>}
       </nav>
 
-      <div className="cat__header">
-        <h1>{activeSub ? activeSub.name : cat.name}</h1>
+      <div className="mb-[22px]">
+        <h1 className="text-[2rem]">{activeSub ? activeSub.name : cat.name}</h1>
         <p className="muted">{cat.tagline}</p>
       </div>
 
       {/* Subcategory tabs */}
-      <div className="subtabs">
-        <button className={`subtab ${!subId ? 'subtab--on' : ''}`} onClick={() => router.push(`/c/${cat.id}`)}>All</button>
+      <div className="mb-7 flex flex-wrap gap-2.5">
+        <button className={subtabClass(!subId)} onClick={() => router.push(`/c/${cat.id}`)}>All</button>
         {cat.subs.map(s => (
-          <button key={s.id} className={`subtab ${subId === s.id ? 'subtab--on' : ''}`}
+          <button key={s.id} className={subtabClass(subId === s.id)}
                   onClick={() => router.push(`/c/${cat.id}/${s.id}`)}>{s.name}</button>
         ))}
       </div>
 
       {/* Sort + count bar */}
       {sorted && sorted.length > 0 && (
-        <div className="cat__toolbar">
-          <span className="cat__count muted">{sorted.length} {sorted.length === 1 ? 'item' : 'items'}</span>
-          <label className="cat__sort">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+          <span className="muted text-[0.9rem]">{sorted.length} {sorted.length === 1 ? 'item' : 'items'}</span>
+          <label className="flex items-center gap-2 text-[0.88rem]">
             <span className="muted">Sort by</span>
-            <select value={sort} onChange={e => setSort(e.target.value)}>
+            <select value={sort} onChange={e => setSort(e.target.value)}
+                    className="cursor-pointer rounded-[10px] border-[1.5px] border-[#eee3f3] bg-white px-3.5 py-[9px] font-semibold text-ink focus:border-orchid-500 focus:outline-none">
               {SORTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
             </select>
           </label>

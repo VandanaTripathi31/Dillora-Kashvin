@@ -15,6 +15,7 @@ import settingRoutes from "./routes/settingRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ app.use("/api/settings", settingRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 // --- Errors ---
 app.use(notFound);

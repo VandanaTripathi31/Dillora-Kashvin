@@ -55,7 +55,7 @@ export default function AdminCoupons() {
       <header className="adm__head"><h1>Offers</h1><p className="muted">Run discount codes and festive banners — switch them on or off anytime.</p></header>
 
       {/* Show discounts / sale prices toggle */}
-      <section className="card adm__panel" style={{ marginBottom: 20 }}>
+      <section className="card adm__panel mb-5">
         <div className="adm__panelhead">
           <h3>Show sale prices</h3>
           <label className="switch">
@@ -63,13 +63,13 @@ export default function AdminCoupons() {
             <span className="switch__slider" />
           </label>
         </div>
-        <p className="muted adm__hint" style={{ marginTop: 0 }}>
+        <p className="muted adm__hint mt-0">
           When <strong>off</strong> (default), every product shows a single clean price. Turn this <strong>on</strong> only during a sale or offer — then the original (cut) price and “% off” badges appear across the site.
         </p>
       </section>
 
       {/* Festive banner toggle */}
-      <section className="card adm__panel" style={{ marginBottom: 20 }}>
+      <section className="card adm__panel mb-5">
         <div className="adm__panelhead">
           <h3>Festive banner</h3>
           <label className="switch">
@@ -77,10 +77,10 @@ export default function AdminCoupons() {
             <span className="switch__slider" />
           </label>
         </div>
-        <p className="muted adm__hint" style={{ marginTop: 0 }}>
+        <p className="muted adm__hint mt-0">
           When on, a banner shows across the whole site (phone &amp; laptop).
         </p>
-        <div className="formgrid" style={{ marginTop: 14 }}>
+        <div className="formgrid mt-3.5">
           <label className="field"><span>Occasion</span>
             <select value={banner.preset} onChange={e => saveBanner({ preset: e.target.value })}>
               {Object.entries(BANNER_PRESETS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
@@ -94,16 +94,16 @@ export default function AdminCoupons() {
           </label>
         </div>
         {/* live preview */}
-        <div className="fbanner fbanner--preview" style={{ background: (BANNER_PRESETS[banner.preset] || {}).bg, marginTop: 16 }}>
+        <div className="fbanner fbanner--preview mt-4" style={{ background: (BANNER_PRESETS[banner.preset] || {}).bg }}>
           <span className="fbanner__text">{banner.text?.trim() || BANNER_PRESETS[banner.preset]?.text}</span>
           {banner.code && <span className="fbanner__code">Use code <strong>{banner.code}</strong></span>}
         </div>
       </section>
 
       {/* Create coupon */}
-      <section className="card adm__panel" style={{ marginBottom: 20 }}>
+      <section className="card adm__panel mb-5">
         <h3>Create a discount code</h3>
-        <div className="formgrid" style={{ marginTop: 14 }}>
+        <div className="formgrid mt-3.5">
           <label className="field"><span>Code</span><input value={form.code} onChange={e => setForm(f => ({...f, code:e.target.value.toUpperCase()}))} placeholder="DIWALI200" /></label>
           <label className="field"><span>Type</span>
             <select value={form.type} onChange={set('type')}>
@@ -130,19 +130,19 @@ export default function AdminCoupons() {
           </label>
         </div>
         {err && <p className="opt__err">{err}</p>}
-        <div style={{ marginTop: 14 }}>
+        <div className="mt-3.5">
           <button className="btn btn-primary" disabled={saving} onClick={add}>{saving ? 'Adding…' : '+ Add code'}</button>
         </div>
       </section>
 
       {/* Coupon list */}
-      <h3 style={{ marginBottom: 12 }}>All codes ({coupons.length})</h3>
+      <h3 className="mb-3">All codes ({coupons.length})</h3>
       <div className="card">
         <table className="tbl">
           <thead><tr><th>Code</th><th>Discount</th><th>Min order</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
           <tbody>
             {coupons.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign:'center', padding:24, color:'var(--ink-soft)' }}>No codes yet.</td></tr>
+              <tr><td colSpan={6} className="p-6 text-center text-ink-soft">No codes yet.</td></tr>
             ) : coupons.map(c => (
               <tr key={c.code}>
                 <td><strong>{c.code}</strong></td>
@@ -150,7 +150,7 @@ export default function AdminCoupons() {
                 <td>{c.minOrder ? `₹${c.minOrder}` : '—'}</td>
                 <td>{c.expiry ? <span className={isExpired(c) ? 'pill pill--bad' : ''}>{c.expiry}{isExpired(c) ? ' (expired)' : ''}</span> : '—'}</td>
                 <td>
-                  <button className={`pill ${c.active ? 'pill--ok' : ''}`} onClick={() => toggle(c)} style={{ cursor:'pointer', border:'none' }}>
+                  <button className={`pill ${c.active ? 'pill--ok' : ''} cursor-pointer border-none`} onClick={() => toggle(c)}>
                     {c.active ? 'Active' : 'Inactive'}
                   </button>
                 </td>

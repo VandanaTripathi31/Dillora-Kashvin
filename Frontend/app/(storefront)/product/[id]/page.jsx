@@ -21,6 +21,14 @@ const SIZE_GUIDE = [
   { size: 'XXL', chest: 46, length: 31 },
 ];
 
+// Reusable option styles (Tailwind) shared across the option groups.
+const optLabel = 'mb-2 block text-[0.8rem] font-bold uppercase tracking-[0.05em] text-ink-soft';
+const optNote = 'mb-4 mt-1 text-[0.9rem] text-ink-soft';
+const optSelect = 'w-full max-w-[360px] rounded-xl border-[1.5px] border-[#eee3f3] bg-white px-3.5 py-3 text-ink transition-[border-color,box-shadow] duration-[180ms] focus:border-orchid-500 focus:shadow-[0_0_0_3px_rgba(166,79,214,.15)] focus:outline-none';
+const pillBase = 'rounded-xl border-[1.5px] px-4 py-2.5 text-[0.9rem] font-semibold transition-all duration-[180ms] ease-brand';
+const pillOff = 'border-[#eee3f3] bg-white text-ink hover:-translate-y-0.5 hover:border-[#cf9eec] hover:shadow-soft';
+const pillOn = 'border-orchid-500 bg-[#f9f2fd] text-orchid-600 shadow-[0_0_0_1px_#a64fd6]';
+
 export default function Product() {
   const { id } = useParams();
   const router = useRouter();
@@ -155,14 +163,14 @@ export default function Product() {
 
   return (
     <div className="container section">
-      <nav className="crumbs">
+      <nav className="mb-[18px] flex flex-wrap gap-2 text-[0.85rem] text-ink-soft [&_a:hover]:text-orchid-600">
         <Link href="/">Home</Link> <span>/</span>
         <Link href={`/c/${cat.id}`}>{cat.name}</Link> <span>/</span>
         <span>{product.name}</span>
       </nav>
 
-      <div className="pdp">
-        {/* Gallery */}
+      <div className="grid grid-cols-1 gap-7 min-[981px]:grid-cols-2 min-[981px]:gap-12">
+        {/* Gallery — kept as scoped CSS (bespoke zoom + fade animation) */}
         <div className="pdp__media">
           <div
             className={`pdp__main pdp__main--zoom ${zoom ? 'pdp__main--zoomed' : ''}`}
@@ -191,21 +199,21 @@ export default function Product() {
         </div>
 
         {/* Info + options */}
-        <div className="pdp__info">
+        <div>
           <span className="chip">{cat.name}</span>
           <h1 className="pdp__title">{product.name}</h1>
           <div className="pdp__rating"><Rating id={product.id} /></div>
           <div className="pdp__price"><Price price={unitPrice} mrp={product.mrp} /></div>
-          <p className="pdp__free">✓ Free shipping · Made to order (3–5 days)</p>
+          <p className="mb-6 text-[0.9rem] font-semibold text-[#3f9d6b]">✓ Free shipping · Made to order (3–5 days)</p>
 
           {/* Material (covers) */}
           {product.materials?.length > 0 && (
-            <div className="opt">
-              <label className="opt__label">Material</label>
-              <div className="opt__row">
+            <div className="mb-5">
+              <label className={optLabel}>Material</label>
+              <div className="flex flex-wrap gap-2.5">
                 {product.materials.map(m => (
                   <button key={m.name}
-                    className={`opt__pill ${material?.name===m.name?'opt__pill--on':''}`}
+                    className={`${pillBase} ${material?.name===m.name?pillOn:pillOff}`}
                     onClick={() => setMaterial(m)}>
                     {m.name} · ₹{m.price}
                   </button>
@@ -217,20 +225,20 @@ export default function Product() {
           {/* Phone brand + model (model is free text so any new phone works) */}
           {product.optionType === 'phone' && (
             <>
-              <p className="opt__note">Tell us your phone — the same design is made to fit your exact model.</p>
-              <div className="opt">
-                <label className="opt__label">Phone brand</label>
-                <select className="opt__select" value={brand}
+              <p className={optNote}>Tell us your phone — the same design is made to fit your exact model.</p>
+              <div className="mb-5">
+                <label className={optLabel}>Phone brand</label>
+                <select className={optSelect} value={brand}
                         onChange={e => { setBrand(e.target.value); setModel(''); }}>
                   <option value="">Choose brand</option>
                   {PHONE_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
               {brand && (
-                <div className="opt">
-                  <label className="opt__label">Phone model</label>
+                <div className="mb-5">
+                  <label className={optLabel}>Phone model</label>
                   <input
-                    className="opt__select"
+                    className={optSelect}
                     value={model}
                     onChange={e => setModel(e.target.value)}
                     placeholder={
@@ -241,7 +249,7 @@ export default function Product() {
                       : 'e.g. your exact model'
                     }
                   />
-                  <p className="opt__note" style={{ margin: '8px 0 0' }}>
+                  <p className="mt-2 text-[0.9rem] text-ink-soft">
                     Type your exact model so we craft the cover to fit perfectly.
                   </p>
                 </div>
@@ -251,14 +259,14 @@ export default function Product() {
 
           {/* Size (t-shirts) */}
           {product.optionType === 'size' && (
-            <div className="opt">
-              <div className="opt__labelrow">
-                <label className="opt__label">Size</label>
-                <button type="button" className="opt__guidelink" onClick={() => setShowGuide(true)}>📏 Size guide</button>
+            <div className="mb-5">
+              <div className="flex items-center justify-between">
+                <label className={optLabel}>Size</label>
+                <button type="button" className="cursor-pointer border-none bg-transparent p-0 text-[0.82rem] font-semibold text-orchid-600 hover:text-violet-500" onClick={() => setShowGuide(true)}>📏 Size guide</button>
               </div>
-              <div className="opt__row">
+              <div className="flex flex-wrap gap-2.5">
                 {product.sizes.map(s => (
-                  <button key={s} className={`opt__pill opt__pill--sq ${size===s?'opt__pill--on':''}`}
+                  <button key={s} className={`${pillBase} min-w-[48px] ${size===s?pillOn:pillOff}`}
                           onClick={() => setSize(s)}>{s}</button>
                 ))}
               </div>
@@ -267,38 +275,38 @@ export default function Product() {
 
           {/* Resin customization */}
           {product.optionType === 'resin' && (
-            <div className="resinbox">
-              <p className="opt__note" style={{ marginTop: 0 }}>
+            <div className="mb-5 rounded-[18px] border-[1.5px] border-[#f1e2fb] bg-[#f9f2fd] p-[18px]">
+              <p className="mb-4 text-[0.9rem] text-ink-soft">
                 Make it yours — tell us your colours and share a reference. Our team will confirm details before crafting.
               </p>
-              <div className="opt">
-                <label className="opt__label">Preferred colour</label>
-                <input className="opt__select" value={resinColor} onChange={e => setResinColor(e.target.value)}
+              <div className="mb-5">
+                <label className={optLabel}>Preferred colour</label>
+                <input className={optSelect} value={resinColor} onChange={e => setResinColor(e.target.value)}
                        placeholder="e.g. lilac & gold, ocean blue" />
               </div>
-              <div className="opt">
-                <label className="opt__label">Background / theme</label>
-                <input className="opt__select" value={resinBg} onChange={e => setResinBg(e.target.value)}
+              <div className="mb-5">
+                <label className={optLabel}>Background / theme</label>
+                <input className={optSelect} value={resinBg} onChange={e => setResinBg(e.target.value)}
                        placeholder="e.g. marble white, floral, galaxy" />
               </div>
-              <div className="opt">
-                <label className="opt__label">Anything else you&apos;d like</label>
-                <textarea className="opt__select opt__textarea" value={resinNotes} onChange={e => setResinNotes(e.target.value)}
+              <div className="mb-5">
+                <label className={optLabel}>Anything else you&apos;d like</label>
+                <textarea className={`${optSelect} min-h-[70px] resize-y leading-[1.5]`} value={resinNotes} onChange={e => setResinNotes(e.target.value)}
                           placeholder="Names, dates, size, ideas — anything that helps us make it perfect" rows={3} />
               </div>
-              <div className="opt">
-                <label className="opt__label">Reference photo (optional)</label>
+              <div className="mb-5">
+                <label className={optLabel}>Reference photo (optional)</label>
                 {!refPhoto ? (
-                  <label className="refupload">
+                  <label className="flex cursor-pointer items-center justify-center rounded-xl border-[1.5px] border-dashed border-[#cf9eec] bg-white p-[18px] text-[0.9rem] font-semibold text-orchid-600 transition-all duration-150 hover:border-orchid-500 hover:bg-[#f9f2fd]">
                     <input type="file" accept="image/*" onChange={onRefPhoto} hidden />
                     <span>＋ Upload a photo of what you want</span>
                   </label>
                 ) : (
-                  <div className="refpreview">
-                    <img src={refPhoto.dataUrl} alt="reference" />
-                    <div>
+                  <div className="flex items-center gap-3.5">
+                    <img src={refPhoto.dataUrl} alt="reference" className="h-[72px] w-[72px] rounded-xl object-cover" />
+                    <div className="flex flex-col gap-1.5">
                       <span className="muted">{refPhoto.name}</span>
-                      <button className="cartline__rm" onClick={() => setRefPhoto(null)}>Remove</button>
+                      <button className="text-left text-[0.82rem] font-semibold text-[#c4495b]" onClick={() => setRefPhoto(null)}>Remove</button>
                     </div>
                   </div>
                 )}
@@ -307,8 +315,8 @@ export default function Product() {
           )}
 
           {/* Quantity */}
-          <div className="opt">
-            <label className="opt__label">Quantity</label>
+          <div className="mb-5">
+            <label className={optLabel}>Quantity</label>
             <div className="qty">
               <button onClick={() => setQty(q => Math.max(1, q-1))} aria-label="Decrease">−</button>
               <span>{qty}</span>
@@ -316,12 +324,12 @@ export default function Product() {
             </div>
           </div>
 
-          {err && <p className="opt__err">{err}</p>}
+          {err && <p className="my-2 text-[0.9rem] font-semibold text-[#c4495b]">{err}</p>}
 
-          <div className="pdp__actions">
+          <div className="my-6 flex gap-3">
             <button className="btn btn-primary btn-block" onClick={() => handleAdd(false)}>Add to cart</button>
             <button className="btn btn-accent btn-block" onClick={() => handleAdd(true)}>Buy now</button>
-            <button className={`btn btn-ghost pdp__wish ${has(product.id) ? 'pdp__wish--on' : ''}`}
+            <button className={`btn btn-ghost w-[52px] shrink-0 grow-0 basis-auto py-3 ${has(product.id) ? 'border-violet-500 text-violet-500' : 'text-ink-soft'}`}
                     onClick={() => toggle(product.id)} aria-label="Save to wishlist" title="Save to wishlist">
               <svg width="20" height="20" viewBox="0 0 24 24" fill={has(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                 <path d="M12 21s-7.5-4.7-10-9.3C.5 8.5 2 5 5.3 5c2 0 3.3 1.2 4.2 2.4C10.4 6.2 11.7 5 13.7 5 17 5 18.5 8.5 17 11.7 14.5 16.3 12 21 12 21z"/>
@@ -330,9 +338,9 @@ export default function Product() {
           </div>
 
           {/* Details */}
-          <div className="pdp__details">
-            <h4>Product details</h4>
-            <ul>
+          <div className="border-t border-[#eee3f3] pt-5">
+            <h4 className="mb-2.5">Product details</h4>
+            <ul className="m-0 list-disc pl-[18px] text-[0.92rem] text-ink-soft [&_li]:mb-1.5">
               <li>Handmade, made to order</li>
               {product.optionType === 'phone' && <li>Printed/crafted for your exact phone model</li>}
               {product.optionType === 'size' && <li>Relaxed oversize fit · soft cotton</li>}
@@ -349,8 +357,8 @@ export default function Product() {
 
       {/* You may also like */}
       {related.length > 0 && (
-        <section className="pdp__rel">
-          <h2 className="pdp__relh">You may also like</h2>
+        <section className="mt-14">
+          <h2 className="mb-5 text-[clamp(1.4rem,2.4vw,1.9rem)] tracking-[-0.5px]">You may also like</h2>
           <div className="grid">
             {related.map((p, i) => (
               <Reveal key={p.id} delay={i * 60}><ProductCard product={p} /></Reveal>
@@ -361,8 +369,8 @@ export default function Product() {
 
       {/* Recently viewed */}
       {recent.length > 0 && (
-        <section className="pdp__rel">
-          <h2 className="pdp__relh">Recently viewed</h2>
+        <section className="mt-14">
+          <h2 className="mb-5 text-[clamp(1.4rem,2.4vw,1.9rem)] tracking-[-0.5px]">Recently viewed</h2>
           <div className="grid">
             {recent.map(p => <ProductCard key={p.id} product={p} />)}
           </div>

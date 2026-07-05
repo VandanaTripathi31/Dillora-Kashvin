@@ -22,6 +22,7 @@ export default function AdminProducts() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState('');
   const [bulkMsg, setBulkMsg] = useState('');
+  const [selected, setSelected] = useState(() => new Set()); // product ids selected for bulk delete
 
   const load = () => api.getProducts().then(setProducts);
   useEffect(() => { load(); api.getCategories().then(setCats); }, []);
@@ -50,6 +51,28 @@ export default function AdminProducts() {
   const del = async (p) => {
     const ok = await confirmDialog({ title: 'Delete product?', message: `“${p.name}” will be permanently removed.`, confirmLabel: 'Delete' });
     if (ok) { await api.deleteProduct(p.id); notify('Product deleted', 'info'); load(); }
+  };
+
+  // ---- Multi-select bulk delete ----
+  const toggleOne = (id) => setSelected(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const clearSelection = () => setSelected(new Set());
+  const delSelected = async () => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    const ok = await confirmDialog({
+      title: `Delete ${ids.length} product${ids.length === 1 ? '' : 's'}?`,
+      message: 'The selected products will be permanently removed.',
+      confirmLabel: `Delete ${ids.length}`,
+    });
+    if (!ok) return;
+    for (const id of ids) await api.deleteProduct(id);
+    notify(`Deleted ${ids.length} product${ids.length === 1 ? '' : 's'}`, 'info');
+    clearSelection();
+    load();
   };
 
   // CSV export of all products
@@ -107,12 +130,20 @@ export default function AdminProducts() {
   const sortBy = (key) => setSort(s => s.key === key ? { key, dir: -s.dir } : { key, dir: 1 });
   const arrow = (key) => sort.key === key ? <span className="tbl__sortarrow">{sort.dir === 1 ? '▲' : '▼'}</span> : <span className="tbl__sortarrow">↕</span>;
   const subOptions = cats.find(c => c.id === form.category)?.subs || [];
+  const shownIds = shown.map(p => p.id);
+  const allShownSelected = shownIds.length > 0 && shownIds.every(id => selected.has(id));
+  const toggleAll = () => setSelected(prev => {
+    const next = new Set(prev);
+    if (allShownSelected) shownIds.forEach(id => next.delete(id));
+    else shownIds.forEach(id => next.add(id));
+    return next;
+  });
 
   return (
     <div className="adm__pad">
       <header className="adm__head adm__head--row">
         <div><h1>Products</h1><p className="muted">Add, edit and manage everything you sell.</p></div>
-        <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+        <div className="flex flex-wrap gap-2.5">
           <button className="btn btn-ghost" onClick={exportCsv}>Export CSV</button>
           <button className="btn btn-ghost" onClick={() => { setBulkOpen(true); setBulkMsg(''); }}>Bulk upload</button>
           <button className="btn btn-primary" onClick={openNew}>+ Add product</button>
@@ -136,9 +167,22 @@ export default function AdminProducts() {
         <span className="muted" style={{ fontSize: '.85rem' }}>{shown.length} of {products.length} shown</span>
       </div>
 
+      {selected.size > 0 && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-orchid-200 bg-orchid-50 px-4 py-3">
+          <span className="text-sm font-semibold text-orchid-700">{selected.size} selected</span>
+          <div className="flex gap-2">
+            <button className="btn btn-ghost" onClick={clearSelection}>Clear</button>
+            <button className="btn btn-danger" onClick={delSelected}>Delete selected</button>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <table className="tbl tbl--prod">
           <thead><tr>
+            <th className="w-[44px] text-center">
+              <input type="checkbox" className="h-4 w-4 cursor-pointer accent-orchid-500 align-middle" checked={allShownSelected} onChange={toggleAll} aria-label="Select all shown" />
+            </th>
             <th className={`tbl__sort ${sort.key==='name'?'tbl__sort--on':''}`} onClick={() => sortBy('name')}>Product {arrow('name')}</th>
             <th>Category</th>
             <th className={`tbl__sort ${sort.key==='price'?'tbl__sort--on':''}`} onClick={() => sortBy('price')}>Price {arrow('price')}</th>
@@ -147,11 +191,14 @@ export default function AdminProducts() {
           </tr></thead>
           <tbody>
             {shown.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign:'center', padding:'34px', color:'var(--ink-soft)' }}>
+              <tr><td colSpan={6} className="p-9 text-center text-ink-soft">
                 {query ? `No products match “${query}”.` : 'No products here yet.'}
               </td></tr>
             ) : shown.map(p => (
-              <tr key={p.id}>
+              <tr key={p.id} className={selected.has(p.id) ? 'bg-orchid-50/60' : ''}>
+                <td className="text-center">
+                  <input type="checkbox" className="h-4 w-4 cursor-pointer accent-orchid-500 align-middle" checked={selected.has(p.id)} onChange={() => toggleOne(p.id)} aria-label={`Select ${p.name}`} />
+                </td>
                 <td className="tbl__prod">
                   <img src={p.image} alt="" loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }} />
                   <span>{p.name}</span>

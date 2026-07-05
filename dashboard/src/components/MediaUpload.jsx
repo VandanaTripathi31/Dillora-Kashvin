@@ -40,7 +40,7 @@ export default function MediaUpload({ kind = 'image', onUploaded, label }) {
         ref={inputRef}
         type="file"
         accept={kind === 'video' ? 'video/*' : 'image/*'}
-        style={{ display: 'none' }}
+        className="hidden"
         onChange={onChange}
       />
       <button type="button" className="btn btn-ghost" onClick={pick} disabled={busy}>

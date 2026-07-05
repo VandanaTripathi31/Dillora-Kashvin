@@ -13,6 +13,9 @@ import Reels from '@/components/Reels';
 import HeroSparkles from '@/components/HeroSparkles';
 import AnimatedCounter from '@/components/AnimatedCounter';
 
+const statNum = 'bg-grad-brand bg-clip-text font-display text-[clamp(2rem,4vw,3rem)] font-semibold leading-none text-transparent';
+const statLabel = 'text-[0.85rem] font-medium text-ink-soft';
+
 export default function Home() {
   const [best, setBest] = useState(null);
   const { categories } = useCategories();
@@ -105,23 +108,23 @@ export default function Home() {
       </section>
 
       {/* Animated stats band */}
-      <section className="stats-band">
-        <div className="container stats-band__grid">
-          <div className="stat-item">
-            <AnimatedCounter end={8000} suffix="+" className="stat-item__num" />
-            <span className="stat-item__label">Happy customers</span>
+      <section className="bg-[linear-gradient(120deg,#f9f2fd,#fdf3fb)] py-14">
+        <div className="container grid grid-cols-2 gap-x-4 gap-y-7 text-center sm:grid-cols-4 sm:gap-6">
+          <div className="flex flex-col gap-1">
+            <AnimatedCounter end={8000} suffix="+" className={statNum} />
+            <span className={statLabel}>Happy customers</span>
           </div>
-          <div className="stat-item">
-            <AnimatedCounter end={1200} suffix="+" className="stat-item__num" />
-            <span className="stat-item__label">Handmade pieces</span>
+          <div className="flex flex-col gap-1">
+            <AnimatedCounter end={1200} suffix="+" className={statNum} />
+            <span className={statLabel}>Handmade pieces</span>
           </div>
-          <div className="stat-item">
-            <AnimatedCounter end={50} suffix="+" className="stat-item__num" />
-            <span className="stat-item__label">Cities delivered</span>
+          <div className="flex flex-col gap-1">
+            <AnimatedCounter end={50} suffix="+" className={statNum} />
+            <span className={statLabel}>Cities delivered</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-item__num">4.8<span className="stat-item__star">★</span></span>
-            <span className="stat-item__label">Average rating</span>
+          <div className="flex flex-col gap-1">
+            <span className={statNum}>4.8<span className="ml-0.5 text-[0.7em] text-[#e8a93a] [-webkit-text-fill-color:#e8a93a]">★</span></span>
+            <span className={statLabel}>Average rating</span>
           </div>
         </div>
       </section>

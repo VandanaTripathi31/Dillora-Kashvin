@@ -281,7 +281,7 @@
 .adm__reset { background: none; border: none; color: rgba(255,255,255,.45); font-size: .8rem; padding: 6px; }
 .adm__reset:hover { color: rgba(255,255,255,.8); }
 .adm__main { overflow-x: auto; }
-.adm__pad { padding: 32px; max-width: 1100px; }
+.adm__pad { width: 100%; max-width: none; padding: 24px; }
 .adm__head { margin-bottom: 24px; }
 .adm__head h1 { font-size: 1.8rem; }
 .adm__head--row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
@@ -292,7 +292,7 @@
 .stat__value { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; }
 .stat__hint { font-size: .82rem; }
 
-.adm__row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+.adm__row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
 .adm__panel { padding: 22px; }
 .adm__panelhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .adm__seeall { font-size: .85rem; font-weight: 600; color: var(--primary-dark); }
@@ -303,8 +303,8 @@
 .chart__col span { font-size: .72rem; color: var(--ink-soft); }
 
 .tbl { width: 100%; border-collapse: collapse; }
-.tbl th { text-align: left; font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); padding: 10px 12px; border-bottom: 1px solid var(--line); }
-.tbl td { padding: 12px; border-bottom: 1px solid var(--line); font-size: .9rem; vertical-align: middle; }
+.tbl th { text-align: left; font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.tbl td { padding: 15px 16px; border-bottom: 1px solid var(--line); font-size: .9rem; vertical-align: middle; }
 .tbl tr:last-child td { border-bottom: none; }
 .tbl__prod { display: flex; align-items: center; gap: 12px; }
 .tbl__prod img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
@@ -1149,7 +1149,7 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
 
 /* ---- Main ---- */
 .adm__main { background: #f5f2fb; }
-.adm__pad { padding: 32px 36px; }
+.adm__pad { padding: 28px 32px; }
 .adm__head h1 { font-size: 1.9rem; letter-spacing: -.5px; }
 
 /* ---- Panels ---- */
@@ -1227,7 +1227,7 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
   .adm__nav { flex-direction: column; }
   .adm__sidefoot { flex-direction: column; margin-top: auto; }
   .adm__scrim { position: fixed; inset: 0; background: rgba(20,12,30,.5); z-index: 110; animation: admFade .2s var(--ease); }
-  .adm__pad { padding: 22px 16px; }
+  .adm__pad { padding: 18px 16px; }
   .stats { grid-template-columns: 1fr 1fr; }
   .adm__row { grid-template-columns: 1fr; }
 }

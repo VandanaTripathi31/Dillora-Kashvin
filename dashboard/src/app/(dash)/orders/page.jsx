@@ -112,7 +112,7 @@ export default function AdminOrders() {
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by order ID, name or phone…" />
           {query && <button className="adm__searchclear" onClick={() => setQuery('')} aria-label="Clear search">✕</button>}
         </div>
-        <span className="muted" style={{ fontSize: '.85rem' }}>{shown.length} {shown.length === 1 ? 'order' : 'orders'}</span>
+        <span className="muted text-[0.85rem]">{shown.length} {shown.length === 1 ? 'order' : 'orders'}</span>
       </div>
 
       <div className="card">
@@ -125,7 +125,7 @@ export default function AdminOrders() {
           </tr></thead>
           <tbody>
             {shown.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign:'center', padding:'28px', color:'var(--ink-soft)' }}>
+              <tr><td colSpan={7} className="p-7 text-center text-ink-soft">
                 No orders match this view.
               </td></tr>
             ) : shown.map(o => (

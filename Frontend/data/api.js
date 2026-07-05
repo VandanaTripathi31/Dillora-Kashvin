@@ -134,4 +134,10 @@ export const api = {
   async addReview(productId, { name, phone, rating, text }) {
     return req(`/reviews/${productId}`, { method:'POST', body:{ name, phone, rating, text } });
   },
+
+  // ---- feedback (site-wide testimonials) ----
+  async getFeedback() { return req('/feedback'); },
+  async getFeedbackSummary() { return req('/feedback/summary'); },
+  async canSubmitFeedback(phone) { return req(`/feedback/can?phone=${encodeURIComponent(phone || '')}`); },
+  async submitFeedback(data) { return req('/feedback', { method:'POST', body:data }); },
 };

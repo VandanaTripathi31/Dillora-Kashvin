@@ -106,6 +106,11 @@ export const api = {
   async getSettings() { return req('/settings'); },
   async updateSettings(patch) { return req('/settings', { method: 'PUT', body: patch }); },
 
+  // ---- feedback (site testimonials moderation) ----
+  async getAllFeedback() { return req('/feedback/all'); },
+  async approveFeedback(id, approved) { return req(`/feedback/${id}/approve`, { method: 'PUT', body: { approved } }); },
+  async deleteFeedback(id) { return req(`/feedback/${id}`, { method: 'DELETE' }); },
+
   // ---- media (Cloudinary) ----
   async uploadImage(file, folder = 'dillora/products') {
     const fd = new FormData();

@@ -62,18 +62,18 @@ export function Rating({ id, showCount = true }) {
 
   if (!summary || summary.count === 0) {
     return (
-      <span className="rating rating--new" aria-label="No reviews yet">
-        <span className="rating__stars">☆☆☆☆☆</span>
-        <span className="rating__count">New</span>
+      <span className="inline-flex items-center gap-1 text-[0.82rem]" aria-label="No reviews yet">
+        <span className="text-[0.9rem] tracking-[1px] text-[#e8a93a]">☆☆☆☆☆</span>
+        <span className="text-[0.78rem] text-ink-soft opacity-75">New</span>
       </span>
     );
   }
 
   const full = Math.round(summary.avg);
   return (
-    <span className="rating" aria-label={`Rated ${summary.avg} out of 5`}>
-      <span className="rating__stars">{'★'.repeat(full)}{'☆'.repeat(5 - full)}</span>
-      <span className="rating__count">{summary.avg}{showCount ? ` (${summary.count})` : ''}</span>
+    <span className="inline-flex items-center gap-1 text-[0.82rem]" aria-label={`Rated ${summary.avg} out of 5`}>
+      <span className="text-[0.9rem] tracking-[1px] text-[#e8a93a]">{'★'.repeat(full)}{'☆'.repeat(5 - full)}</span>
+      <span className="text-[0.78rem] text-ink-soft">{summary.avg}{showCount ? ` (${summary.count})` : ''}</span>
     </span>
   );
 }
