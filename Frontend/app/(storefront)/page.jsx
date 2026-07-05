@@ -86,7 +86,7 @@ export default function Home() {
       <section className="craft" id="about">
         <div className="container craft__inner">
           <Reveal className="craft__media shine-img">
-            <img src="https://images.unsplash.com/photo-1632765854612-9b02b6ec2b15?auto=format&fit=crop&w=700&q=80" alt="Handmade crafting" />
+            <img src="/images/crochet/coin-pouch/d1.png" alt="Handmade crochet piece by Dillora by Kashvin" title="Handmade crochet piece by Dillora by Kashvin" />
           </Reveal>
           <Reveal className="craft__copy" delay={120}>
             <span className="craft__eyebrow">About us · Our craft</span>

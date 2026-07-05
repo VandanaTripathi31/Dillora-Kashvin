@@ -1,5 +1,6 @@
+import "dotenv/config";
+import { config } from "dotenv";
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 
 import { dbConnection } from "./config/dbConnection.js";
@@ -17,7 +18,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 
-dotenv.config();
+config({ override: true });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,20 +33,26 @@ app.use(
   cors({
     origin(origin, cb) {
       // allow same-origin/no-origin (curl, server-to-server) and whitelisted origins
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(origin)
+      ) {
         return cb(null, true);
       }
       cb(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // --- Health check ---
-app.get("/api/health", (req, res) => res.json({ ok: true, service: "dillora-api" }));
+app.get("/api/health", (req, res) =>
+  res.json({ ok: true, service: "dillora-api" }),
+);
 
 // --- Routes ---
 app.use("/api/auth", authRoutes);
@@ -66,5 +73,7 @@ app.use(errorHandler);
 
 // --- Start ---
 dbConnection().then(() => {
-  app.listen(PORT, () => console.log(`[server] Dillora API running on http://localhost:${PORT}`));
+  app.listen(PORT, () =>
+    console.log(`[server] Dillora API running on http://localhost:${PORT}`),
+  );
 });
