@@ -8,6 +8,7 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
+import brandRoutes from "./routes/brandRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
@@ -17,6 +18,8 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import invoiceRoutes from "./routes/invoiceRoutes.js";
+import offerRoutes from "./routes/offerRoutes.js";
 
 config({ override: true });
 
@@ -57,6 +60,7 @@ app.get("/api/health", (req, res) =>
 // --- Routes ---
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/brands", brandRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/videos", videoRoutes);
@@ -66,6 +70,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/invoices", invoiceRoutes);
+app.use("/api/offers", offerRoutes);
 
 // --- Errors ---
 app.use(notFound);

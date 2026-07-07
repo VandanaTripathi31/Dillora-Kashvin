@@ -8,8 +8,12 @@ import {
   updateProduct,
   deleteProduct,
   bulkCreateProducts,
+  lockProduct,
+  unlockProduct,
+  setProductEditor,
+  getStockHistory,
 } from "../controllers/productController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, requireRole } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -23,6 +27,12 @@ router.post("/bulk", protect, bulkCreateProducts);
 router.post("/", protect, createProduct);
 router.put("/:id", protect, updateProduct);
 router.delete("/:id", protect, deleteProduct);
+
+// Stock-lock management (owner/manager only) + history (any admin)
+router.put("/:id/lock", protect, requireRole("owner", "manager"), lockProduct);
+router.put("/:id/unlock", protect, requireRole("owner", "manager"), unlockProduct);
+router.put("/:id/editor", protect, requireRole("owner", "manager"), setProductEditor);
+router.get("/:id/stock-history", protect, getStockHistory);
 
 // Public single read (last, so it doesn't shadow the routes above)
 router.get("/:id", getProduct);

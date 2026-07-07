@@ -21,8 +21,14 @@ import Setting from "../models/Setting.js";
 import Order from "../models/Order.js";
 import Admin from "../models/Admin.js";
 import Feedback from "../models/Feedback.js";
+import Brand from "../models/Brand.js";
 
 import { COUPONS, VIDEOS, SETTINGS, DEMO_ORDERS, FEEDBACK } from "./seedData.js";
+import { BRANDS } from "./brandsData.js";
+
+/** Turn a name into a url-safe slug id (matches utils/validators slugify). */
+const slug = (s) =>
+  String(s || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 dotenv.config();
 
@@ -42,6 +48,7 @@ async function destroy() {
     Video.deleteMany({}),
     Setting.deleteMany({}),
     Order.deleteMany({}),
+    Brand.deleteMany({}),
   ]);
   console.log("[seed] All product data collections wiped (admins kept).");
 }
@@ -85,6 +92,21 @@ async function seed() {
   // Site testimonials / feedback
   for (const f of FEEDBACK) {
     await Feedback.updateOne({ id: f.id }, { $set: f }, { upsert: true });
+  }
+
+  // Phone brands + models — seed only when empty so admin edits are preserved.
+  if ((await Brand.countDocuments()) === 0) {
+    const brandDocs = BRANDS.map((b, i) => ({
+      id: slug(b.name),
+      name: b.name,
+      active: true,
+      order: i,
+      models: b.models.map((m, j) => ({ id: `${slug(m)}-${j}`, name: m, active: true, order: j })),
+    }));
+    await Brand.insertMany(brandDocs);
+    console.log(`[seed] Seeded ${brandDocs.length} phone brands.`);
+  } else {
+    console.log("[seed] Brands already present — skipped (admin edits preserved).");
   }
 
   // Settings (singleton)

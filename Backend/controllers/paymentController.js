@@ -3,6 +3,9 @@ import crypto from "crypto";
 import Order from "../models/Order.js";
 import { asyncHandler, fail } from "../utils/responseHandler.js";
 import { nextOrderId } from "../services/idService.js";
+import { issueInvoice } from "../services/invoiceService.js";
+import { recordOfferUsage } from "../services/offerService.js";
+import { paymentBreakdown } from "./orderController.js";
 import {
   getRazorpay,
   isRazorpayConfigured,
@@ -85,14 +88,17 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   }
 
   const id = await nextOrderId();
+  const breakdown = paymentBreakdown(order.payment, order.total);
   const created = await Order.create({
     status: "Processing",
     ...order,
+    ...breakdown,
     // `payment` (string: "online" / "half-cod") comes from `order` and is kept
     // as-is so the dashboard + order pages keep working. Razorpay specifics go
     // in a dedicated sub-document.
     id,
     createdAt: Date.now(),
+    timeline: [{ at: Date.now(), label: breakdown.paymentStatus === "advance-paid" ? "Order placed · 50% advance paid" : "Order placed · paid online", by: "customer" }],
     paymentDetails: {
       provider: "razorpay",
       status: "paid",
@@ -101,6 +107,12 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       razorpaySignature: razorpay_signature,
     },
   });
+
+  // Count promotional-offer redemptions (best-effort).
+  recordOfferUsage(created.offers).catch(() => {});
+
+  // Generate + email the invoice for the paid order (best-effort).
+  await issueInvoice(created);
 
   res.status(201).json(created.toJSON());
 });

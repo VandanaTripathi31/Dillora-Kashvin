@@ -6,6 +6,14 @@ const adminSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 6 },
+    // Access level. Defaults to "owner" so existing (pre-role) admins keep full
+    // access. New team members are created as least-privilege "staff" and can be
+    // promoted. Used by the stock-lock system (owner/manager manage locks).
+    role: {
+      type: String,
+      enum: ["owner", "manager", "staff"],
+      default: "owner",
+    },
   },
   {
     timestamps: true,

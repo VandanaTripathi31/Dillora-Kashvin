@@ -25,6 +25,14 @@ const productSchema = new mongoose.Schema(
     materials: { type: [materialSchema], default: undefined },
     sizes: { type: [String], default: undefined },
     imagePublicId: { type: String, default: undefined }, // Cloudinary public_id
+    // Stock lock: when locked, only owner/manager admins or the assigned editor
+    // may edit this product. Prevents normal staff from touching protected items.
+    stockLock: {
+      locked: { type: Boolean, default: false },
+      editorEmail: { type: String, default: "" }, // an admin's email who may edit despite the lock
+      lockedBy: { type: String, default: "" },
+      lockedAt: { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,

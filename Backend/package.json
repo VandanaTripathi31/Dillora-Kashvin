@@ -9,6 +9,7 @@
     "dev": "nodemon server.js",
     "seed": "node seed/seed.js",
     "seed:destroy": "node seed/seed.js --destroy",
+    "seed:brands": "node seed/seedBrands.js",
     "migrate:images": "node seed/migrateImages.js"
   },
   "keywords": [
@@ -28,6 +29,9 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.2",
     "multer": "^2.2.0",
+    "nodemailer": "^9.0.3",
+    "pdfkit": "^0.19.1",
+    "qrcode": "^1.5.4",
     "razorpay": "^2.9.6"
   },
   "devDependencies": {
