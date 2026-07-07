@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FestiveBanner from '@/components/FestiveBanner';
+import WelcomePopup from '@/components/WelcomePopup';
 
 export default function StorefrontLayout({ children }) {
   const pathname = usePathname();
@@ -21,6 +22,7 @@ export default function StorefrontLayout({ children }) {
         <div key={pathname} className="pagefade">{children}</div>
       </div>
       <Footer />
+      <WelcomePopup />
     </>
   );
 }

@@ -1,11 +1,27 @@
 'use client';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 import { useCart } from '@/context/CartContext';
+import { api } from '@/data/api';
 
 export default function Cart() {
   const { items, remove, setQty, subtotal, count } = useCart();
   const shipping = subtotal >= 299 || subtotal === 0 ? 0 : 49;
+
+  // Auto-applied promotional offers (preview before checkout).
+  const [offers, setOffers] = useState([]);
+  const [offerDiscount, setOfferDiscount] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    if (!items.length) { setOffers([]); setOfferDiscount(0); return; }
+    const payload = items.map(l => ({ productId: l.productId, category: l.category, price: l.price, qty: l.qty }));
+    api.evaluateOffers(payload)
+      .then(r => { if (alive) { setOffers(r.offers || []); setOfferDiscount(r.discount || 0); } })
+      .catch(() => { if (alive) { setOffers([]); setOfferDiscount(0); } });
+    return () => { alive = false; };
+  }, [items]);
+  const total = Math.max(0, subtotal - offerDiscount) + shipping;
 
   if (count === 0) return (
     <div className="container section empty">
@@ -43,8 +59,13 @@ export default function Cart() {
         <aside className="card static p-[22px] min-[981px]:sticky min-[981px]:top-[90px]">
           <h3 className="mb-4">Order summary</h3>
           <div className="flex justify-between py-2 text-[0.95rem]"><span>Subtotal</span><span>₹{subtotal.toLocaleString('en-IN')}</span></div>
+          {offers.map(o => (
+            <div key={o.id} className="flex justify-between gap-2 py-2 text-[0.9rem] font-semibold text-[#3f9d6b]">
+              <span>🎁 {o.name}</span><span className="whitespace-nowrap">−₹{o.discount.toLocaleString('en-IN')}</span>
+            </div>
+          ))}
           <div className="flex justify-between py-2 text-[0.95rem]"><span>Shipping</span><span>{shipping === 0 ? 'Free' : `₹${shipping}`}</span></div>
-          <div className="mt-2 flex justify-between border-t-[1.5px] border-[#eee3f3] pb-2 pt-3.5 text-[1.1rem] font-bold"><span>Total</span><span>₹{(subtotal+shipping).toLocaleString('en-IN')}</span></div>
+          <div className="mt-2 flex justify-between border-t-[1.5px] border-[#eee3f3] pb-2 pt-3.5 text-[1.1rem] font-bold"><span>Total</span><span>₹{total.toLocaleString('en-IN')}</span></div>
           <Link href="/checkout" className="btn btn-primary btn-block mt-4">Checkout</Link>
           <Link href="/" className="mt-3.5 block text-center text-[0.88rem] text-ink-soft">← Continue shopping</Link>
         </aside>

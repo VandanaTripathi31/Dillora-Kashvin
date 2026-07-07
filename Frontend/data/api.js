@@ -10,6 +10,10 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+// Per-page in-memory cache for rating summaries (see getRatingSummary) to avoid
+// refetching the same product's rating across multiple cards/sections.
+const _ratingCache = new Map();
+
 // ---------- fetch helper ----------
 async function req(path, { method = 'GET', body } = {}) {
   if (!API_URL) {
@@ -61,6 +65,13 @@ export const api = {
     return req(`/categories/${categoryId}/subs/${subId}`, { method:'DELETE' });
   },
 
+  // ---- phone brands + models (active only) ----
+  async getBrands() { return req('/brands'); },
+
+  // ---- promotional offers (auto-apply) ----
+  async evaluateOffers(items) { return req('/offers/evaluate', { method:'POST', body:{ items } }); },
+  async getActiveOffers() { return req('/offers/active'); },
+
   // ---- products ----
   async getProducts() { return req('/products'); },
   async getProduct(id) { return req(`/products/${id}`); },
@@ -82,6 +93,11 @@ export const api = {
   async createOrder(order) { return req('/orders', { method:'POST', body:order }); },
   async updateOrderStatus(id, status) {
     return req(`/orders/${id}/status`, { method:'PUT', body:{ status } });
+  },
+  // Customer requests a cancellation (mobile covers, within 48h). Ownership is
+  // verified server-side by matching the phone on the order.
+  async requestCancellation(id, phone, reason) {
+    return req(`/orders/${id}/cancel`, { method:'POST', body:{ phone, reason } });
   },
 
   // ---- payments (Razorpay) ----
@@ -127,12 +143,37 @@ export const api = {
 
   // ---- reviews ----
   async getReviews(productId) { return req(`/reviews/${productId}`); },
-  async getRatingSummary(productId) { return req(`/reviews/${productId}/summary`); },
+  // Rating summaries are read by every product card, and the same product can
+  // appear in several sections on one page. Cache the in-flight/resolved promise
+  // per product so we hit the API at most once per product per page load.
+  getRatingSummary(productId) {
+    if (_ratingCache.has(productId)) return _ratingCache.get(productId);
+    const p = req(`/reviews/${productId}/summary`).catch((err) => {
+      _ratingCache.delete(productId); // don't cache failures
+      throw err;
+    });
+    _ratingCache.set(productId, p);
+    return p;
+  },
   async canReview(productId, phone) {
     return req(`/reviews/${productId}/can?phone=${encodeURIComponent(phone || '')}`);
   },
-  async addReview(productId, { name, phone, rating, text }) {
-    return req(`/reviews/${productId}`, { method:'POST', body:{ name, phone, rating, text } });
+  async addReview(productId, { name, phone, email, title, rating, text, images, video }) {
+    return req(`/reviews/${productId}`, { method:'POST', body:{ name, phone, email, title, rating, text, images, video } });
+  },
+  // Gated media upload (verified buyers only). Returns { url }.
+  async uploadReviewMedia(productId, phone, file, kind = 'image') {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('phone', phone || '');
+    fd.append('kind', kind);
+    const res = await fetch(`${API_URL}/reviews/${productId}/upload`, { method:'POST', body: fd });
+    if (!res.ok) {
+      let m = 'Upload failed.';
+      try { const d = await res.json(); if (d?.error) m = d.error; } catch { /* ignore */ }
+      throw new Error(m);
+    }
+    return res.json();
   },
 
   // ---- feedback (site-wide testimonials) ----

@@ -1,13 +1,28 @@
 'use client';
 import Link from 'next/link';
-import { Camera, Mail, Phone, MapPin, Heart, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Heart } from 'lucide-react';
+
+// Inline Instagram glyph (this lucide-react version doesn't export `Instagram`).
+function InstagramIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
 
 import { useCategories } from '@/context/CategoriesContext';
-import { Logo } from './UI';
+import { useSettings } from '@/context/SettingsContext';
+
+const DEFAULT_IG = 'https://www.instagram.com/dillora_by_kashvin';
 
 export default function Footer() {
   const year = new Date().getFullYear();
   const { categories } = useCategories();
+  const { settings } = useSettings();
+  const instagramUrl = settings?.instagramUrl || DEFAULT_IG;
 
   return (
     <footer className="relative mt-16 overflow-hidden" style={{ color: '#fff' }}>
@@ -18,41 +33,19 @@ export default function Footer() {
       <div className="absolute -bottom-24 right-0 w-72 h-72 rounded-full blur-3xl" style={{ background:'rgba(122,79,240,.22)' }} />
 
       <div className="relative">
-        {/* Newsletter */}
-        <div className="max-w-[1240px] mx-auto px-5 pt-14 pb-10">
-          <div className="rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-5 justify-between"
-               style={{ background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.15)', backdropFilter:'blur(6px)' }}>
-            <div>
-              <h3 className="font-display text-2xl sm:text-3xl font-semibold flex items-center gap-2" style={{ color:'#fff' }}>
-                Join the Dillora circle <Heart className="w-5 h-5" style={{ color:'#e7d3f6', fill:'#d4aeec' }} />
-              </h3>
-              <p className="text-sm mt-1" style={{ color:'rgba(255,255,255,.72)' }}>
-                First dibs on new drops, festive offers and behind-the-scenes making.
-              </p>
-            </div>
-            <form className="flex w-full md:w-auto gap-2" onSubmit={(e) => e.preventDefault()}>
-              <input type="email" placeholder="Your email"
-                     className="flex-1 md:w-64 px-4 py-3 rounded-full text-sm outline-none"
-                     style={{ background:'rgba(255,255,255,.95)', color:'#2c2336' }} />
-              <button type="submit"
-                      className="shrink-0 inline-flex items-center gap-1.5 px-5 py-3 rounded-full text-sm font-semibold hover:scale-[1.03] active:scale-95 transition-transform duration-200"
-                      style={{ background:'linear-gradient(90deg,#bd80e0,#8b63ef)', color:'#fff' }}>
-                Subscribe <Send className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-
         {/* Columns */}
-        <div className="max-w-[1240px] mx-auto px-5 pb-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-[1240px] mx-auto px-5 pt-14 pb-10 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-            <Logo light size={24} />
+            {/* Original Kashvin logo — shown on a light chip so the artwork reads on the dark footer */}
+            <Link href="/" aria-label="Dillora by Kashvin — home" className="inline-flex rounded-2xl bg-white px-3 py-2 shadow-[0_6px_18px_rgba(0,0,0,.18)]">
+              <img src="/logo.png" alt="Dillora by Kashvin" className="h-11 w-auto block" />
+            </Link>
             <p className="text-sm leading-relaxed mt-3 max-w-xs" style={{ color:'rgba(255,255,255,.65)' }}>
               Handmade phone covers, charms, crochet, resin art and oversize tees — made to order, with care, in India.
             </p>
             <div className="flex items-center gap-2 mt-4">
-              <a href="#" aria-label="Instagram" className="inline-flex items-center justify-center w-9 h-9 rounded-full hover:scale-110 transition-transform duration-200" style={{ background:'rgba(255,255,255,.1)' }}>
-                <Camera className="w-[18px] h-[18px] block" />
+              <a href={instagramUrl} target="_blank" rel="noreferrer" aria-label="Follow us on Instagram" className="inline-flex items-center justify-center w-9 h-9 rounded-full hover:scale-110 transition-transform duration-200" style={{ background:'rgba(255,255,255,.1)' }}>
+                <InstagramIcon className="w-[18px] h-[18px] block" />
               </a>
               <a href="mailto:support@kashvin.in" aria-label="Email" className="inline-flex items-center justify-center w-9 h-9 rounded-full hover:scale-110 transition-transform duration-200" style={{ background:'rgba(255,255,255,.1)' }}>
                 <Mail className="w-[18px] h-[18px] block" />

@@ -3,14 +3,15 @@ import Link from 'next/link';
 import { CATEGORY_IMG } from '@/data/catalog';
 import { useCategories } from '@/context/CategoriesContext';
 
-// Each category gets its own brand colour for the animated dotted ring
-// (see .catcircle__ring::before in app.css).
+// Each category gets its own ring colour for the animated dotted ring
+// (see .catcircle__ring::before in app.css). All drawn from the "Handmade with
+// love" banner palette (deep orchid → violet → pink) so the strip matches it.
 const CAT_RING = {
-  'mobile-covers': '#a64fd6',
+  'mobile-covers': '#8a39bd',
   'mobile-charms': '#e57fc4',
   'crochet':       '#8b63ef',
   'resin-art':     '#7a4ff0',
-  'tshirts':       '#f5a623',
+  'tshirts':       '#a64fd6',
 };
 
 export default function CategoryStrip() {

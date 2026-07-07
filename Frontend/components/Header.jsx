@@ -7,6 +7,7 @@ import { Search as SearchIcon, Heart, User, ShoppingBag, Menu, X, Sparkles } fro
 import { useCategories } from '@/context/CategoriesContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { useAuth } from '@/context/AuthContext';
 import { Logo } from './UI';
 import Search from './Search';
 
@@ -22,6 +23,7 @@ export default function Header() {
   const { count } = useCart();
   const { count: wishCount } = useWishlist();
   const { categories } = useCategories();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -107,8 +109,15 @@ export default function Header() {
               <Heart className="w-[20px] h-[20px]" strokeWidth={2} />
               {mounted && wishCount > 0 && <span className="dlr-badge" style={{ background:'#e57fc4' }}>{wishCount}</span>}
             </Link>
-            <Link href="/account" className="dlr-ic" aria-label="Account">
-              <User className="w-[20px] h-[20px]" strokeWidth={2} />
+            <Link href="/account" className="dlr-ic" aria-label={mounted && user ? `Account — ${user.name}` : 'Sign in'} title={mounted && user ? user.name : 'Sign in'}>
+              {mounted && user ? (
+                <span className="grid h-[26px] w-[26px] place-items-center rounded-full text-[12px] font-bold leading-none text-white shadow-[0_2px_8px_rgba(122,79,240,.4)]"
+                      style={{ background:'linear-gradient(135deg,#a64fd6,#7a4ff0)' }}>
+                  {(user.name || 'U').trim().charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <User className="w-[20px] h-[20px]" strokeWidth={2} />
+              )}
             </Link>
             <Link href="/cart" className="dlr-ic" aria-label="Cart">
               <ShoppingBag className="w-[20px] h-[20px]" strokeWidth={2} />

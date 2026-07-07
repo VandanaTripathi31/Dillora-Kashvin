@@ -11,6 +11,8 @@ import { useSettings } from '@/context/SettingsContext';
 import { Price, Spinner, Toast, Rating, ProductCard } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 import ProductReviews from '@/components/ProductReviews';
+import DeliveryInfo from '@/components/DeliveryInfo';
+import HowToOrderPopup from '@/components/HowToOrderPopup';
 
 const RECENT_KEY = 'dilora_recent';
 const SIZE_GUIDE = [
@@ -38,8 +40,10 @@ export default function Product() {
 
   const [product, setProduct] = useState(null);
   const [material, setMaterial] = useState(null);
+  const [brands, setBrands] = useState([]);        // [{id,name,models:[{id,name}]}]
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
+  const [modelOther, setModelOther] = useState(false); // "not listed" → free text
   const [size, setSize] = useState('');
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
@@ -66,10 +70,19 @@ export default function Product() {
     reader.readAsDataURL(file);
   };
 
+  // Active phone brands + models — admin-managed, fetched once on mount.
+  useEffect(() => {
+    let alive = true;
+    api.getBrands()
+      .then((list) => { if (alive) setBrands(Array.isArray(list) ? list : []); })
+      .catch(() => { /* keep static fallback */ });
+    return () => { alive = false; };
+  }, []);
+
   useEffect(() => {
     let alive = true;
     setProduct(null);
-    setActiveImg(0); setBrand(''); setModel(''); setSize('');
+    setActiveImg(0); setBrand(''); setModel(''); setModelOther(false); setSize('');
     setQty(1); setMaterial(null); setErr(''); setZoom(null);
     setResinColor(''); setResinBg(''); setResinNotes(''); setRefPhoto(null);
 
@@ -107,6 +120,16 @@ export default function Product() {
   const cat = findCategory(product.category);
   const gallery = galleryFor(product);
   const unitPrice = material ? material.price : product.price;
+
+  // Phone brand/model dropdown data (admin-managed, with a static fallback if
+  // the backend has no brands seeded yet). "Other" always stays available so an
+  // unlisted phone can still be ordered via free text.
+  const brandNames = brands.length ? brands.map((b) => b.name) : PHONE_BRANDS.filter((b) => b !== 'Other');
+  const selBrand = brands.find((b) => b.name === brand);
+  const brandModels = selBrand?.models || [];
+  // Fall back to a text field when the brand is "Other", has no models listed,
+  // or the customer explicitly chose "not listed".
+  const useModelText = brand === 'Other' || (!!brand && brandModels.length === 0) || modelOther;
 
   // Double-tap / double-click to zoom in at that point; tap again to zoom out.
   // No hover zoom — it was distracting while just browsing.
@@ -163,6 +186,8 @@ export default function Product() {
 
   return (
     <div className="container section">
+      {/* How-to-order popup (admin image or built-in illustrated design) */}
+      <HowToOrderPopup />
       <nav className="mb-[18px] flex flex-wrap gap-2 text-[0.85rem] text-ink-soft [&_a:hover]:text-orchid-600">
         <Link href="/">Home</Link> <span>/</span>
         <Link href={`/c/${cat.id}`}>{cat.name}</Link> <span>/</span>
@@ -222,35 +247,53 @@ export default function Product() {
             </div>
           )}
 
-          {/* Phone brand + model (model is free text so any new phone works) */}
+          {/* Phone brand + model — brand→model dropdowns (admin-managed) */}
           {product.optionType === 'phone' && (
             <>
-              <p className={optNote}>Tell us your phone — the same design is made to fit your exact model.</p>
+              <p className={optNote}>Pick your phone — the same design is made to fit your exact model.</p>
               <div className="mb-5">
                 <label className={optLabel}>Phone brand</label>
                 <select className={optSelect} value={brand}
-                        onChange={e => { setBrand(e.target.value); setModel(''); }}>
+                        onChange={e => { setBrand(e.target.value); setModel(''); setModelOther(false); }}>
                   <option value="">Choose brand</option>
-                  {PHONE_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+                  {brandNames.map(b => <option key={b} value={b}>{b}</option>)}
+                  <option value="Other">Other (not listed)</option>
                 </select>
               </div>
               {brand && (
                 <div className="mb-5">
                   <label className={optLabel}>Phone model</label>
-                  <input
-                    className={optSelect}
-                    value={model}
-                    onChange={e => setModel(e.target.value)}
-                    placeholder={
-                      brand === 'Apple' ? 'e.g. iPhone 16 Pro Max'
-                      : brand === 'Samsung' ? 'e.g. Galaxy S25 Ultra'
-                      : brand === 'OnePlus' ? 'e.g. OnePlus 13'
-                      : brand === 'Other' ? 'e.g. brand + model'
-                      : 'e.g. your exact model'
-                    }
-                  />
+                  {useModelText ? (
+                    <input
+                      className={optSelect}
+                      value={model}
+                      onChange={e => setModel(e.target.value)}
+                      placeholder={
+                        brand === 'Apple' ? 'e.g. iPhone 16 Pro Max'
+                        : brand === 'Samsung' ? 'e.g. Galaxy S25 Ultra'
+                        : brand === 'OnePlus' ? 'e.g. OnePlus 13'
+                        : brand === 'Other' ? 'e.g. brand + model'
+                        : 'e.g. your exact model'
+                      }
+                    />
+                  ) : (
+                    <select
+                      className={optSelect}
+                      value={model}
+                      onChange={e => {
+                        if (e.target.value === '__other__') { setModelOther(true); setModel(''); }
+                        else setModel(e.target.value);
+                      }}
+                    >
+                      <option value="">Choose model</option>
+                      {brandModels.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                      <option value="__other__">My model isn’t listed…</option>
+                    </select>
+                  )}
                   <p className="mt-2 text-[0.9rem] text-ink-soft">
-                    Type your exact model so we craft the cover to fit perfectly.
+                    {useModelText
+                      ? 'Type your exact model so we craft the cover to fit perfectly.'
+                      : 'Select your exact model so we craft the cover to fit perfectly.'}
                   </p>
                 </div>
               )}
@@ -347,6 +390,9 @@ export default function Product() {
               <li>Actual product may slightly differ from photos</li>
             </ul>
           </div>
+
+          {/* Delivery, returns & policies (admin-managed) */}
+          <DeliveryInfo />
         </div>
       </div>
 

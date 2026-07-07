@@ -11,17 +11,35 @@ import { loadRazorpayScript } from '@/lib/razorpay';
 // for half-cod), so both open Razorpay Checkout. The order is only persisted
 // after the payment signature is verified on the backend.
 const PAYMENTS = [
-  { id:'online',  title:'Pay online',        desc:'UPI / Card / Netbanking (full amount)' },
+  { id:'online',  title:'Pay online',        desc:'UPI, QR, Cards, Net Banking & Wallets (full amount)' },
   { id:'half-cod',title:'Half online + COD', desc:'Pay 50% now, rest on delivery' },
 ];
 
 export default function Checkout() {
   const { items, subtotal, clear, count } = useCart();
-  const { user, saveAddress } = useAuth();
+  const { user, saveAddress, addresses, defaultAddressId } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
     name: user?.name || '', phone: user?.phone || '', email:'', address:'', city:'', pincode:'',
   });
+  const [prefilled, setPrefilled] = useState(false);
+
+  // Prefill from the default (or most recent) saved address, once.
+  useEffect(() => {
+    if (prefilled || !addresses.length) return;
+    const def = addresses.find(a => a.id === defaultAddressId) || addresses[0];
+    if (def) setForm(f => ({
+      ...f,
+      name: f.name || def.name || '', phone: f.phone || def.phone || '',
+      address: def.address || '', city: def.city || '', pincode: def.pincode || '',
+    }));
+    setPrefilled(true);
+  }, [addresses, defaultAddressId, prefilled]);
+
+  const applySavedAddress = (a) => setForm(f => ({
+    ...f, name: a.name || f.name, phone: a.phone || f.phone,
+    address: a.address || '', city: a.city || '', pincode: a.pincode || '',
+  }));
   const [payment, setPayment] = useState('online');
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
@@ -33,16 +51,38 @@ export default function Checkout() {
   const [couponMsg, setCouponMsg] = useState('');
   const [checking, setChecking] = useState(false);
 
+  // auto-applied promotional offers
+  const [offers, setOffers] = useState([]);          // [{ id, name, discount }]
+  const [offerDiscount, setOfferDiscount] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    if (!items.length) { setOffers([]); setOfferDiscount(0); return; }
+    const payload = items.map(l => ({ productId: l.productId, category: l.category, price: l.price, qty: l.qty }));
+    api.evaluateOffers(payload)
+      .then(r => { if (alive) { setOffers(r.offers || []); setOfferDiscount(r.discount || 0); } })
+      .catch(() => { if (alive) { setOffers([]); setOfferDiscount(0); } });
+    return () => { alive = false; };
+  }, [items]);
+
   const shipping = subtotal >= 299 ? 0 : 49;
   const discount = coupon?.discount || 0;
-  const total = Math.max(0, subtotal - discount) + shipping;
+  const total = Math.max(0, subtotal - discount - offerDiscount) + shipping;
   const payNow = payment === 'half-cod' ? Math.round(total/2) : payment === 'online' ? total : 0;
+  // Customized items (resin / reference-photo orders) can be reserved with 50% advance.
+  const hasCustom = items.some(l => l.refPhoto || l.category === 'resin-art');
+
+  // Cart count comes from localStorage (0 on the server), so gate the cart-empty
+  // logic behind mount to keep server + first client render consistent.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   // Redirect to home only if the cart is empty AND we did not just place an order.
   useEffect(() => {
-    if (count === 0 && !placing && !placed) router.push('/');
-  }, [count, placing, placed, router]);
+    if (mounted && count === 0 && !placing && !placed) router.push('/');
+  }, [mounted, count, placing, placed, router]);
 
+  if (!mounted) return null;
   if (count === 0 && !placed) return null;
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
@@ -65,6 +105,7 @@ export default function Checkout() {
     userPhone: user?.phone || form.phone,
     items: items.map(l => ({ name:l.name, options:l.options, qty:l.qty, price:l.price, refPhoto:l.refPhoto || null, category:l.category || null, productId:l.productId, image:l.image })),
     subtotal, discount, coupon: coupon?.code || null,
+    offers: offers.map(o => ({ id:o.id, name:o.name, discount:o.discount })), offerDiscount,
     total, payment, payNow,
   });
 
@@ -107,6 +148,10 @@ export default function Checkout() {
         description: payment === 'half-cod' ? 'Pay 50% now — balance on delivery' : 'Order payment',
         prefill: { name: form.name, email: form.email, contact: form.phone },
         theme: { color: '#a64fd6' },
+        // Surface every enabled method (UPI incl. QR, cards, net banking, wallets).
+        // We don't restrict methods, so Razorpay shows all that are enabled on the
+        // account; show_default_blocks keeps them all visible & grouped.
+        config: { display: { preferences: { show_default_blocks: true } } },
         // 4) On success, verify the signature server-side; the order is created only if valid.
         handler: async (response) => {
           try {
@@ -147,6 +192,32 @@ export default function Checkout() {
         <div className="flex flex-col gap-5">
           <section className="card p-6">
             <h3 className="mb-[18px]">Delivery details</h3>
+
+            {addresses.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-[0.82rem] font-semibold text-ink-soft">Use a saved address</p>
+                <div className="flex flex-wrap gap-2">
+                  {addresses.map(a => {
+                    const active = form.address === a.address && form.pincode === a.pincode;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => applySavedAddress(a)}
+                        className={`rounded-xl border-[1.5px] px-3 py-2 text-left text-[0.82rem] transition-colors ${active ? 'border-orchid-500 bg-[#f9f2fd]' : 'border-[#eee3f3] hover:border-[#cf9eec]'}`}
+                      >
+                        <span className="flex items-center gap-1.5 font-semibold text-ink">
+                          {a.name}
+                          {a.id === defaultAddressId && <span className="rounded-full bg-orchid-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-orchid-600">Default</span>}
+                        </span>
+                        <span className="mt-0.5 block text-ink-soft">{a.address}, {a.city} {a.pincode}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Full name" value={form.name} onChange={set('name')} span2 />
               <Field label="Phone (10-digit)" value={form.phone} onChange={set('phone')} />
@@ -170,7 +241,12 @@ export default function Checkout() {
                 </label>
               ))}
             </div>
-            <p className="mt-3.5 rounded-[10px] bg-cream-2 px-3 py-2.5 text-[0.82rem] text-ink-soft">🔒 Secure payment powered by Razorpay — UPI, cards &amp; netbanking supported.</p>
+            {hasCustom && (
+              <p className="mt-3.5 rounded-[10px] bg-[#fdf8ec] px-3 py-2.5 text-[0.82rem] font-medium text-[#8a6d1a]">
+                🎨 You have a customised item — reserve it by paying just <strong>50% now</strong> with “Half online + COD”, and pay the balance on delivery.
+              </p>
+            )}
+            <p className="mt-3.5 rounded-[10px] bg-cream-2 px-3 py-2.5 text-[0.82rem] text-ink-soft">🔒 Secure payment powered by Razorpay — pay by <strong>UPI / QR scan, cards, net banking &amp; wallets</strong>. Choose your method in the payment window.</p>
           </section>
         </div>
 
@@ -209,10 +285,17 @@ export default function Checkout() {
           {discount > 0 && (
             <div className="flex justify-between py-2 text-[0.95rem] font-semibold text-[#3f9d6b]"><span>Discount</span><span>−₹{discount.toLocaleString('en-IN')}</span></div>
           )}
+          {offers.map(o => (
+            <div key={o.id} className="flex justify-between gap-2 py-2 text-[0.9rem] font-semibold text-[#3f9d6b]">
+              <span>🎁 {o.name}</span><span className="whitespace-nowrap">−₹{o.discount.toLocaleString('en-IN')}</span>
+            </div>
+          ))}
           <div className="flex justify-between py-2 text-[0.95rem]"><span>Shipping</span><span>{shipping===0?'Free':`₹${shipping}`}</span></div>
           <div className="mt-2 flex justify-between border-t-[1.5px] border-[#eee3f3] pb-2 pt-3.5 text-[1.1rem] font-bold"><span>Total</span><span>₹{total.toLocaleString('en-IN')}</span></div>
           {payNow > 0 && payNow < total &&
-            <div className="flex justify-between py-2 text-[0.95rem] font-bold text-orchid-600"><span>Pay now</span><span>₹{payNow.toLocaleString('en-IN')}</span></div>}
+            <div className="flex justify-between py-2 text-[0.95rem] font-bold text-orchid-600"><span>Pay now (50% advance)</span><span>₹{payNow.toLocaleString('en-IN')}</span></div>}
+          {payment === 'half-cod' && (total - payNow) > 0 &&
+            <div className="flex justify-between py-2 text-[0.9rem] text-ink-soft"><span>Balance on delivery</span><span>₹{(total - payNow).toLocaleString('en-IN')}</span></div>}
           {error && <p className="my-2 text-[0.9rem] font-semibold text-[#c4495b]">{error}</p>}
           <button className="btn btn-primary btn-block mt-4" disabled={placing} onClick={placeOrder}>
             {placing ? 'Placing order…' : 'Place order'}

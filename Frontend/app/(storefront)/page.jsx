@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { Sparkles, ArrowRight, Heart, Truck } from 'lucide-react';
 
@@ -7,11 +8,15 @@ import { useCategories } from '@/context/CategoriesContext';
 import { api } from '@/data/api';
 import { ProductCard, Spinner } from '@/components/UI';
 import Reveal from '@/components/Reveal';
-import Testimonials from '@/components/Testimonials';
 import CategoryStrip from '@/components/CategoryStrip';
-import Reels from '@/components/Reels';
+import AdBanners from '@/components/AdBanners';
 import HeroSparkles from '@/components/HeroSparkles';
 import AnimatedCounter from '@/components/AnimatedCounter';
+
+// Below-the-fold, heavy components — code-split so they don't bloat the initial
+// bundle. Reels streams video (client-only); Testimonials renders after load.
+const Reels = dynamic(() => import('@/components/Reels'), { ssr: false });
+const Testimonials = dynamic(() => import('@/components/Testimonials'));
 
 const statNum = 'bg-grad-brand bg-clip-text font-display text-[clamp(2rem,4vw,3rem)] font-semibold leading-none text-transparent';
 const statLabel = 'text-[0.85rem] font-medium text-ink-soft';
@@ -78,6 +83,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Admin-managed promotional banners */}
+      <AdBanners />
 
       {/* Category strip */}
       <CategoryStrip />
