@@ -1,14 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import { api } from '@/services/api';
 import { CATEGORIES } from '@/constants/catalog';
 import { Spinner } from '@/components/UI';
 import { StatusPill } from '@/components/StatusPill';
 import { notify } from '@/components/AdminToaster';
+import { confirmDialog } from '@/components/ConfirmRoot';
 
 const STATUSES = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 const payLabel = { online:'Paid online', 'half-cod':'Half + COD', cod:'COD' };
+const REFUND_OPTS = ['none', 'pending', 'refunded', 'not-applicable'];
+const refundLabel = { none: 'No refund', pending: 'Refund pending', refunded: 'Refunded', 'not-applicable': 'N/A' };
 
 // Group order items by their product category, preserving first-seen order.
 function groupByCategory(items = []) {
@@ -39,12 +42,59 @@ export default function AdminOrders() {
     notify(`${id} marked ${status}`);
   };
 
+  const decideCancel = async (o, action) => {
+    if (action === 'approve') {
+      const ok = await confirmDialog({
+        title: 'Approve cancellation?',
+        message: 'The order will be cancelled and mobile-cover stock restored. This cannot be undone.',
+        confirmLabel: 'Approve & cancel',
+      });
+      if (!ok) return;
+    }
+    const res = await api.decideCancellation(o.id, action);
+    if (res?.error) { notify(res.error, 'error'); return; }
+    setOpen(res);
+    load();
+    notify(action === 'approve' ? 'Cancellation approved · stock restored' : 'Cancellation rejected', action === 'approve' ? 'success' : 'info');
+  };
+
+  const setRefund = async (o, refundStatus) => {
+    const res = await api.updateRefund(o.id, refundStatus);
+    if (res?.error) { notify(res.error, 'error'); return; }
+    setOpen(res);
+    load();
+    notify(`Refund: ${refundLabel[refundStatus]}`);
+  };
+
+  const collectBalance = async (o) => {
+    const res = await api.collectBalance(o.id);
+    if (res?.error) { notify(res.error, 'error'); return; }
+    setOpen(res); load(); notify('Balance marked collected');
+  };
+
+  const downloadInvoice = async (o) => {
+    try {
+      const blob = await api.downloadInvoice(o.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `invoice-${o.id}.pdf`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch { notify('Could not download invoice', 'error'); }
+  };
+
   if (!orders) return <div className="adm__pad"><Spinner /></div>;
 
   const orderHasCat = (o, catName) => o.items.some(it => (it.category || 'Other') === catName);
 
-  // Apply BOTH filters: status + product type.
-  const byStatus = filter === 'All' ? orders : orders.filter(o => o.status === filter);
+  const pendingCancels = orders.filter(o => o.cancellation?.state === 'requested').length;
+
+  // Apply BOTH filters: status + product type. "Requests" = pending cancellations.
+  const byStatus = filter === 'All'
+    ? orders
+    : filter === 'Requests'
+      ? orders.filter(o => o.cancellation?.state === 'requested')
+      : orders.filter(o => o.status === filter);
   const byCat = catFilter === 'All' ? byStatus : byStatus.filter(o => orderHasCat(o, catFilter));
   const q = query.trim().toLowerCase();
   const searched = q
@@ -77,6 +127,12 @@ export default function AdminOrders() {
         {['All', ...STATUSES].map(s => (
           <button key={s} className={`subtab ${filter===s?'subtab--on':''}`} onClick={() => setFilter(s)}>{s}</button>
         ))}
+        <button className={`subtab ${filter==='Requests'?'subtab--on':''}`} onClick={() => setFilter('Requests')}>
+          Cancellations
+          {pendingCancels > 0 && (
+            <span className="ml-1.5 inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#b03a4c] px-1.5 text-[11px] font-bold text-white">{pendingCancels}</span>
+          )}
+        </button>
       </div>
 
       {/* Segregation: orders by product type (always shows all 5, clickable to filter) */}
@@ -135,7 +191,12 @@ export default function AdminOrders() {
                 <td>{o.items.reduce((n,i)=>n+i.qty,0)}</td>
                 <td>₹{o.total.toLocaleString('en-IN')}</td>
                 <td><small>{payLabel[o.payment] || o.payment}</small></td>
-                <td><StatusPill status={o.status} /></td>
+                <td>
+                  <StatusPill status={o.status} />
+                  {o.cancellation?.state === 'requested' && (
+                    <span className="mt-1 block whitespace-nowrap rounded-full bg-[#fdeaed] px-2 py-0.5 text-[11px] font-bold text-[#b03a4c]">Cancel requested</span>
+                  )}
+                </td>
                 <td className="tbl__actions"><button onClick={() => setOpen(o)}>View</button></td>
               </tr>
             ))}
@@ -179,7 +240,22 @@ export default function AdminOrders() {
                 ))}
                 <div className="summary__row summary__total"><span>Total</span><span>₹{open.total.toLocaleString('en-IN')}</span></div>
                 <div className="summary__row"><span>Payment</span><span>{payLabel[open.payment] || open.payment}</span></div>
+                {open.paymentStatus === 'advance-paid' && (
+                  <>
+                    <div className="summary__row"><span>Advance paid</span><span>₹{(open.advancePaid || 0).toLocaleString('en-IN')}</span></div>
+                    <div className="summary__row" style={{ color: '#b8860b', fontWeight: 600 }}><span>Balance on delivery</span><span>₹{(open.pendingAmount || 0).toLocaleString('en-IN')}</span></div>
+                  </>
+                )}
+                {open.paymentStatus === 'paid' && open.payment === 'half-cod' && (
+                  <div className="summary__row" style={{ color: 'var(--ok)' }}><span>Balance</span><span>Collected ✓</span></div>
+                )}
               </div>
+              {open.paymentStatus === 'advance-paid' && (
+                <div className="mt-3 rounded-xl border border-[#f0e2c2] bg-[#fdf8ec] p-3.5">
+                  <p className="mb-2 text-sm font-semibold text-[#8a6d1a]">₹{(open.pendingAmount || 0).toLocaleString('en-IN')} balance is due on delivery.</p>
+                  <button className="btn btn-primary" onClick={() => collectBalance(open)}>Mark balance collected</button>
+                </div>
+              )}
               <div className="ordview__status">
                 <label className="opt__label">Update status</label>
                 <div className="opt__row">
@@ -189,6 +265,64 @@ export default function AdminOrders() {
                   ))}
                 </div>
               </div>
+
+              {/* Cancellation workflow */}
+              {open.cancellation && open.cancellation.state !== 'none' && (
+                <div className="mt-4 rounded-xl border border-[#f3c0c8] bg-[#fdf4f6] p-3.5">
+                  <div className="mb-1 flex items-center justify-between">
+                    <strong className="text-[#b03a4c]">Cancellation</strong>
+                    <span className="text-[12px] font-semibold uppercase tracking-wide text-ink-soft">{open.cancellation.state}</span>
+                  </div>
+                  {open.cancellation.reason && <p className="mb-2 text-sm text-ink">“{open.cancellation.reason}”</p>}
+                  {open.cancellation.requestedAt > 0 && (
+                    <p className="muted mb-2 text-[12px]">Requested {new Date(open.cancellation.requestedAt).toLocaleString('en-IN')}</p>
+                  )}
+
+                  {open.cancellation.state === 'requested' && (
+                    <div className="flex gap-2">
+                      <button className="btn btn-primary" onClick={() => decideCancel(open, 'approve')}>Approve &amp; restore stock</button>
+                      <button className="btn" onClick={() => decideCancel(open, 'reject')}>Reject</button>
+                    </div>
+                  )}
+
+                  {open.cancellation.state === 'approved' && (
+                    <div className="mt-1">
+                      <label className="opt__label">Refund status</label>
+                      <select
+                        value={open.cancellation.refundStatus || 'none'}
+                        onChange={(e) => setRefund(open, e.target.value)}
+                        className="h-10 w-full max-w-[240px] rounded-[10px] border-[1.5px] border-[#eee3f3] bg-white px-3 text-ink focus:border-orchid-500 focus:outline-none"
+                      >
+                        {REFUND_OPTS.map((r) => <option key={r} value={r}>{refundLabel[r]}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Invoice */}
+              <div className="mt-4">
+                <button className="btn inline-flex items-center gap-2" onClick={() => downloadInvoice(open)}>
+                  <Download className="h-4 w-4" /> Download invoice
+                </button>
+              </div>
+
+              {/* Timeline */}
+              {open.timeline?.length > 0 && (
+                <div className="mt-4">
+                  <label className="opt__label">Timeline</label>
+                  <ul className="mt-1 space-y-1.5">
+                    {[...open.timeline].reverse().map((t, i) => (
+                      <li key={i} className="flex items-start gap-2 text-[13px]">
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-orchid-500" />
+                        <span className="text-ink">{t.label}
+                          <span className="muted"> · {new Date(t.at).toLocaleString('en-IN')}{t.by ? ` · ${t.by}` : ''}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>

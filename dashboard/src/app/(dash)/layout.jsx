@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag,
-  Clapperboard, Tag, Settings, Store, LogOut, Menu, X, MessageSquare,
+  Clapperboard, Tag, Settings, Store, LogOut, Menu, X, MessageSquare, Smartphone, FileText, Gift, Star, Image as ImageIcon, Sparkles,
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -16,9 +16,15 @@ const NAV = [
   { href: '/',           label: 'Overview',   icon: LayoutDashboard, exact: true },
   { href: '/products',   label: 'Products',   icon: Package },
   { href: '/categories', label: 'Categories', icon: FolderTree },
+  { href: '/brands',     label: 'Phone Models', icon: Smartphone },
   { href: '/orders',     label: 'Orders',     icon: ShoppingBag },
+  { href: '/invoices',   label: 'Invoices',   icon: FileText },
   { href: '/reels',      label: 'Reels',      icon: Clapperboard },
-  { href: '/offers',     label: 'Offers',     icon: Tag },
+  { href: '/banners',    label: 'Banners',    icon: ImageIcon },
+  { href: '/popups',     label: 'Popups',     icon: Sparkles },
+  { href: '/offers',     label: 'Coupons',    icon: Tag },
+  { href: '/promotions', label: 'Promotions', icon: Gift },
+  { href: '/reviews',    label: 'Reviews',    icon: Star },
   { href: '/feedback',   label: 'Feedback',   icon: MessageSquare },
   { href: '/settings',   label: 'Settings',   icon: Settings },
 ];

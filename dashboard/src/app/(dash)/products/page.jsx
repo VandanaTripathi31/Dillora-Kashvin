@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Lock, Unlock, History } from 'lucide-react';
 import { api } from '@/services/api';
 import { CATEGORIES } from '@/constants/catalog';
+import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/UI';
 import { notify } from '@/components/AdminToaster';
 import { confirmDialog } from '@/components/ConfirmRoot';
@@ -11,6 +12,9 @@ import MediaUpload from '@/components/MediaUpload';
 const blank = { name:'', category:'mobile-covers', sub:'', price:'', mrp:'', stock:'', image:'', optionType:'none' };
 
 export default function AdminProducts() {
+  const { admin } = useAuth();
+  const canManageLock = admin?.role === 'owner' || admin?.role === 'manager';
+
   const [products, setProducts] = useState(null);
   const [cats, setCats] = useState(CATEGORIES);
   const [editing, setEditing] = useState(null); // product or 'new'
@@ -23,13 +27,49 @@ export default function AdminProducts() {
   const [bulkText, setBulkText] = useState('');
   const [bulkMsg, setBulkMsg] = useState('');
   const [selected, setSelected] = useState(() => new Set()); // product ids selected for bulk delete
+  // stock lock
+  const [admins, setAdmins] = useState([]);
+  const [lockEditor, setLockEditor] = useState('');
+  const [history, setHistory] = useState(null);
 
   const load = () => api.getProducts().then(setProducts);
   useEffect(() => { load(); api.getCategories().then(setCats); }, []);
+  useEffect(() => {
+    if (canManageLock) api.getAdmins().then((a) => setAdmins(Array.isArray(a) ? a : [])).catch(() => {});
+  }, [canManageLock]);
 
   const openNew = () => { setForm(blank); setEditing('new'); };
-  const openEdit = (p) => { setForm({ ...p, price:String(p.price), mrp:String(p.mrp||''), stock:String(p.stock??'') }); setEditing(p); };
+  const openEdit = (p) => {
+    setForm({ ...p, price:String(p.price), mrp:String(p.mrp||''), stock:String(p.stock??'') });
+    setLockEditor(p.stockLock?.editorEmail || '');
+    setHistory(null);
+    setEditing(p);
+  };
   const close = () => setEditing(null);
+
+  // ---- stock lock actions ----
+  const doLock = async () => {
+    const res = await api.lockProduct(editing.id, lockEditor);
+    if (res?.error) { notify(res.error, 'error'); return; }
+    setEditing(res); load(); notify('Product locked');
+  };
+  const doUnlock = async () => {
+    const res = await api.unlockProduct(editing.id);
+    if (res?.error) { notify(res.error, 'error'); return; }
+    setEditing(res); setLockEditor(''); load(); notify('Product unlocked', 'info');
+  };
+  const changeEditor = async (email) => {
+    setLockEditor(email);
+    if (!editing?.stockLock?.locked) return; // applied on lock when not yet locked
+    const res = await api.setProductEditor(editing.id, email);
+    if (res?.error) { notify(res.error, 'error'); return; }
+    setEditing(res); notify('Assigned editor updated');
+  };
+  const loadHistory = async () => {
+    setHistory('loading');
+    const h = await api.getStockHistory(editing.id);
+    setHistory(Array.isArray(h) ? h : []);
+  };
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -205,7 +245,12 @@ export default function AdminProducts() {
                 </td>
                 <td>{cats.find(c=>c.id===p.category)?.name}<br/><small className="muted">{cats.find(c=>c.id===p.category)?.subs.find(s=>s.id===p.sub)?.name || ''}</small></td>
                 <td>₹{p.price}{p.mrp ? <><br/><small className="strike">₹{p.mrp}</small></> : null}</td>
-                <td>{(p.stock ?? 0) <= 8 ? <span className="pill pill--bad">{p.stock ?? 0}</span> : p.stock}</td>
+                <td>
+                  <span className="inline-flex items-center gap-1.5">
+                    {(p.stock ?? 0) <= 8 ? <span className="pill pill--bad">{p.stock ?? 0}</span> : p.stock}
+                    {p.stockLock?.locked && <Lock className="h-3.5 w-3.5 text-orchid-500" title="Stock locked" />}
+                  </span>
+                </td>
                 <td className="tbl__actions">
                   <button onClick={() => openEdit(p)}>Edit</button>
                   <button className="tbl__del" onClick={() => del(p)}>Delete</button>
@@ -254,6 +299,77 @@ export default function AdminProducts() {
               </label>
             </div>
             {form.image && <img src={form.image} alt="" className="modal__preview" />}
+
+            {/* Stock lock (existing products only) */}
+            {editing !== 'new' && (
+              <div className="mt-4 rounded-xl border border-[#eee3f3] bg-[#faf7fd] p-3.5">
+                <div className="mb-2 flex items-center justify-between">
+                  <strong className="inline-flex items-center gap-1.5">
+                    {editing.stockLock?.locked ? <Lock className="h-4 w-4 text-orchid-500" /> : <Unlock className="h-4 w-4 text-ink-soft" />}
+                    Stock lock
+                  </strong>
+                  <span className="text-[12px] font-semibold uppercase tracking-wide text-ink-soft">
+                    {editing.stockLock?.locked ? 'Locked' : 'Unlocked'}
+                  </span>
+                </div>
+
+                {editing.stockLock?.locked && editing.stockLock?.lockedBy && (
+                  <p className="muted mb-2 text-[12px]">
+                    Locked by {editing.stockLock.lockedBy}{editing.stockLock.lockedAt ? ` · ${new Date(editing.stockLock.lockedAt).toLocaleDateString('en-IN')}` : ''}
+                  </p>
+                )}
+
+                {canManageLock ? (
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                    <label className="flex-1 text-[0.8rem] font-semibold text-ink-soft">
+                      Assigned editor (optional)
+                      <select
+                        value={lockEditor}
+                        onChange={(e) => changeEditor(e.target.value)}
+                        className="mt-1 h-10 w-full rounded-[10px] border-[1.5px] border-[#eee3f3] bg-white px-3 text-ink focus:border-orchid-500 focus:outline-none"
+                      >
+                        <option value="">No specific editor</option>
+                        {admins.map((a) => <option key={a.email} value={a.email}>{a.name} ({a.role})</option>)}
+                      </select>
+                    </label>
+                    {editing.stockLock?.locked ? (
+                      <button className="btn inline-flex items-center gap-2" onClick={doUnlock}><Unlock className="h-4 w-4" /> Unlock</button>
+                    ) : (
+                      <button className="btn btn-primary inline-flex items-center gap-2" onClick={doLock}><Lock className="h-4 w-4" /> Lock</button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="muted text-[13px]">
+                    {editing.stockLock?.locked
+                      ? 'This product is locked. Only an owner/manager or the assigned editor can change it.'
+                      : 'Only an owner or manager can lock products.'}
+                  </p>
+                )}
+
+                {/* Stock history */}
+                <div className="mt-3 border-t border-[#eee3f3] pt-3">
+                  {history === null ? (
+                    <button className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-orchid-600 hover:text-orchid-700" onClick={loadHistory}>
+                      <History className="h-4 w-4" /> View stock history
+                    </button>
+                  ) : history === 'loading' ? (
+                    <span className="muted text-[13px]">Loading history…</span>
+                  ) : history.length === 0 ? (
+                    <span className="muted text-[13px]">No stock changes recorded yet.</span>
+                  ) : (
+                    <ul className="max-h-40 space-y-1 overflow-y-auto">
+                      {history.map((h) => (
+                        <li key={h.id} className="flex justify-between gap-2 text-[12.5px]">
+                          <span className="text-ink">{h.oldStock} → <b>{h.newStock}</b> <span className="muted">({h.delta >= 0 ? '+' : ''}{h.delta} · {h.reason})</span></span>
+                          <span className="muted whitespace-nowrap">{h.actor} · {new Date(h.createdAt).toLocaleDateString('en-IN')}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="modal__actions">
               <button className="btn btn-ghost" onClick={close}>Cancel</button>
               <button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : (editing==='new'?'Add product':'Save changes')}</button>

@@ -57,6 +57,7 @@ export const api = {
   async me() {
     return req('/auth/me');
   },
+  async getAdmins() { return req('/auth/admins'); },
 
   // ---- categories ----
   async getCategories() { return req('/categories'); },
@@ -70,6 +71,21 @@ export const api = {
     return req(`/categories/${categoryId}/subs/${subId}`, { method: 'DELETE' });
   },
 
+  // ---- phone brands + models ----
+  async getAllBrands() { return req('/brands/all'); },
+  async createBrand(data) { return req('/brands', { method: 'POST', body: data }); },
+  async updateBrand(id, patch) { return req(`/brands/${id}`, { method: 'PUT', body: patch }); },
+  async deleteBrand(id) { return req(`/brands/${id}`, { method: 'DELETE' }); },
+  async addBrandModel(brandId, data) {
+    return req(`/brands/${brandId}/models`, { method: 'POST', body: data });
+  },
+  async updateBrandModel(brandId, modelId, patch) {
+    return req(`/brands/${brandId}/models/${modelId}`, { method: 'PUT', body: patch });
+  },
+  async removeBrandModel(brandId, modelId) {
+    return req(`/brands/${brandId}/models/${modelId}`, { method: 'DELETE' });
+  },
+
   // ---- products ----
   async getProducts() { return req('/products'); },
   async getProduct(id) { return req(`/products/${id}`); },
@@ -80,12 +96,24 @@ export const api = {
     const r = await req('/products/bulk', { method: 'POST', body: { items: rows } });
     return { added: r?.count ?? 0 };
   },
+  // stock lock (owner/manager) + history
+  async lockProduct(id, editorEmail = '') { return req(`/products/${id}/lock`, { method: 'PUT', body: { editorEmail } }); },
+  async unlockProduct(id) { return req(`/products/${id}/unlock`, { method: 'PUT' }); },
+  async setProductEditor(id, editorEmail) { return req(`/products/${id}/editor`, { method: 'PUT', body: { editorEmail } }); },
+  async getStockHistory(id) { return req(`/products/${id}/stock-history`); },
 
   // ---- orders ----
   async getOrders() { return req('/orders'); },
   async updateOrderStatus(id, status) {
     return req(`/orders/${id}/status`, { method: 'PUT', body: { status } });
   },
+  async decideCancellation(id, action) {
+    return req(`/orders/${id}/cancellation`, { method: 'PUT', body: { action } });
+  },
+  async updateRefund(id, refundStatus) {
+    return req(`/orders/${id}/refund`, { method: 'PUT', body: { refundStatus } });
+  },
+  async collectBalance(id) { return req(`/orders/${id}/collect-balance`, { method: 'PUT' }); },
 
   // ---- videos ----
   async getVideos() { return req('/videos'); },
@@ -102,9 +130,42 @@ export const api = {
     return req(`/coupons/${encodeURIComponent(code)}`, { method: 'DELETE' });
   },
 
+  // ---- invoices ----
+  async getInvoices(params = {}) {
+    const qs = new URLSearchParams(
+      Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v != null))
+    ).toString();
+    return req(`/invoices${qs ? `?${qs}` : ''}`);
+  },
+  async getInvoice(orderId) { return req(`/invoices/${orderId}`); },
+  async emailInvoice(orderId, email) {
+    return req(`/invoices/${orderId}/email`, { method: 'POST', body: email ? { email } : {} });
+  },
+  // PDF needs the auth header, so fetch as a blob (can't just open the URL).
+  async downloadInvoice(orderId) {
+    const token = getToken();
+    const res = await fetch(`${API_URL}/invoices/${orderId}/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error('Could not download invoice.');
+    return res.blob();
+  },
+
+  // ---- promotional offers (auto-apply engine, separate from coupons) ----
+  async getOffers() { return req('/offers'); },
+  async createOffer(data) { return req('/offers', { method: 'POST', body: data }); },
+  async updateOffer(id, patch) { return req(`/offers/${id}`, { method: 'PUT', body: patch }); },
+  async deleteOffer(id) { return req(`/offers/${id}`, { method: 'DELETE' }); },
+
   // ---- settings ----
   async getSettings() { return req('/settings'); },
   async updateSettings(patch) { return req('/settings', { method: 'PUT', body: patch }); },
+
+  // ---- product reviews moderation ----
+  async getAllReviews() { return req('/reviews/admin/all'); },
+  async approveReview(id, approved) { return req(`/reviews/admin/${id}/approve`, { method: 'PUT', body: { approved } }); },
+  async replyReview(id, text) { return req(`/reviews/admin/${id}/reply`, { method: 'PUT', body: { text } }); },
+  async deleteReview(id) { return req(`/reviews/admin/${id}`, { method: 'DELETE' }); },
 
   // ---- feedback (site testimonials moderation) ----
   async getAllFeedback() { return req('/feedback/all'); },
