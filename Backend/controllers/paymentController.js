@@ -5,6 +5,7 @@ import { asyncHandler, fail } from "../utils/responseHandler.js";
 import { nextOrderId } from "../services/idService.js";
 import { issueInvoice } from "../services/invoiceService.js";
 import { recordOfferUsage } from "../services/offerService.js";
+import { recordCouponUsage } from "../services/couponService.js";
 import { paymentBreakdown } from "./orderController.js";
 import {
   getRazorpay,
@@ -108,8 +109,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     },
   });
 
-  // Count promotional-offer redemptions (best-effort).
+  // Count promotional-offer + coupon redemptions (best-effort).
   recordOfferUsage(created.offers).catch(() => {});
+  if (created.coupon?.code) recordCouponUsage(created.coupon.code).catch(() => {});
 
   // Generate + email the invoice for the paid order (best-effort).
   await issueInvoice(created);

@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag,
-  Clapperboard, Tag, Settings, Store, LogOut, Menu, X, MessageSquare, Smartphone, FileText, Gift, Star, Image as ImageIcon, Sparkles,
+  Clapperboard, Tag, Settings, Store, LogOut, Menu, X, MessageSquare, Smartphone, FileText, Gift, Star, Image as ImageIcon, Sparkles, ScrollText, Palette, Link2,
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -15,8 +15,10 @@ const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL || 'http://localhost:3000';
 const NAV = [
   { href: '/',           label: 'Overview',   icon: LayoutDashboard, exact: true },
   { href: '/products',   label: 'Products',   icon: Package },
+  { href: '/variants',   label: 'Variants',   icon: Palette },
+  { href: '/pairings',   label: 'Pair It With', icon: Link2 },
   { href: '/categories', label: 'Categories', icon: FolderTree },
-  { href: '/brands',     label: 'Phone Models', icon: Smartphone },
+  { href: '/brands',     label: 'Phone Brands & Models', icon: Smartphone },
   { href: '/orders',     label: 'Orders',     icon: ShoppingBag },
   { href: '/invoices',   label: 'Invoices',   icon: FileText },
   { href: '/reels',      label: 'Reels',      icon: Clapperboard },
@@ -25,6 +27,7 @@ const NAV = [
   { href: '/offers',     label: 'Coupons',    icon: Tag },
   { href: '/promotions', label: 'Promotions', icon: Gift },
   { href: '/reviews',    label: 'Reviews',    icon: Star },
+  { href: '/policies',   label: 'Policies',   icon: ScrollText },
   { href: '/feedback',   label: 'Feedback',   icon: MessageSquare },
   { href: '/settings',   label: 'Settings',   icon: Settings },
 ];
@@ -56,7 +59,7 @@ export default function DashLayout({ children }) {
 
   const doLogout = () => { logout(); router.replace('/login'); };
 
-  const navLink = 'flex items-center gap-3 rounded-xl px-[13px] py-[11px] text-[0.92rem] font-semibold transition-[background,color,transform] duration-200';
+  const navLink = 'flex items-center gap-2.5 rounded-xl px-3 py-[10px] text-[0.86rem] font-semibold leading-tight transition-[background,color,transform] duration-200';
   const navOff = 'text-white/70 hover:translate-x-0.5 hover:bg-white/[.08] hover:text-white';
   const navOn = 'bg-[linear-gradient(135deg,rgba(166,79,214,.95),rgba(122,79,240,.95))] text-white shadow-[0_8px_20px_-6px_rgba(122,79,240,.6)]';
 
@@ -87,8 +90,8 @@ export default function DashLayout({ children }) {
             const active = n.exact ? pathname === n.href : pathname.startsWith(n.href);
             return (
               <Link key={n.href} href={n.href} className={`${navLink} ${active ? navOn : navOff}`}>
-                <Icon className={`h-[19px] w-[19px] shrink-0 ${active ? 'opacity-100' : 'opacity-85'}`} strokeWidth={2} />
-                <span>{n.label}</span>
+                <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'opacity-100' : 'opacity-85'}`} strokeWidth={2} />
+                <span className="flex-1">{n.label}</span>
               </Link>
             );
           })}

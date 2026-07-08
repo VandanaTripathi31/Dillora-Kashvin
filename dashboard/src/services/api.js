@@ -79,12 +79,20 @@ export const api = {
   async addBrandModel(brandId, data) {
     return req(`/brands/${brandId}/models`, { method: 'POST', body: data });
   },
+  async addBrandModelsBulk(brandId, models) {
+    return req(`/brands/${brandId}/models/bulk`, { method: 'POST', body: { models } });
+  },
   async updateBrandModel(brandId, modelId, patch) {
     return req(`/brands/${brandId}/models/${modelId}`, { method: 'PUT', body: patch });
   },
   async removeBrandModel(brandId, modelId) {
     return req(`/brands/${brandId}/models/${modelId}`, { method: 'DELETE' });
   },
+
+  // ---- shipping & return policies (per category) ----
+  async getPolicies() { return req('/policy'); },
+  async savePolicy(category, data) { return req(`/policy/${encodeURIComponent(category)}`, { method: 'PUT', body: data }); },
+  async deletePolicy(category) { return req(`/policy/${encodeURIComponent(category)}`, { method: 'DELETE' }); },
 
   // ---- products ----
   async getProducts() { return req('/products'); },

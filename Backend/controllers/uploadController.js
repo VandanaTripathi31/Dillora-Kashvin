@@ -12,7 +12,7 @@ export const uploadImage = asyncHandler(async (req, res) => {
     folder: req.body.folder || "dillora/products",
     resourceType: "image",
   });
-  res.status(201).json({ url: result.url, publicId: result.publicId });
+  res.status(201).json({ url: result.url, publicId: result.publicId, sizes: result.sizes });
 });
 
 // POST /api/upload/video  (field: "file")  -> { url, publicId }

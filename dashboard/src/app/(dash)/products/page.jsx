@@ -8,6 +8,7 @@ import { Spinner } from '@/components/UI';
 import { notify } from '@/components/AdminToaster';
 import { confirmDialog } from '@/components/ConfirmRoot';
 import MediaUpload from '@/components/MediaUpload';
+import { productImg } from '@/lib/img';
 
 const blank = { name:'', category:'mobile-covers', sub:'', price:'', mrp:'', stock:'', image:'', optionType:'none' };
 
@@ -81,11 +82,16 @@ export default function AdminProducts() {
       stock: Number(form.stock) || 0, image: form.image, optionType: form.optionType,
     };
     setSaving(true);
-    if (editing === 'new') await api.createProduct(data);
-    else await api.updateProduct(editing.id, data);
-    setSaving(false);
-    notify(editing === 'new' ? 'Product added' : 'Changes saved');
-    close(); load();
+    try {
+      if (editing === 'new') await api.createProduct(data);
+      else await api.updateProduct(editing.id, data);
+      notify(editing === 'new' ? 'Product added' : 'Changes saved');
+      close(); load();
+    } catch (err) {
+      notify(err.message || 'Could not save changes.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const del = async (p) => {
@@ -240,7 +246,7 @@ export default function AdminProducts() {
                   <input type="checkbox" className="h-4 w-4 cursor-pointer accent-orchid-500 align-middle" checked={selected.has(p.id)} onChange={() => toggleOne(p.id)} aria-label={`Select ${p.name}`} />
                 </td>
                 <td className="tbl__prod">
-                  <img src={p.image} alt="" loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }} />
+                  <img src={productImg(p.image)} alt="" loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }} />
                   <span>{p.name}</span>
                 </td>
                 <td>{cats.find(c=>c.id===p.category)?.name}<br/><small className="muted">{cats.find(c=>c.id===p.category)?.subs.find(s=>s.id===p.sub)?.name || ''}</small></td>
@@ -283,7 +289,16 @@ export default function AdminProducts() {
               </label>
               <label className="field"><span>Price (₹)</span><input value={form.price} onChange={set('price')} /></label>
               <label className="field"><span>MRP (₹)</span><input value={form.mrp} onChange={set('mrp')} /></label>
-              <label className="field"><span>Stock</span><input value={form.stock} onChange={set('stock')} /></label>
+              <label className="field">
+                <span>Stock {editing?.stockLock?.locked && <span className="muted" title="Unlock below to edit stock">🔒 locked</span>}</span>
+                <input
+                  value={form.stock}
+                  onChange={set('stock')}
+                  disabled={!!editing?.stockLock?.locked}
+                  title={editing?.stockLock?.locked ? 'Stock is locked — unlock it first to edit.' : undefined}
+                  style={editing?.stockLock?.locked ? { opacity: 0.6, cursor: 'not-allowed', background: '#f4f0f8' } : undefined}
+                />
+              </label>
               <label className="field"><span>Option type</span>
                 <select value={form.optionType} onChange={set('optionType')}>
                   <option value="none">None</option>
@@ -298,7 +313,7 @@ export default function AdminProducts() {
                 </div>
               </label>
             </div>
-            {form.image && <img src={form.image} alt="" className="modal__preview" />}
+            {form.image && <img src={productImg(form.image)} alt="" className="modal__preview" />}
 
             {/* Stock lock (existing products only) */}
             {editing !== 'new' && (

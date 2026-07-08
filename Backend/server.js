@@ -20,6 +20,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
 import offerRoutes from "./routes/offerRoutes.js";
+import policyRoutes from "./routes/policyRoutes.js";
 
 config({ override: true });
 
@@ -72,6 +73,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/offers", offerRoutes);
+app.use("/api/policy", policyRoutes);
 
 // --- Errors ---
 app.use(notFound);

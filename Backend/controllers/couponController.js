@@ -24,6 +24,9 @@ export const createCoupon = asyncHandler(async (req, res) => {
     minOrder: Number(req.body.minOrder) || 0,
     active: req.body.active !== false,
     expiry: req.body.expiry || "",
+    description: String(req.body.description || "").trim(),
+    usageLimit: Number(req.body.usageLimit) || 0,
+    source: "manual",
   });
   res.status(201).json(coupon.toJSON());
 });

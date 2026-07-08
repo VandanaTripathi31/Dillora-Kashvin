@@ -68,6 +68,9 @@ export const api = {
   // ---- phone brands + models (active only) ----
   async getBrands() { return req('/brands'); },
 
+  // ---- shipping & return policy (per category, general fallback) ----
+  async getPolicy(category) { return req(`/policy/${encodeURIComponent(category || 'general')}`); },
+
   // ---- promotional offers (auto-apply) ----
   async evaluateOffers(items) { return req('/offers/evaluate', { method:'POST', body:{ items } }); },
   async getActiveOffers() { return req('/offers/active'); },
@@ -79,6 +82,7 @@ export const api = {
     return req(`/products/category/${catId}${subId ? `?sub=${encodeURIComponent(subId)}` : ''}`);
   },
   async getBestsellers(n = 8) { return req(`/products/bestsellers?n=${n}`); },
+  async getRelated(id, page = 1, limit = 8) { return req(`/products/${id}/related?page=${page}&limit=${limit}`); },
   async createProduct(data) { return req('/products', { method:'POST', body:data }); },
   async updateProduct(id, data) { return req(`/products/${id}`, { method:'PUT', body:data }); },
   async deleteProduct(id) { return req(`/products/${id}`, { method:'DELETE' }); },

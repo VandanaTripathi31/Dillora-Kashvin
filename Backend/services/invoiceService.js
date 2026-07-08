@@ -114,6 +114,11 @@ export async function buildInvoicePdf(invoice) {
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 50 });
+    // We lay everything out with explicit coordinates and keep it to a single
+    // page, so disable pdfkit's automatic page-breaking. Without this, any text
+    // drawn near the page bottom (e.g. the footer) makes the line-wrapper spill
+    // onto extra blank pages.
+    doc.page.margins.bottom = 0;
     const chunks = [];
     doc.on("data", (c) => chunks.push(c));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
@@ -185,29 +190,48 @@ export async function buildInvoicePdf(invoice) {
     doc.text("Amount", cols.amount, y + 6, { width: 66, align: "right" });
     y += 22;
 
-    doc.font("Helvetica").fontSize(9.5).fillColor(INK);
-    (inv.items || []).forEach((it, i) => {
-      const nameH = doc.heightOfString(it.name || "Item", { width: cols.qty - cols.item - 10 });
-      const optH = it.options ? doc.heightOfString(it.options, { width: cols.qty - cols.item - 10 }) : 0;
-      const rowH = Math.max(24, nameH + optH + 12);
+    // Adaptive sizing so EVERY item fits on a single A4 page (no page breaks).
+    // Reserve the space the totals + payment + footer need below the table, then
+    // divide the remaining height evenly across the rows, scaling the font down
+    // only when the item count is high.
+    const items = inv.items || [];
+    const n = Math.max(1, items.length);
+    const footerTop = doc.page.height - 70;
+    const totalsRows = 1
+      + (inv.discount > 0 ? 1 : 0)
+      + (inv.gst?.percent > 0 && inv.gst?.amount > 0 ? 1 : 0);
+    // totals rows + divider + bold total + gap + payment/QR block
+    const belowTableH = totalsRows * 16 + 8 + 20 + 14 + 44;
+    const tableBottom = footerTop - 14 - belowTableH;
+    const avail = Math.max(48, tableBottom - y);
+    // Row height fills the available space but never grows past a comfortable
+    // 26pt; for high item counts it shrinks (and the font with it) so the whole
+    // table always fits on this page.
+    const rowH = Math.min(26, avail / n);
+    const fs = Math.max(6, Math.min(9.5, rowH - 3));
+    const optFs = Math.max(5.5, fs - 1.5);
+    const showOptions = rowH >= 20; // only room for an options line on taller rows
+    const nameW = cols.qty - cols.item - 10;
 
-      // page-break guard
-      if (y + rowH > doc.page.height - 120) { doc.addPage(); y = 50; }
-
-      doc.fillColor(INK).font("Helvetica").text(String(i + 1), cols.idx + 4, y + 4);
-      doc.font("Helvetica-Bold").text(it.name || "Item", cols.item, y + 4, { width: cols.qty - cols.item - 10 });
-      if (it.options) {
-        doc.font("Helvetica").fontSize(8.5).fillColor(MUTED)
-          .text(it.options, cols.item, y + 4 + nameH + 1, { width: cols.qty - cols.item - 10 });
-        doc.fontSize(9.5).fillColor(INK);
+    items.forEach((it, i) => {
+      const ty = y + Math.max(1, (rowH - fs) / 2);
+      doc.fillColor(INK).font("Helvetica").fontSize(fs).text(String(i + 1), cols.idx + 4, ty);
+      // Names are kept to a single line (ellipsis) so row height is deterministic.
+      doc.font("Helvetica-Bold").fontSize(fs)
+        .text(it.name || "Item", cols.item, ty, { width: nameW, lineBreak: false, ellipsis: true });
+      if (it.options && showOptions) {
+        doc.font("Helvetica").fontSize(optFs).fillColor(MUTED)
+          .text(it.options, cols.item, ty + fs, { width: nameW, lineBreak: false, ellipsis: true });
       }
-      doc.font("Helvetica").text(String(it.qty || 1), cols.qty, y + 4, { width: 40, align: "right" });
-      doc.text(rupee(it.price), cols.unit, y + 4, { width: 46, align: "right" });
-      doc.text(rupee((Number(it.price) || 0) * (Number(it.qty) || 1)), cols.amount, y + 4, { width: 66, align: "right" });
+      doc.font("Helvetica").fontSize(fs).fillColor(INK);
+      doc.text(String(it.qty || 1), cols.qty, ty, { width: 40, align: "right" });
+      doc.text(rupee(it.price), cols.unit, ty, { width: 46, align: "right" });
+      doc.text(rupee((Number(it.price) || 0) * (Number(it.qty) || 1)), cols.amount, ty, { width: 66, align: "right" });
 
       y += rowH;
       doc.moveTo(left, y).lineTo(right, y).strokeColor("#f0e7f8").lineWidth(0.5).stroke();
     });
+    doc.fontSize(9.5); // restore base size for the totals section
 
     // ---------- Totals ----------
     y += 12;

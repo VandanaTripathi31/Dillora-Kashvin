@@ -25,6 +25,14 @@ function buildWhatsAppLink(order, number) {
   return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join('\n'))}`;
 }
 
+// Deterministic confetti pieces (no Math.random → hydration-safe).
+const CONFETTI = Array.from({ length: 18 }, (_, i) => ({
+  left: (i * 5.5 + 3) % 98,
+  bg: ['#a64fd6', '#7a4ff0', '#e57fc4', '#f5a623', '#35c281', '#8b63ef'][i % 6],
+  delay: (i % 6) * 0.12,
+  dur: 2 + (i % 4) * 0.35,
+}));
+
 export default function OrderConfirm() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -69,11 +77,31 @@ export default function OrderConfirm() {
 
   const label = { online:'Paid online', 'half-cod':'Half online + COD', cod:'Cash on delivery' }[order.payment];
 
+  // Estimated delivery window from admin settings (falls back to 3–7 days).
+  const dMin = settings?.delivery?.estimatedDaysMin ?? 3;
+  const dMax = settings?.delivery?.estimatedDaysMax ?? 7;
+  const base = order.createdAt ? new Date(order.createdAt).getTime() : NaN;
+  const fmt = (days) => new Date(base + days * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  const eta = Number.isFinite(base) ? `${fmt(dMin)} – ${fmt(dMax)}` : `${dMin}–${dMax} days`;
+
   return (
     <div className="container section max-w-[560px] text-center">
-      <div className="mx-auto mb-[18px] grid h-16 w-16 place-items-center rounded-full bg-[#3f9d6b] text-[1.8rem] text-white">✓</div>
-      <h1 className="mb-2 text-[1.8rem]">Thank you{order.customer?.name ? `, ${order.customer.name.split(' ')[0]}` : ''}!</h1>
-      <p className="muted">Your order <strong>{order.id}</strong> is placed and now in production.</p>
+      <div className="orderok mb-6">
+        <div className="orderok__confetti" aria-hidden="true">
+          {CONFETTI.map((c, i) => (
+            <i key={i} style={{ left: `${c.left}%`, background: c.bg, animationDelay: `${c.delay}s`, animationDuration: `${c.dur}s` }} />
+          ))}
+        </div>
+        <div className="orderok__check">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+        </div>
+        <h1 className="mb-1.5 font-display text-[1.9rem] font-bold leading-tight text-ink">Order confirmed! 🎉</h1>
+        <p className="text-ink-soft">Thanks{order.customer?.name ? `, ${order.customer.name.split(' ')[0]}` : ''} — we&apos;re on it 💜</p>
+        <div className="mt-3.5 inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-sm font-semibold text-orchid-600 backdrop-blur">
+          Order ID <span className="font-bold text-ink">{order.id}</span>
+        </div>
+        <p className="mt-3 text-[0.9rem] font-semibold text-[#2e9e6b]">🚚 Estimated delivery: {eta}</p>
+      </div>
 
       <div className="card my-7 p-[22px] text-left">
         {order.items.map((it, i) => (
@@ -104,7 +132,10 @@ export default function OrderConfirm() {
           Confirm order on WhatsApp
         </a>
       )}
-      <Link href="/" className={waLink ? 'btn btn-ghost block' : 'btn btn-primary'}>Continue shopping</Link>
+      <div className="mt-3 flex flex-col gap-2.5 sm:flex-row">
+        <Link href="/account" className="btn btn-primary btn-block">Track order</Link>
+        <Link href="/" className="btn btn-ghost btn-block">Continue shopping</Link>
+      </div>
     </div>
   );
 }

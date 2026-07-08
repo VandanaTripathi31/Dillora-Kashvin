@@ -5,6 +5,7 @@ import { issueInvoice } from "../services/invoiceService.js";
 import { adjustStock } from "../services/stockService.js";
 import { notifyOps, esc } from "../services/emailService.js";
 import { recordOfferUsage } from "../services/offerService.js";
+import { recordCouponUsage } from "../services/couponService.js";
 
 // Only mobile covers are cancellable, and only within this window.
 const CANCEL_CATEGORY = "mobile-covers";
@@ -69,8 +70,9 @@ export const createOrder = asyncHandler(async (req, res) => {
     timeline: [{ at: Date.now(), label: "Order placed", by: "customer" }],
   });
 
-  // Count promotional-offer redemptions (best-effort).
+  // Count promotional-offer + coupon redemptions (best-effort).
   recordOfferUsage(order.offers).catch(() => {});
+  if (order.coupon?.code) recordCouponUsage(order.coupon.code).catch(() => {});
 
   // Generate + email the invoice (best-effort; never blocks the response).
   await issueInvoice(order);

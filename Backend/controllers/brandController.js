@@ -14,7 +14,7 @@ export const getBrands = asyncHandler(async (req, res) => {
       .filter((m) => m.active !== false)
       .sort(byOrder)
       .map((m) => ({ id: m.id, name: m.name }));
-    return { id: j.id, name: j.name, models };
+    return { id: j.id, name: j.name, logo: j.logo || "", models };
   });
   res.json(out);
 });
@@ -59,10 +59,40 @@ export const updateBrand = asyncHandler(async (req, res) => {
   if (!brand) return res.status(404).json({ error: "Brand not found." });
 
   if (req.body.name !== undefined) brand.name = String(req.body.name).trim();
+  if (req.body.logo !== undefined) brand.logo = String(req.body.logo || "").trim();
   if (req.body.active !== undefined) brand.active = !!req.body.active;
   if (req.body.order !== undefined) brand.order = Number(req.body.order) || 0;
   await brand.save();
   res.json(brand.toJSON());
+});
+
+// POST /api/brands/:brandId/models/bulk  { models: "one per line" | [names] }
+// Adds many models at once, skipping blanks and case-insensitive duplicates.
+export const addModelsBulk = asyncHandler(async (req, res) => {
+  const brand = await Brand.findOne({ id: req.params.brandId });
+  if (!brand) return res.status(404).json({ error: "Brand not found." });
+
+  const raw = req.body.models;
+  const names = (Array.isArray(raw) ? raw : String(raw || "").split(/[\n,]/))
+    .map((s) => String(s || "").trim())
+    .filter(Boolean);
+  if (!names.length) return res.status(400).json({ error: "No model names provided." });
+
+  const have = new Set(brand.models.map((m) => m.name.toLowerCase()));
+  let added = 0;
+  names.forEach((name) => {
+    if (have.has(name.toLowerCase())) return;
+    have.add(name.toLowerCase());
+    brand.models.push({
+      id: `${slugify(name)}-${Date.now().toString().slice(-4)}-${added}`,
+      name,
+      active: true,
+      order: brand.models.length,
+    });
+    added += 1;
+  });
+  await brand.save();
+  res.status(201).json({ ok: true, added, brand: brand.toJSON() });
 });
 
 // DELETE /api/brands/:id

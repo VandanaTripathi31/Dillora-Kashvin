@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react';
 import { Sparkles, ArrowRight, Heart, Truck } from 'lucide-react';
 
 import { useCategories } from '@/context/CategoriesContext';
+import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/data/api';
+import AdminHero from '@/components/AdminHero';
 import { ProductCard, Spinner } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 import CategoryStrip from '@/components/CategoryStrip';
@@ -24,11 +26,14 @@ const statLabel = 'text-[0.85rem] font-medium text-ink-soft';
 export default function Home() {
   const [best, setBest] = useState(null);
   const { categories } = useCategories();
+  const { settings } = useSettings();
+  const hero = settings?.hero;
   useEffect(() => { api.getBestsellers(8).then(setBest); }, []);
 
   return (
     <div className="home">
-      {/* Hero — editorial */}
+      {hero?.enabled ? <AdminHero hero={hero} /> : (
+      /* Hero — editorial (built-in default) */
       <section className="hero">
         <div className="hero__bg" aria-hidden="true">
           <div className="hero__mesh hero__mesh--1" />
@@ -77,12 +82,13 @@ export default function Home() {
             </div>
             <div className="hero__badge hero__badge--rating">
               <span className="hero__badgeicon">★</span>
-              <div><b>4.8 / 5</b><span>2,000+ reviews</span></div>
+              <b>4.8</b><span>· 2,000+ reviews</span>
             </div>
             <div className="hero__badge hero__badge--made">🧶 100% Handmade</div>
           </div>
         </div>
       </section>
+      )}
 
       {/* Admin-managed promotional banners */}
       <AdBanners />

@@ -139,16 +139,23 @@ export default function AdminCoupons() {
       <h3 className="mb-3">All codes ({coupons.length})</h3>
       <div className="card">
         <table className="tbl">
-          <thead><tr><th>Code</th><th>Discount</th><th>Min order</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Code</th><th>Discount</th><th>Min order</th><th>Expiry</th><th>Uses</th><th>Status</th><th></th></tr></thead>
           <tbody>
             {coupons.length === 0 ? (
-              <tr><td colSpan={6} className="p-6 text-center text-ink-soft">No codes yet.</td></tr>
+              <tr><td colSpan={7} className="p-6 text-center text-ink-soft">No codes yet.</td></tr>
             ) : coupons.map(c => (
               <tr key={c.code}>
-                <td><strong>{c.code}</strong></td>
+                <td>
+                  <strong>{c.code}</strong>
+                  {c.source && c.source !== 'manual' && (
+                    <span className="ml-1.5 rounded-full bg-[#f0e6f8] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orchid-600">{c.source}</span>
+                  )}
+                  {c.description && <div className="muted text-[11px]">{c.description}</div>}
+                </td>
                 <td>{c.type === 'bogo' ? `Buy ${c.buyQty} Get ${c.freeQty} Free` : c.type === 'percent' ? `${c.value}% off` : `₹${c.value} off`}</td>
                 <td>{c.minOrder ? `₹${c.minOrder}` : '—'}</td>
                 <td>{c.expiry ? <span className={isExpired(c) ? 'pill pill--bad' : ''}>{c.expiry}{isExpired(c) ? ' (expired)' : ''}</span> : '—'}</td>
+                <td>{c.usageCount || 0}{c.usageLimit > 0 ? ` / ${c.usageLimit}` : ''}</td>
                 <td>
                   <button className={`pill ${c.active ? 'pill--ok' : ''} cursor-pointer border-none`} onClick={() => toggle(c)}>
                     {c.active ? 'Active' : 'Inactive'}

@@ -29,22 +29,23 @@ const inputCls = 'mb-3 w-full rounded-[14px] border border-[#eee3f3] px-3.5 py-3
 export default function ProductReviews({ productId }) {
   const { user } = useAuth();
   const [reviews, setReviews] = useState(null);
-  const [eligible, setEligible] = useState({ ok: false, reason: 'login' });
   const [rating, setRating] = useState(0);
-  const [title, setTitle] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [text, setText] = useState('');
   const [images, setImages] = useState([]); // uploaded URLs
-  const [video, setVideo] = useState('');
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+  const [reward, setReward] = useState(null); // { code, percent, days } after posting
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(() => {
     api.getReviews(productId).then(setReviews);
-    api.canReview(productId, user?.phone).then(setEligible);
-  }, [productId, user?.phone]);
+  }, [productId]);
   useEffect(() => { load(); }, [load]);
+
+  // Prefill the name field from the signed-in user (still fully editable).
+  useEffect(() => { if (user?.name) setName(user.name); }, [user?.name]);
 
   const onImages = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -61,31 +62,21 @@ export default function ProductReviews({ productId }) {
     setUploading(false);
   };
 
-  const onVideo = async (e) => {
-    const f = e.target.files?.[0];
-    e.target.value = '';
-    if (!f) return;
-    setUploading(true); setMsg('');
-    try {
-      const { url } = await api.uploadReviewMedia(productId, user?.phone, f, 'video');
-      setVideo(url);
-    } catch (err) { setMsg(err.message || 'Video upload failed.'); }
-    setUploading(false);
-  };
-
   const submit = async () => {
     if (!rating) { setMsg('Please pick a star rating.'); return; }
     setBusy(true); setMsg('');
     const res = await api.addReview(productId, {
-      name: user?.name, phone: user?.phone, email, title, rating, text, images, video,
+      name: name.trim() || user?.name, phone: user?.phone, rating, text, images,
     });
     setBusy(false);
     if (!res.ok) {
-      setMsg(res.reason === 'already' ? 'You have already reviewed this product.' : 'Could not submit review.');
+      setMsg(res.reason === 'rating' ? 'Please pick a star rating.' : 'Could not submit review.');
       return;
     }
-    setRating(0); setTitle(''); setEmail(''); setText(''); setImages([]); setVideo('');
-    setMsg('Thanks! Your review is posted.');
+    setRating(0); setText(''); setImages([]);
+    setName(user?.name || '');
+    setMsg('Thanks! Your review is posted. 💜');
+    if (res.reward?.code) { setReward(res.reward); setCopied(false); }
     load();
   };
 
@@ -97,71 +88,50 @@ export default function ProductReviews({ productId }) {
     <section className="mb-2 mt-12">
       <h2 className="mb-[18px] flex flex-wrap items-center gap-3.5 text-[1.5rem]">Reviews {reviews.length > 0 && <span className="inline-flex items-center gap-1.5 text-[0.95rem] font-medium text-ink-soft"><Stars value={avg} /> {Math.round(avg * 10) / 10} ({reviews.length})</span>}</h2>
 
-      {/* Write a review — only for customers who received this item */}
+      {/* Write a review — open to everyone, minimal & friendly */}
       <div className="card mb-6 px-[22px] py-5">
-        {eligible.ok ? (
-          <>
-            <h3 className="mb-2.5 text-[1.1rem]">Write a review</h3>
-            <StarPicker value={rating} onChange={setRating} />
-            <input className={inputCls} placeholder="Review title (e.g. Perfect fit & quality!)" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
-            <textarea
-              className="mb-3 w-full resize-y rounded-[14px] border border-[#eee3f3] px-3.5 py-3 font-body text-[0.95rem] focus:border-orchid-500 focus:outline-none"
-              placeholder="Tell others what you loved about it…"
-              value={text}
-              onChange={e => setText(e.target.value)}
-              rows={3}
-            />
-            <input className={inputCls} placeholder="Email (optional — for order verification)" value={email} onChange={e => setEmail(e.target.value)} />
+        <h3 className="mb-1 text-[1.1rem]">Rate this product</h3>
+        <p className="muted mb-2.5 text-[0.85rem]">Tap the stars and drop a line — takes 10 seconds ✨</p>
+        <StarPicker value={rating} onChange={setRating} />
+        <input className={inputCls} placeholder="Your name" value={name} onChange={e => setName(e.target.value)} maxLength={60} />
+        <textarea
+          className="mb-3 w-full resize-y rounded-[14px] border border-[#eee3f3] px-3.5 py-3 font-body text-[0.95rem] focus:border-orchid-500 focus:outline-none"
+          placeholder="What did you love about it?"
+          value={text}
+          onChange={e => setText(e.target.value)}
+          rows={3}
+        />
 
-            {/* Media */}
-            <div className="mb-3 flex flex-wrap items-center gap-2.5">
-              <label className="btn btn-ghost cursor-pointer text-[0.85rem]">
-                📷 Add photos
-                <input type="file" accept="image/*" multiple className="hidden" onChange={onImages} disabled={uploading || images.length >= 5} />
-              </label>
-              <label className="btn btn-ghost cursor-pointer text-[0.85rem]">
-                🎬 Add video
-                <input type="file" accept="video/*" className="hidden" onChange={onVideo} disabled={uploading} />
-              </label>
-              {uploading && <span className="text-[0.82rem] text-ink-soft">Uploading…</span>}
-            </div>
+        {/* Optional photo */}
+        <div className="mb-3 flex flex-wrap items-center gap-2.5">
+          <label className="btn btn-ghost cursor-pointer text-[0.85rem]">
+            📷 Add photo (optional)
+            <input type="file" accept="image/*" multiple className="hidden" onChange={onImages} disabled={uploading || images.length >= 5} />
+          </label>
+          {uploading && <span className="text-[0.82rem] text-ink-soft">Uploading…</span>}
+        </div>
 
-            {(images.length > 0 || video) && (
-              <div className="mb-3 flex flex-wrap gap-2">
-                {images.map((u, i) => (
-                  <div key={i} className="relative">
-                    <img src={u} alt="" className="h-16 w-16 rounded-lg object-cover" />
-                    <button type="button" onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
-                            className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-[#c4495b] text-[11px] font-bold text-white">✕</button>
-                  </div>
-                ))}
-                {video && (
-                  <div className="relative">
-                    <video src={video} className="h-16 w-16 rounded-lg object-cover" />
-                    <button type="button" onClick={() => setVideo('')}
-                            className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-[#c4495b] text-[11px] font-bold text-white">✕</button>
-                  </div>
-                )}
+        {images.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {images.map((u, i) => (
+              <div key={i} className="relative">
+                <img src={u} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                <button type="button" onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
+                        className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-[#c4495b] text-[11px] font-bold text-white">✕</button>
               </div>
-            )}
-
-            <button className="btn btn-primary" onClick={submit} disabled={busy || uploading}>
-              {busy ? 'Posting…' : 'Post review'}
-            </button>
-            {msg && <p className="mt-2.5 text-[0.9rem] text-orchid-600">{msg}</p>}
-          </>
-        ) : (
-          <p className="muted m-0 py-1">
-            {eligible.reason === 'login' && 'Sign in and receive this item to leave a review.'}
-            {eligible.reason === 'not-delivered' && 'Only customers who have received this product can review it.'}
-            {eligible.reason === 'already' && (msg || 'You have already reviewed this product. Thank you!')}
-          </p>
+            ))}
+          </div>
         )}
+
+        <button className="btn btn-primary" onClick={submit} disabled={busy || uploading}>
+          {busy ? 'Posting…' : 'Post review'}
+        </button>
+        {msg && <p className="mt-2.5 text-[0.9rem] text-orchid-600">{msg}</p>}
       </div>
 
       {/* Existing reviews */}
       {reviews.length === 0 ? (
-        <p className="muted pt-2">No reviews yet — be the first once you receive your order.</p>
+        <p className="muted pt-2">No reviews yet — be the first to share yours! ✨</p>
       ) : (
         <ul className="m-0 grid list-none gap-4 p-0">
           {reviews.map(r => (
@@ -198,6 +168,28 @@ export default function ProductReviews({ productId }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Review reward popup */}
+      {reward?.code && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-[admFade_.2s_ease]" onClick={() => setReward(null)} role="dialog" aria-modal="true" aria-label="Your reward">
+          <div className="relative w-full max-w-[380px] overflow-hidden rounded-[24px] p-7 text-center shadow-[0_30px_80px_rgba(0,0,0,.4)] animate-[admPop_.28s_ease]" style={{ background: 'linear-gradient(160deg,#f4ecff,#fdeaf5,#ffeede)' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setReward(null)} aria-label="Close" className="absolute right-3 top-3 grid h-8 w-8 cursor-pointer place-items-center rounded-full border-none bg-white/80 text-ink shadow-sm hover:scale-105">✕</button>
+            <p className="text-[1.6rem] tracking-[2px] text-[#f5a623]">★★★★★</p>
+            <h3 className="mt-1 font-display text-[1.4rem] font-bold text-ink">Thanks for your review ❤️</h3>
+            <p className="mt-1 text-[0.9rem] text-ink-soft">Here&apos;s your reward</p>
+            <button
+              onClick={async () => { try { await navigator.clipboard.writeText(reward.code); setCopied(true); } catch { /* ignore */ } }}
+              className="mx-auto mt-3 block cursor-pointer rounded-xl border-2 border-dashed border-orchid-400 bg-white/70 px-6 py-2.5 font-display text-xl font-bold tracking-wide text-orchid-600"
+              title="Tap to copy"
+            >
+              {reward.code}{copied && <span className="ml-2 text-[0.7rem] font-semibold text-[#2e9e6b]">✓ copied</span>}
+            </button>
+            <p className="mt-2.5 font-display text-lg font-bold text-ink">{reward.percent}% OFF</p>
+            <p className="text-[0.82rem] text-ink-soft">Valid for {reward.days} days</p>
+            <button onClick={() => setReward(null)} className="btn btn-primary btn-block mt-4">Yay, thanks!</button>
+          </div>
+        </div>
       )}
     </section>
   );

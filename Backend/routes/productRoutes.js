@@ -4,6 +4,7 @@ import {
   getBestsellers,
   getByCategory,
   getProduct,
+  getRelated,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -33,6 +34,9 @@ router.put("/:id/lock", protect, requireRole("owner", "manager"), lockProduct);
 router.put("/:id/unlock", protect, requireRole("owner", "manager"), unlockProduct);
 router.put("/:id/editor", protect, requireRole("owner", "manager"), setProductEditor);
 router.get("/:id/stock-history", protect, getStockHistory);
+
+// Public cross-sell (specific path before the "/:id" catch-all).
+router.get("/:id/related", getRelated);
 
 // Public single read (last, so it doesn't shadow the routes above)
 router.get("/:id", getProduct);

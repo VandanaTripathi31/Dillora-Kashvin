@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
+import { BLUR } from '@/lib/img';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -104,7 +105,7 @@ export function ProductCard({ product }) {
   return (
     <Link
       href={`/product/${product.id}`}
-      className="group relative block overflow-hidden rounded-[18px] border border-transparent bg-white shadow-card transition-[transform,box-shadow] duration-300 ease-brand hover:-translate-y-1.5 hover:border-orchid-100 hover:shadow-glow-brand"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[18px] border border-transparent bg-white shadow-card transition-[transform,box-shadow] duration-300 ease-brand hover:-translate-y-1.5 hover:border-orchid-100 hover:shadow-glow-brand"
     >
       <div className="relative aspect-square overflow-hidden bg-cream-2">
         <Image
@@ -112,6 +113,8 @@ export function ProductCard({ product }) {
           alt={product.name}
           fill
           sizes="(max-width: 600px) 50vw, 25vw"
+          placeholder="blur"
+          blurDataURL={BLUR}
           className="object-cover transition-transform duration-[550ms] ease-brand group-hover:scale-[1.07]"
         />
         {off > 0 && (
@@ -124,8 +127,8 @@ export function ProductCard({ product }) {
           aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
           className={`absolute right-2.5 top-2.5 z-[3] grid h-[34px] w-[34px] place-items-center rounded-full bg-white/[.92] shadow-soft backdrop-blur-[6px] transition duration-150 hover:scale-[1.08] hover:text-violet-500 ${wished ? 'text-violet-500' : 'text-ink-soft'}`}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill={wished ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-            <path d="M12 21s-7.5-4.7-10-9.3C.5 8.5 2 5 5.3 5c2 0 3.3 1.2 4.2 2.4C10.4 6.2 11.7 5 13.7 5 17 5 18.5 8.5 17 11.7 14.5 16.3 12 21 12 21z"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={wished ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
         </button>
         <button
@@ -135,10 +138,10 @@ export function ProductCard({ product }) {
           {needsOptions ? 'Choose options' : '+ Quick add'}
         </button>
       </div>
-      <div className="px-[18px] pb-5 pt-4">
-        <h3 className="mb-1.5 font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">{product.name}</h3>
+      <div className="flex flex-1 flex-col px-[18px] pb-5 pt-4">
+        <h3 className="mb-1.5 line-clamp-2 min-h-[2.6em] font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">{product.name}</h3>
         <div className="mb-1.5 mt-0.5"><Rating id={product.id} showCount={false} /></div>
-        <Price price={product.price} mrp={product.mrp} />
+        <div className="mt-auto"><Price price={product.price} mrp={product.mrp} /></div>
       </div>
     </Link>
   );

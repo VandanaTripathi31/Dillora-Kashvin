@@ -6,6 +6,7 @@ import {
   updateBrand,
   deleteBrand,
   addModel,
+  addModelsBulk,
   updateModel,
   removeModel,
 } from "../controllers/brandController.js";
@@ -25,6 +26,7 @@ router.put("/:id", protect, updateBrand);
 router.delete("/:id", protect, deleteBrand);
 
 // Admin writes — models within a brand
+router.post("/:brandId/models/bulk", protect, addModelsBulk);
 router.post("/:brandId/models", protect, addModel);
 router.put("/:brandId/models/:modelId", protect, updateModel);
 router.delete("/:brandId/models/:modelId", protect, removeModel);

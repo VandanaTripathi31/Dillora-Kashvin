@@ -5,15 +5,34 @@ import { api } from '@/services/api';
 import { Spinner } from '@/components/UI';
 import { notify } from '@/components/AdminToaster';
 import { confirmDialog } from '@/components/ConfirmRoot';
+import MediaUpload from '@/components/MediaUpload';
 
 export default function AdminBrands() {
   const [brands, setBrands] = useState(null);
   const [newBrand, setNewBrand] = useState('');
   const [modelDrafts, setModelDrafts] = useState({}); // { brandId: 'typed model' }
+  const [bulkDrafts, setBulkDrafts] = useState({});   // { brandId: 'multi-line paste' }
   const [busy, setBusy] = useState('');
 
   const load = () => api.getAllBrands().then(setBrands);
   useEffect(() => { load(); }, []);
+
+  const setBrandLogo = async (b, logo) => {
+    const res = await api.updateBrand(b.id, { logo });
+    if (res?.error) { notify(res.error, 'error'); return; }
+    load(); notify(logo ? 'Logo updated' : 'Logo removed');
+  };
+
+  const bulkAdd = async (b) => {
+    const text = (bulkDrafts[b.id] || '').trim();
+    if (!text) return;
+    setBusy(`bulk-${b.id}`);
+    const res = await api.addBrandModelsBulk(b.id, text);
+    setBusy('');
+    if (res?.error) { notify(res.error, 'error'); return; }
+    setBulkDrafts((d) => ({ ...d, [b.id]: '' })); load();
+    notify(`Added ${res.added} model${res.added === 1 ? '' : 's'}${res.added === 0 ? ' (all already existed)' : ''}`);
+  };
 
   const addBrand = async () => {
     const name = newBrand.trim();
@@ -70,7 +89,7 @@ export default function AdminBrands() {
   return (
     <div className="adm__pad">
       <header className="adm__head">
-        <h1>Phone Models</h1>
+        <h1>Phone Brands &amp; Models</h1>
         <p className="muted">
           Manage the phone brands &amp; models customers pick when ordering a mobile cover.
           Hidden (inactive) brands/models stay saved but disappear from the storefront instantly.
@@ -97,13 +116,20 @@ export default function AdminBrands() {
           return (
             <section key={b.id} className={`card adm__panel ${b.active ? '' : 'opacity-70'}`}>
               <div className="adm__panelhead flex-wrap gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
+                  {b.logo
+                    ? <img src={b.logo} alt="" className="h-9 w-9 rounded-lg border border-[#eee3f3] bg-white object-contain p-0.5" />
+                    : <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#f2eef7] text-[13px] font-bold text-ink-soft">{b.name.slice(0, 2)}</span>}
                   <h3>{b.name}</h3>
                   {!b.active && (
                     <span className="rounded-full bg-[#f0e6f8] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Hidden</span>
                   )}
                 </div>
-                <span className="muted text-[13px]">{activeModels}/{b.models.length} models live</span>
+                <div className="flex items-center gap-2">
+                  <MediaUpload kind="image" label={b.logo ? 'Change logo' : 'Logo'} onUploaded={(url) => setBrandLogo(b, url)} />
+                  {b.logo && <button className="text-[12px] font-semibold text-ink-soft hover:text-ink" onClick={() => setBrandLogo(b, '')}>Remove</button>}
+                  <span className="muted text-[13px]">{activeModels}/{b.models.length} live</span>
+                </div>
               </div>
 
               {/* Brand controls */}
@@ -183,6 +209,22 @@ export default function AdminBrands() {
                   {busy === b.id ? 'Adding…' : 'Add'}
                 </button>
               </div>
+
+              {/* Bulk import models */}
+              <details className="mt-2.5 group">
+                <summary className="cursor-pointer list-none text-[13px] font-semibold text-orchid-600 [&::-webkit-details-marker]:hidden">＋ Bulk import models</summary>
+                <p className="muted mt-1.5 text-[12px]">Paste one model per line (or comma-separated). Duplicates are skipped.</p>
+                <textarea
+                  value={bulkDrafts[b.id] || ''}
+                  onChange={(e) => setBulkDrafts((d) => ({ ...d, [b.id]: e.target.value }))}
+                  rows={4}
+                  placeholder={`Galaxy S25 Ultra\nGalaxy S25+\nGalaxy S25`}
+                  className="mt-1.5 w-full resize-y rounded-[10px] border-[1.5px] border-[#eee3f3] bg-white px-3 py-2 text-[0.9rem] text-ink focus:border-orchid-500 focus:outline-none"
+                />
+                <button className="btn btn-primary mt-2" onClick={() => bulkAdd(b)} disabled={busy === `bulk-${b.id}`}>
+                  {busy === `bulk-${b.id}` ? 'Importing…' : 'Import models'}
+                </button>
+              </details>
             </section>
           );
         })}

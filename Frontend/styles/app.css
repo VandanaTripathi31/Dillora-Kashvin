@@ -147,7 +147,7 @@
 .opt__select { width: 100%; max-width: 360px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); }
 .opt__err { color: var(--danger); font-size: .9rem; font-weight: 600; margin: 8px 0; }
 .qty { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
-.qty button { width: 40px; height: 42px; background: var(--surface); border: none; font-size: 1.2rem; color: var(--ink); }
+.qty button { width: 40px; height: 42px; background: var(--surface); border: none; font-size: 1.2rem; color: var(--ink); display: grid; place-items: center; line-height: 1; cursor: pointer; }
 .qty button:hover { background: var(--lilac-50); }
 .qty span { width: 44px; text-align: center; font-weight: 600; }
 .qty--sm button { width: 32px; height: 34px; font-size: 1rem; }
@@ -946,18 +946,18 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
   animation: bob 8s ease-in-out infinite .4s;
 }
 .hero__badge {
-  position: absolute; z-index: 6; display: flex; align-items: center; gap: 10px;
-  background: rgba(255,255,255,.86); backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.7); box-shadow: 0 14px 36px -10px rgba(122,79,240,.4);
-  padding: 11px 16px; border-radius: 18px;
+  position: absolute; z-index: 6; display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.9); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.7); box-shadow: 0 12px 30px -12px rgba(122,79,240,.4);
+  padding: 6px 12px 6px 7px; border-radius: 999px;
 }
 .hero__badge--rating { bottom: 10%; left: -2%; animation: bob 6.5s ease-in-out infinite .2s; }
 .hero__badge--rating .hero__badgeicon {
-  width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
-  background: linear-gradient(135deg,#ffd66b,#f5a623); color: #fff; font-size: 1.1rem;
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(135deg,#ffd66b,#f5a623); color: #fff; font-size: .82rem;
 }
-.hero__badge--rating b { font-family: var(--font-display); font-size: 1.05rem; color: var(--ink); display: block; line-height: 1.1; }
-.hero__badge--rating span { font-size: .74rem; color: var(--ink-soft); }
+.hero__badge--rating b { font-family: var(--font-display); font-size: .92rem; color: var(--ink); line-height: 1; }
+.hero__badge--rating span { font-size: .72rem; color: var(--ink-soft); }
 .hero__badge--made {
   top: 2%; right: 4%; border-radius: 999px; padding: 9px 16px;
   font-weight: 700; font-size: .82rem; color: var(--primary-dark);
@@ -969,8 +969,8 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
   .hero__social { justify-content: flex-start; }
 }
 @media (max-width: 520px) {
-  .hero__badge--rating { left: 0; padding: 9px 12px; }
-  .hero__badge--rating .hero__badgeicon { width: 32px; height: 32px; }
+  .hero__badge--rating { left: 0; padding: 5px 11px 5px 6px; }
+  .hero__badge--rating .hero__badgeicon { width: 24px; height: 24px; }
   .hero__socialdiv { display: none; }
 }
 
@@ -1004,10 +1004,16 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
 .catcircle__count { font-size: .78rem; color: var(--ink-soft); margin-top: -8px; }
 
 @media (max-width: 720px) {
-  .catcircles__row { gap: 20px 10px; }
-  .catcircle { width: 30%; gap: 10px; }
-  .catcircle__ring { width: 100px; height: 100px; }
-  .catcircle__label { font-size: .85rem; }
+  .catcircles__row { gap: 22px 6px; }
+  .catcircle { width: 31%; gap: 9px; }
+  /* Ring scales with the viewport so it never grows wider than its column
+     (was a fixed 100px that overlapped neighbours on narrow phones). */
+  .catcircle__ring { width: min(92px, 26vw); height: min(92px, 26vw); }
+  .catcircle__label { font-size: .82rem; line-height: 1.2; }
+  .catcircle__count { margin-top: 0; font-size: .72rem; }
+}
+@media (max-width: 380px) {
+  .catcircle__ring { width: min(80px, 25vw); height: min(80px, 25vw); }
 }
 
 /* ============================================================
@@ -1347,3 +1353,54 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
 .tbl th.tbl__sort:hover { color: var(--primary-dark); }
 .tbl__sortarrow { display: inline-block; margin-left: 4px; font-size: .7rem; opacity: .5; transition: opacity .15s, transform .15s; }
 .tbl th.tbl__sort--on .tbl__sortarrow { opacity: 1; color: var(--primary); }
+
+/* ---- Order-confirmed success animation (lightweight, CSS-only) ---- */
+.orderok {
+  position: relative; overflow: hidden;
+  border-radius: 28px; padding: 40px 24px 30px;
+  background: linear-gradient(160deg, #f4ecff 0%, #fdeaf5 55%, #ffeede 100%);
+  border: 1px solid rgba(166,79,214,.14);
+  box-shadow: 0 24px 60px -28px rgba(122,79,240,.5);
+}
+.orderok__check {
+  width: 76px; height: 76px; margin: 0 auto 16px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, #35c281, #2e9e6b);
+  box-shadow: 0 12px 28px -8px rgba(46,158,107,.6);
+  animation: orderokPop .5s cubic-bezier(.17,.89,.32,1.28) both;
+}
+.orderok__check svg { width: 40px; height: 40px; }
+.orderok__check path {
+  stroke: #fff; stroke-width: 3.5; fill: none;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 30; stroke-dashoffset: 30;
+  animation: orderokDraw .45s .28s ease-out forwards;
+}
+@keyframes orderokPop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+@keyframes orderokDraw { to { stroke-dashoffset: 0; } }
+
+.orderok__confetti { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.orderok__confetti i {
+  position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px;
+  opacity: 0; animation: orderokFall 2.4s ease-in forwards;
+}
+@keyframes orderokFall {
+  0% { opacity: 0; transform: translateY(-10px) rotate(0deg); }
+  10% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(360px) rotate(540deg); }
+}
+.orderok > *:not(.orderok__confetti) { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .orderok__check, .orderok__check path, .orderok__confetti i { animation: none; }
+  .orderok__check path { stroke-dashoffset: 0; }
+  .orderok__confetti { display: none; }
+}
+
+/* Admin hero entrance animation */
+@keyframes heroUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="heroUp"] { animation: none !important; }
+}

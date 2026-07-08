@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 
@@ -11,7 +12,11 @@ import { useSettings } from '@/context/SettingsContext';
 import { Price, Spinner, Toast, Rating, ProductCard } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 import ProductReviews from '@/components/ProductReviews';
+import ProductPolicy from '@/components/ProductPolicy';
 import DeliveryInfo from '@/components/DeliveryInfo';
+import Pagination from '@/components/Pagination';
+import { waLink, customizeMessage } from '@/lib/whatsapp';
+import { BLUR } from '@/lib/img';
 import HowToOrderPopup from '@/components/HowToOrderPopup';
 
 const RECENT_KEY = 'dilora_recent';
@@ -35,7 +40,7 @@ export default function Product() {
   const { id } = useParams();
   const router = useRouter();
   const { add } = useCart();
-  const { showDiscounts } = useSettings();
+  const { showDiscounts, settings } = useSettings();
   const { has, toggle } = useWishlist();
 
   const [product, setProduct] = useState(null);
@@ -45,14 +50,18 @@ export default function Product() {
   const [model, setModel] = useState('');
   const [modelOther, setModelOther] = useState(false); // "not listed" → free text
   const [size, setSize] = useState('');
+  const [color, setColor] = useState(''); // selected colour variant name
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [toast, setToast] = useState('');
   const [err, setErr] = useState('');
   const [zoom, setZoom] = useState(null); // {x,y} percent or null
   const [showGuide, setShowGuide] = useState(false);
-  const [related, setRelated] = useState([]);
+  const [related, setRelated] = useState(null); // { items, mode, page, totalPages, total }
+  const [relPage, setRelPage] = useState(1);
   const [recent, setRecent] = useState([]);
+  const [offers, setOffers] = useState([]);      // active promotional offers
+  const [ratingSummary, setRatingSummary] = useState(null); // { avg, count }
   const mainRef = useRef(null);
 
   // resin customization
@@ -85,17 +94,12 @@ export default function Product() {
     setActiveImg(0); setBrand(''); setModel(''); setModelOther(false); setSize('');
     setQty(1); setMaterial(null); setErr(''); setZoom(null);
     setResinColor(''); setResinBg(''); setResinNotes(''); setRefPhoto(null);
+    setColor(''); setRelated(null); setRelPage(1);
 
     api.getProduct(id).then(p => {
       if (!alive || !p) return;
       setProduct(p);
       if (p?.materials?.length) setMaterial(p.materials[0]);
-
-      // related products: same category, excluding this one
-      api.getByCategory(p.category).then(list => {
-        if (!alive) return;
-        setRelated(list.filter(x => x.id !== p.id).slice(0, 4));
-      });
 
       // recently viewed: read existing, show others, then prepend this id
       try {
@@ -115,11 +119,34 @@ export default function Product() {
     return () => { alive = false; };
   }, [id]);
 
+  // Cross-sell: admin-managed pairings (covers → charms) or same-category
+  // "you may also like", paginated. Refetches when the page changes.
+  useEffect(() => {
+    if (!product?.id) return;
+    let alive = true;
+    api.getRelated(product.id, relPage, 8).then(r => { if (alive) setRelated(r); }).catch(() => {});
+    return () => { alive = false; };
+  }, [product?.id, relPage]);
+
+  // Active offers (Special Offers box) + rating summary (verified-reviews seal).
+  useEffect(() => {
+    if (!product?.id) return;
+    let alive = true;
+    api.getActiveOffers().then(o => { if (alive) setOffers(Array.isArray(o) ? o : []); }).catch(() => {});
+    api.getRatingSummary(product.id).then(s => { if (alive) setRatingSummary(s); }).catch(() => {});
+    return () => { alive = false; };
+  }, [product?.id]);
+
   if (!product) return <div className="container section"><Spinner /></div>;
 
   const cat = findCategory(product.category);
   const gallery = galleryFor(product);
   const unitPrice = material ? material.price : product.price;
+
+  // Admin-managed colour variants (T-shirts, crochet, etc.). Shown as a swatch
+  // picker whenever the product has any.
+  const colorList = product.colorOptions || [];
+  const hasColors = colorList.length > 0;
 
   // Phone brand/model dropdown data (admin-managed, with a static fallback if
   // the backend has no brands seeded yet). "Other" always stays available so an
@@ -145,24 +172,30 @@ export default function Product() {
 
   // build the human-readable option string + validate
   const buildOptions = () => {
+    let base = '';
     if (product.optionType === 'phone') {
       if (!brand) return { ok:false, msg:'Please select your phone brand.' };
       if (!model.trim()) return { ok:false, msg:'Please enter your phone model.' };
-      return { ok:true, str:`${brand} · ${model.trim()}${material ? ' · ' + material.name : ''}` };
-    }
-    if (product.optionType === 'size') {
+      base = `${brand} · ${model.trim()}${material ? ' · ' + material.name : ''}`;
+    } else if (product.optionType === 'size') {
       if (!size) return { ok:false, msg:'Please select a size.' };
-      return { ok:true, str:`${cat.subs.find(s=>s.id===product.sub)?.name || ''} · Size ${size}` };
-    }
-    if (product.optionType === 'resin') {
+      base = `${cat.subs.find(s=>s.id===product.sub)?.name || ''} · Size ${size}`;
+    } else if (product.optionType === 'resin') {
       const parts = [];
       if (resinColor) parts.push(`Colour: ${resinColor}`);
       if (resinBg) parts.push(`Background: ${resinBg}`);
       if (resinNotes) parts.push(`Note: ${resinNotes}`);
       if (refPhoto) parts.push('Reference photo attached');
-      return { ok:true, str: parts.length ? parts.join(' · ') : 'Standard (no customization)' };
+      base = parts.length ? parts.join(' · ') : 'Standard (no customization)';
     }
-    return { ok:true, str:'—' };
+
+    // Admin-managed colour variants apply to any product that has them.
+    if (hasColors && !color) return { ok:false, msg:'Please choose a colour.' };
+
+    const parts = [];
+    if (base && base !== '—') parts.push(base);
+    if (hasColors && color) parts.push(`Colour: ${color}`);
+    return { ok:true, str: parts.length ? parts.join(' · ') : '—' };
   };
 
   const handleAdd = (buyNow) => {
@@ -203,11 +236,16 @@ export default function Product() {
             onDoubleClick={onZoomToggle}
             onClick={() => { if (zoom) setZoom(null); }}
           >
-            <img
+            <Image
               key={activeImg}
               className="pdp__fadeimg"
               src={gallery[activeImg]}
               alt={product.name}
+              fill
+              sizes="(max-width: 980px) 100vw, 45vw"
+              priority
+              placeholder="blur"
+              blurDataURL={BLUR}
               style={zoom ? { transform: 'scale(2)', transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
             />
             <span className="pdp__zoomhint">{zoom ? '⤢ Tap to zoom out' : '⤢ Double-tap to zoom'}</span>
@@ -216,7 +254,7 @@ export default function Product() {
             <div className="pdp__thumbs">
               {gallery.map((g, i) => (
                 <button key={i} className={`pdp__thumb ${i===activeImg?'pdp__thumb--on':''}`} onClick={() => setActiveImg(i)}>
-                  <img src={g} alt="" />
+                  <Image src={g} alt="" width={64} height={64} sizes="64px" placeholder="blur" blurDataURL={BLUR} />
                 </button>
               ))}
             </div>
@@ -227,9 +265,32 @@ export default function Product() {
         <div>
           <span className="chip">{cat.name}</span>
           <h1 className="pdp__title">{product.name}</h1>
-          <div className="pdp__rating"><Rating id={product.id} /></div>
+          <div className="pdp__rating flex flex-wrap items-center gap-x-3 gap-y-1">
+            <Rating id={product.id} />
+            {ratingSummary?.count > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#eef7f0] px-2.5 py-0.5 text-[0.72rem] font-bold uppercase tracking-wide text-[#2e9e6b]">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1l3.09 6.26L22 8.27l-5 4.87 1.18 6.88L12 16.77l-6.18 3.25L7 13.14 2 8.27l6.91-1.01L12 1z"/></svg>
+                {ratingSummary.count} Verified Review{ratingSummary.count === 1 ? '' : 's'}
+              </span>
+            )}
+          </div>
           <div className="pdp__price"><Price price={unitPrice} mrp={product.mrp} /></div>
-          <p className="mb-6 text-[0.9rem] font-semibold text-[#3f9d6b]">✓ Free shipping · Made to order (3–5 days)</p>
+          <p className="mb-4 text-[0.9rem] font-semibold text-[#3f9d6b]">✓ Free shipping · Made to order (3–5 days)</p>
+
+          {/* Special Offers (active promotions) */}
+          {offers.length > 0 && (
+            <div className="mb-6 rounded-2xl border border-[#eadff5] bg-[linear-gradient(135deg,#faf3fe,#fdf0f8)] p-4">
+              <p className="mb-2 flex items-center gap-1.5 text-[0.82rem] font-bold uppercase tracking-wide text-orchid-600">🎁 Special offers</p>
+              <ul className="m-0 flex flex-col gap-1.5 p-0">
+                {offers.map(o => (
+                  <li key={o.id} className="flex items-start gap-2 text-[0.9rem] text-ink">
+                    <span className="mt-0.5 text-[#2e9e6b]">✓</span>
+                    <span><strong>{o.name}</strong>{o.description ? ` — ${o.description}` : ''}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Material (covers) */}
           {product.materials?.length > 0 && (
@@ -357,6 +418,36 @@ export default function Product() {
             </div>
           )}
 
+          {/* Colour variants (admin-managed) */}
+          {hasColors && (
+            <div className="mb-5">
+              <label className={optLabel}>Colour{color ? <span className="ml-1.5 normal-case text-ink-soft">· {color}</span> : ''}</label>
+              <div className="flex flex-wrap gap-2.5">
+                {colorList.map((c) => {
+                  const on = color === c.name;
+                  return (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => setColor(c.name)}
+                      title={c.name}
+                      aria-label={c.name}
+                      aria-pressed={on}
+                      className={`flex items-center gap-2 rounded-xl border-[1.5px] px-3 py-2 text-[0.85rem] font-semibold transition-all duration-[180ms] ${on ? 'border-orchid-500 bg-[#f9f2fd] text-ink shadow-[0_0_0_3px_rgba(166,79,214,.15)]' : 'border-[#eee3f3] bg-white text-ink-soft hover:border-orchid-300'}`}
+                    >
+                      <span
+                        className="h-5 w-5 shrink-0 rounded-full border border-black/10 bg-cover bg-center"
+                        style={c.image ? { backgroundImage: `url(${c.image})` } : { background: c.hex || '#e9e2f2' }}
+                        aria-hidden="true"
+                      />
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Quantity */}
           <div className="mb-5">
             <label className={optLabel}>Quantity</label>
@@ -372,44 +463,103 @@ export default function Product() {
           <div className="my-6 flex gap-3">
             <button className="btn btn-primary btn-block" onClick={() => handleAdd(false)}>Add to cart</button>
             <button className="btn btn-accent btn-block" onClick={() => handleAdd(true)}>Buy now</button>
-            <button className={`btn btn-ghost w-[52px] shrink-0 grow-0 basis-auto py-3 ${has(product.id) ? 'border-violet-500 text-violet-500' : 'text-ink-soft'}`}
-                    onClick={() => toggle(product.id)} aria-label="Save to wishlist" title="Save to wishlist">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill={has(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M12 21s-7.5-4.7-10-9.3C.5 8.5 2 5 5.3 5c2 0 3.3 1.2 4.2 2.4C10.4 6.2 11.7 5 13.7 5 17 5 18.5 8.5 17 11.7 14.5 16.3 12 21 12 21z"/>
+            <button
+              onClick={() => toggle(product.id)}
+              aria-label={has(product.id) ? 'Remove from wishlist' : 'Save to wishlist'}
+              title="Save to wishlist"
+              className={`inline-flex w-[54px] shrink-0 cursor-pointer items-center justify-center self-stretch rounded-2xl border-[1.5px] transition-colors ${has(product.id) ? 'border-violet-500 bg-[#f5f0ff] text-violet-500' : 'border-[#eee3f3] bg-white text-ink-soft hover:border-violet-300 hover:text-violet-500'}`}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill={has(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
             </button>
           </div>
 
-          {/* Details */}
-          <div className="border-t border-[#eee3f3] pt-5">
-            <h4 className="mb-2.5">Product details</h4>
-            <ul className="m-0 list-disc pl-[18px] text-[0.92rem] text-ink-soft [&_li]:mb-1.5">
-              <li>Handmade, made to order</li>
-              {product.optionType === 'phone' && <li>Printed/crafted for your exact phone model</li>}
-              {product.optionType === 'size' && <li>Relaxed oversize fit · soft cotton</li>}
-              <li>Actual product may slightly differ from photos</li>
-            </ul>
+          {/* Want something custom? Chat on WhatsApp (pre-filled with this product) */}
+          {settings?.whatsappNumber && (() => {
+            const opt = buildOptions();
+            const href = waLink(settings.whatsappNumber, customizeMessage(settings.whatsappTemplate, product, opt.ok ? opt.str : ''));
+            return (
+              <a href={href} target="_blank" rel="noreferrer"
+                 className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl border-[1.5px] border-[#25D366] px-4 py-3 font-semibold text-[#128C4B] transition-colors hover:bg-[#25D366]/10">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Customize on WhatsApp
+              </a>
+            );
+          })()}
+
+          {/* Collapsible info accordions (reference-site layout) */}
+          <div className="mt-1">
+            <details className="group border-t border-[#eee3f3] py-3" open>
+              <summary className="flex cursor-pointer list-none items-center gap-2.5 py-1 font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                <span aria-hidden="true">📋</span>
+                <span className="flex-1">Product details</span>
+                <span className="text-ink-soft transition-transform group-open:rotate-180">⌄</span>
+              </summary>
+              <ul className="m-0 mt-2.5 list-disc pl-[18px] text-[0.92rem] text-ink-soft [&_li]:mb-1.5">
+                <li>Handmade, made to order</li>
+                {product.optionType === 'phone' && <li>Printed/crafted for your exact phone model</li>}
+                {product.optionType === 'size' && <li>Relaxed oversize fit · soft cotton</li>}
+                <li>Actual product may slightly differ from photos</li>
+              </ul>
+            </details>
+
+            {/* Shipping & Return Policy — dynamic, per product category */}
+            <ProductPolicy category={product.category} />
+
+            {/* Also available for — supported phones (cover products only) */}
+            {product.optionType === 'phone' && brands.length > 0 && (
+              <details className="group border-t border-[#eee3f3] py-3">
+                <summary className="flex cursor-pointer list-none items-center gap-2.5 py-1 font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                  <span aria-hidden="true">📱</span>
+                  <span className="flex-1">Also available for</span>
+                  <span className="text-ink-soft transition-transform group-open:rotate-180">⌄</span>
+                </summary>
+                <p className="mt-2.5 text-[0.9rem] leading-relaxed text-ink-soft">
+                  Made to fit all major phones — {brands.map(b => b.name).join(', ')} and more.
+                  Just pick your exact model above and we&apos;ll craft it to fit.
+                </p>
+              </details>
+            )}
           </div>
 
-          {/* Delivery, returns & policies (admin-managed) */}
+          {/* Delivery estimate & extra info (admin-managed) */}
           <DeliveryInfo />
         </div>
       </div>
 
       {/* Customer reviews */}
       <div className="container">
+        {/* Authenticity / trust seal */}
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 rounded-2xl border border-[#eadff5] bg-[linear-gradient(135deg,#faf3fe,#fff5ef)] px-5 py-4 text-center">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-orchid-600">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1l3.09 6.26L22 8.27l-5 4.87 1.18 6.88L12 16.77l-6.18 3.25L7 13.14 2 8.27l6.91-1.01L12 1z"/></svg>
+            100% Handmade · Authenticity Guaranteed
+          </span>
+          {ratingSummary?.count > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#2e9e6b]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              {ratingSummary.count} Verified Review{ratingSummary.count === 1 ? '' : 's'}
+            </span>
+          )}
+        </div>
         <ProductReviews productId={product.id} />
       </div>
 
-      {/* You may also like */}
-      {related.length > 0 && (
+      {/* Cross-sell: "Pair it with a charm" (covers) or "You may also like" (others) */}
+      {related?.items?.length > 0 && (
         <section className="mt-14">
-          <h2 className="mb-5 text-[clamp(1.4rem,2.4vw,1.9rem)] tracking-[-0.5px]">You may also like</h2>
+          <h2 className="mb-5 text-[clamp(1.4rem,2.4vw,1.9rem)] tracking-[-0.5px]">
+            {related.mode === 'charms' ? 'Pair it with a charm ✨' : 'You may also like'}
+          </h2>
           <div className="grid">
-            {related.map((p, i) => (
+            {related.items.map((p, i) => (
               <Reveal key={p.id} delay={i * 60}><ProductCard product={p} /></Reveal>
             ))}
           </div>
+          <Pagination page={related.page} totalPages={related.totalPages} onPage={setRelPage} />
         </section>
       )}
 

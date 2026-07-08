@@ -21,6 +21,7 @@ const brandSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true, trim: true },
+    logo: { type: String, default: "" }, // brand logo image URL (admin-managed)
     active: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
     models: { type: [phoneModelSchema], default: [] },

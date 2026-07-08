@@ -26,10 +26,45 @@ export default function HowToOrderPopup() {
   // Admin can turn the order popup off entirely.
   if (order && order.enabled === false) return null;
 
+  if (order?.steps?.length) {
+    return <StepsPopup heading={order.heading} steps={order.steps} buttonText={order.buttonText} canShow={!blocked} />;
+  }
   if (order?.image) {
     return <ImagePopup image={order.image} link={order.link} storageKey="dilora_order_seen" canShow={!blocked} />;
   }
   return <IllustratedHowTo canShow={!blocked} />;
+}
+
+// Admin-authored step list ("How to order"). Shows once per content version.
+function StepsPopup({ heading, steps, buttonText, canShow }) {
+  const [open, setOpen] = useState(false);
+  const sig = JSON.stringify([heading, steps]);
+  useEffect(() => {
+    if (!canShow) return;
+    try { if (localStorage.getItem('dilora_order_seen') !== sig) setOpen(true); } catch { setOpen(true); }
+  }, [sig, canShow]);
+  if (!open) return null;
+  const dismiss = () => { try { localStorage.setItem('dilora_order_seen', sig); } catch { /* ignore */ } setOpen(false); };
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-[admFade_.2s_ease]" onClick={dismiss} role="dialog" aria-modal="true" aria-label={heading || 'How to order'}>
+      <div className="relative w-full max-w-[420px] overflow-hidden rounded-[24px] p-6 shadow-[0_30px_80px_rgba(0,0,0,.4)] animate-[admPop_.28s_ease]" style={{ background: 'linear-gradient(160deg,#faf4ff,#fdeef7)' }} onClick={(e) => e.stopPropagation()}>
+        <button onClick={dismiss} aria-label="Close" className="absolute right-3 top-3 grid h-8 w-8 cursor-pointer place-items-center rounded-full border-none bg-white/80 text-ink shadow-sm hover:scale-105">✕</button>
+        <h3 className="mb-4 text-center font-display text-[1.5rem] font-bold text-ink">{heading || '📦 How to order'}</h3>
+        <ol className="m-0 flex list-none flex-col gap-3 p-0">
+          {steps.map((s, i) => (
+            <li key={i} className="flex items-start gap-3 rounded-2xl bg-white/70 px-4 py-3">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-grad-brand text-sm font-bold text-white">{s.icon || i + 1}</span>
+              <div>
+                {s.title && <p className="font-semibold text-ink">{s.title}</p>}
+                {s.text && <p className="text-[0.9rem] text-ink-soft">{s.text}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+        <button onClick={dismiss} className="btn btn-primary btn-block mt-5">{buttonText || 'Got it — let’s shop ✨'}</button>
+      </div>
+    </div>
+  );
 }
 
 // Soft, illustrated phone-case tiles for the "choose your design" grid.

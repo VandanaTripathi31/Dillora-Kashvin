@@ -10,6 +10,10 @@ const couponSchema = new mongoose.Schema(
     minOrder: { type: Number, default: 0 },
     active: { type: Boolean, default: true },
     expiry: { type: String, default: "" }, // YYYY-MM-DD (string, matches storefront)
+    description: { type: String, default: "" }, // shown in popups / reward UI
+    source: { type: String, default: "manual" }, // manual | review | welcome | promo
+    usageLimit: { type: Number, default: 0 }, // 0 = unlimited redemptions
+    usageCount: { type: Number, default: 0 }, // total times redeemed
   },
   {
     timestamps: true,

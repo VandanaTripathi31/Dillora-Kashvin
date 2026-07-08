@@ -77,6 +77,8 @@ function OrderCard({ o, phone, onReorder, onChanged }) {
   const cstate = o.cancellation?.state || 'none';
   const hasCover = o.items?.some(it => it.category === 'mobile-covers');
   const eligible = hasCover && within48 && cstate === 'none' && o.status !== 'Cancelled';
+  // Whether the customer has already paid anything (drives the refund warning).
+  const paidSomething = o.paymentStatus === 'paid' || o.paymentStatus === 'advance-paid' || (o.advancePaid || 0) > 0;
 
   const submit = async () => {
     setBusy(true); setErr('');
@@ -127,21 +129,27 @@ function OrderCard({ o, phone, onReorder, onChanged }) {
         </div>
       </div>
 
-      {/* Cancellation form */}
+      {/* Cancellation — explicit "are you sure?" confirmation */}
       {asking && (
-        <div className="mt-3 border-t border-[#f0e7f8] pt-3">
-          <p className="mb-2 text-[0.85rem] text-ink-soft">Mobile cover orders can be cancelled within 48 hours. Tell us why (optional):</p>
+        <div className="mt-3 rounded-[12px] border border-[#f4d7dd] bg-[#fdf5f6] p-3.5">
+          <p className="mb-1 font-display text-[1rem] font-semibold text-[#b03a4c]">Are you sure you want to cancel this order?</p>
+          <p className="mb-2.5 text-[0.85rem] text-ink-soft">
+            Mobile cover orders can be cancelled within 48 hours of ordering.{' '}
+            {paidSomething
+              ? 'Since you’ve already paid, your refund will be processed once our team reviews the request.'
+              : 'This can’t be undone once approved.'}
+          </p>
           <textarea
             className={`${fieldInput} w-full`}
             rows={2}
             value={reason}
             onChange={e => setReason(e.target.value)}
-            placeholder="Reason for cancellation…"
+            placeholder="Reason for cancellation (optional)…"
           />
           {err && <p className="mt-1 text-[0.85rem] font-semibold text-[#c4495b]">{err}</p>}
-          <div className="mt-2 flex gap-2">
-            <button className="btn btn-primary" onClick={submit} disabled={busy}>{busy ? 'Sending…' : 'Confirm cancellation'}</button>
-            <button className="btn btn-ghost" onClick={() => { setAsking(false); setErr(''); }}>Keep order</button>
+          <div className="mt-2.5 flex gap-2">
+            <button className="btn btn-ghost" onClick={() => { setAsking(false); setErr(''); }}>No, keep order</button>
+            <button className="btn !text-white" style={{ background: '#c4495b' }} onClick={submit} disabled={busy}>{busy ? 'Cancelling…' : 'Yes, cancel order'}</button>
           </div>
         </div>
       )}
