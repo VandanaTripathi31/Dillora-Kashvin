@@ -12,9 +12,11 @@ export const dbConnection = async () => {
   }
   try {
     const conn = await mongoose.connect(uri);
-    console.log(`[db] Connected: ${conn.connection.host}/${conn.connection.name}`);
+    console.log(
+      `[db] Connected: ${conn.connection.host}/${conn.connection.name}`,
+    );
   } catch (err) {
-    console.error("[db] Connection error:", err.message);
+    console.dir(err, { depth: null });
     process.exit(1);
   }
 };
