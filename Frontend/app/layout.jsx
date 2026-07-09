@@ -84,7 +84,7 @@ const jsonLd = {
       logo: `${SITE_URL}/logo.png`,
       description: SITE_DESC,
       email: 'support@kashvin.in',
-      telephone: '+91 83698 30139',
+      telephone: '+91 90047 79954',
       areaServed: 'IN',
     },
     {

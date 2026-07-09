@@ -79,7 +79,7 @@ const settingSchema = new mongoose.Schema(
     },
     // Business WhatsApp number (digits incl. country code, e.g. "919000000000")
     // used for the post-order confirmation deep link + floating chat + customize button.
-    whatsappNumber: { type: String, default: "918369830139" },
+    whatsappNumber: { type: String, default: "919004779954" },
     // Opening line for the product "Customize on WhatsApp" deep link. Product
     // name / SKU / selected options are appended automatically.
     whatsappTemplate: {
@@ -148,7 +148,7 @@ const settingSchema = new mongoose.Schema(
     invoice: {
       sellerName: { type: String, default: "Dillora by Kashvin" },
       sellerAddress: { type: String, default: "" },
-      sellerPhone: { type: String, default: "8369830139" },
+      sellerPhone: { type: String, default: "9004779954" },
       sellerEmail: { type: String, default: "" },
       gstNumber: { type: String, default: "" },
       gstPercent: { type: Number, default: 0 },
