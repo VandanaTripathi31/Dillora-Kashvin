@@ -1,14 +1,14 @@
 'use client';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
 import { Sparkles, ArrowRight, Heart, Truck } from 'lucide-react';
 
 import { useCategories } from '@/context/CategoriesContext';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/data/api';
+import { useAsync } from '@/lib/useAsync';
 import AdminHero from '@/components/AdminHero';
-import { ProductCard, Spinner } from '@/components/UI';
+import { ProductCard, Loader } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 import CategoryStrip from '@/components/CategoryStrip';
 import AdBanners from '@/components/AdBanners';
@@ -24,11 +24,11 @@ const statNum = 'bg-grad-brand bg-clip-text font-display text-[clamp(2rem,4vw,3r
 const statLabel = 'text-[0.85rem] font-medium text-ink-soft';
 
 export default function Home() {
-  const [best, setBest] = useState(null);
+  const { data: best, error: bestErr, loading: bestLoading, retry: bestRetry } =
+    useAsync(() => api.getBestsellers(8), []);
   const { categories } = useCategories();
   const { settings } = useSettings();
   const hero = settings?.hero;
-  useEffect(() => { api.getBestsellers(8).then(setBest); }, []);
 
   return (
     <div className="home">
@@ -155,13 +155,13 @@ export default function Home() {
           <h2>Loved by everyone</h2>
           <span className="muted">Our most-ordered pieces</span>
         </div>
-        {!best ? <Spinner /> : (
+        <Loader loading={bestLoading} error={bestErr} onRetry={bestRetry}>
           <div className="grid">
-            {best.map((p, i) => (
+            {(best || []).map((p, i) => (
               <Reveal key={p.id} delay={i * 60}><ProductCard product={p} /></Reveal>
             ))}
           </div>
-        )}
+        </Loader>
       </section>
 
       {/* Testimonials */}
@@ -198,8 +198,10 @@ const CAT_THEME = {
 };
 
 function CategorySection({ cat }) {
-  const [items, setItems] = useState(null);
-  useEffect(() => { api.getByCategory(cat.id).then(list => setItems(list.slice(0, 4))); }, [cat.id]);
+  const { data: items, error, loading, retry } = useAsync(
+    () => api.getByCategory(cat.id).then((list) => list.slice(0, 4)),
+    [cat.id]
+  );
 
   const t = CAT_THEME[cat.id] || CAT_THEME['mobile-covers'];
 
@@ -243,13 +245,13 @@ function CategorySection({ cat }) {
         </div>
 
         {/* products */}
-        {!items ? <Spinner /> : (
+        <Loader loading={loading} error={error} onRetry={retry}>
           <div className="grid relative">
-            {items.map((p, i) => (
+            {(items || []).map((p, i) => (
               <Reveal key={p.id} delay={i * 70}><ProductCard product={p} /></Reveal>
             ))}
           </div>
-        )}
+        </Loader>
       </div>
     </section>
   );

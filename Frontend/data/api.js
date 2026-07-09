@@ -14,29 +14,125 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 // refetching the same product's rating across multiple cards/sections.
 const _ratingCache = new Map();
 
+// Rating summaries are read by every product card. Rather than one request per
+// card (a 24-request fan-out on the homepage), calls made in the same tick are
+// coalesced into a single batched request: GET /reviews/summary?ids=a,b,c.
+let _ratingQueue = new Map();   // productId -> { resolve, reject } awaiting this tick
+let _ratingScheduled = false;
+
+function _flushRatingQueue() {
+  const queue = _ratingQueue;
+  _ratingQueue = new Map();
+  _ratingScheduled = false;
+  const ids = [...queue.keys()];
+  if (!ids.length) return;
+
+  // Chunk so a very large grid can't blow the query-string length limit.
+  const CHUNK = 60;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const chunk = ids.slice(i, i + CHUNK);
+    req(`/reviews/summary?ids=${encodeURIComponent(chunk.join(','))}`)
+      .then((map) => {
+        const m = map || {};
+        for (const id of chunk) queue.get(id).resolve(m[id] || { avg: 0, count: 0 });
+      })
+      .catch((err) => {
+        for (const id of chunk) {
+          _ratingCache.delete(id); // don't cache failures — allow a later retry
+          queue.get(id).reject(err);
+        }
+      });
+  }
+}
+
+// ---------- resilience config ----------
+// Mobile networks drop packets and the backend (Render) can cold-start, so no
+// request may hang forever. Each attempt is capped by a timeout; idempotent GETs
+// are retried a few times with exponential backoff. Mutations (POST/PUT/DELETE)
+// are NEVER auto-retried — retrying createOrder / verifyPayment could double a
+// charge or an order — they only get the timeout so the UI can fail cleanly.
+const REQUEST_TIMEOUT_MS = 15000;   // per attempt
+const GET_MAX_RETRIES = 2;          // extra tries for GET only (3 attempts total)
+const RETRYABLE_STATUS = new Set([429, 502, 503, 504]); // transient / cold-start / gateway
+
+const _delay = (ms) => new Promise((r) => setTimeout(r, ms));
+const _backoff = (attempt) => Math.min(2000, 400 * 2 ** (attempt - 1)); // 400, 800, 1600ms
+
 // ---------- fetch helper ----------
-async function req(path, { method = 'GET', body } = {}) {
+async function req(path, { method = 'GET', body, timeout = REQUEST_TIMEOUT_MS, retries } = {}) {
   if (!API_URL) {
     throw new Error('NEXT_PUBLIC_API_URL is not set — cannot reach the backend.');
   }
-  const res = await fetch(API_URL + path, {
-    method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) {
-    let message = `API ${method} ${path} -> ${res.status}`;
+
+  const isGet = method === 'GET';
+  const maxAttempts = 1 + (retries ?? (isGet ? GET_MAX_RETRIES : 0));
+  let lastErr;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    // AbortController enforces the per-attempt timeout so a stalled request can
+    // never hang the UI indefinitely.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
     try {
-      const data = await res.json();
-      if (data?.error) message = data.error;
-    } catch { /* non-JSON error body */ }
-    const err = new Error(message);
-    err.status = res.status;
-    throw err;
+      const res = await fetch(API_URL + path, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        // Retry transient server errors, but only for idempotent GETs.
+        if (isGet && RETRYABLE_STATUS.has(res.status) && attempt < maxAttempts) {
+          lastErr = new Error(`API ${method} ${path} -> ${res.status}`);
+          await _delay(_backoff(attempt));
+          continue;
+        }
+        let message = `API ${method} ${path} -> ${res.status}`;
+        try {
+          const data = await res.json();
+          if (data?.error) message = data.error;
+        } catch { /* non-JSON error body */ }
+        const err = new Error(message);
+        err.status = res.status;
+        throw err;
+      }
+
+      // 204 / empty body safety
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
+    } catch (err) {
+      clearTimeout(timer);
+
+      const isTimeout = err?.name === 'AbortError';
+      // A fetch network failure surfaces as a TypeError (no response received).
+      const isNetwork = err?.name === 'TypeError';
+
+      // Retry idempotent GETs on timeout / network drop; otherwise surface it.
+      if (isGet && (isTimeout || isNetwork) && attempt < maxAttempts) {
+        lastErr = err;
+        await _delay(_backoff(attempt));
+        continue;
+      }
+      if (isTimeout) {
+        const e = new Error('The request took too long. Please check your connection and try again.');
+        e.status = 0;
+        e.code = 'timeout';
+        throw e;
+      }
+      if (isNetwork) {
+        const e = new Error('Could not reach the server. Please check your connection and try again.');
+        e.status = 0;
+        e.code = 'network';
+        throw e;
+      }
+      throw err;
+    }
   }
-  // 204 / empty body safety
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+
+  // Exhausted retries (last failure was a transient/network error).
+  throw lastErr || new Error(`API ${method} ${path} failed after ${maxAttempts} attempts`);
 }
 
 // Festive banner presets — pure UI config (not catalog data), kept here so the
@@ -152,11 +248,15 @@ export const api = {
   // per product so we hit the API at most once per product per page load.
   getRatingSummary(productId) {
     if (_ratingCache.has(productId)) return _ratingCache.get(productId);
-    const p = req(`/reviews/${productId}/summary`).catch((err) => {
-      _ratingCache.delete(productId); // don't cache failures
-      throw err;
+    // Enqueue this id; every id requested in the same tick ships in one request.
+    const p = new Promise((resolve, reject) => {
+      _ratingQueue.set(productId, { resolve, reject });
     });
     _ratingCache.set(productId, p);
+    if (!_ratingScheduled) {
+      _ratingScheduled = true;
+      Promise.resolve().then(_flushRatingQueue);
+    }
     return p;
   },
   async canReview(productId, phone) {

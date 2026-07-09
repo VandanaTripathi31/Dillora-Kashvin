@@ -7,7 +7,9 @@ const SettingsContext = createContext({ settings: null, showDiscounts: false, re
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(null);
 
-  const load = () => { api.getSettings().then(setSettings); };
+  // Settings are optional polish (hero, banner, discount flags); if the backend
+  // is unreachable we keep the built-in defaults rather than crash the app.
+  const load = () => { api.getSettings().then(setSettings).catch(() => {}); };
   useEffect(() => { load(); }, []);
 
   const value = {

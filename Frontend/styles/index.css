@@ -126,6 +126,20 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 
 :focus-visible { outline: 3px solid var(--lilac-300); outline-offset: 2px; border-radius: 6px; }
 
+/* ---- Touch interaction baseline: instant, branded tap feel on mobile ----
+   Touch devices have no :hover, so a tap on most controls currently gives no
+   feedback and shows the browser's grey flash. This makes every interactive
+   element feel instant and on-brand. */
+a, button, [role="button"], input, select, textarea, label, summary {
+  touch-action: manipulation;               /* removes the legacy ~300ms tap delay */
+  -webkit-tap-highlight-color: transparent; /* drop the unbranded grey flash (replaced below) */
+}
+/* Give every control an instant press state. Opacity only (GPU-friendly and
+   never shifts layout) so it can't fight transform-positioned UI. Buttons using
+   .btn keep their extra translateY press from the rule above. */
+button:active, [role="button"]:active, a[class*="btn"]:active,
+.dlr-ic:active, .dlr-navpill:active, .card:active { opacity: .68; }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

@@ -8,9 +8,10 @@ export default function FestiveBanner() {
 
   useEffect(() => {
     let alive = true;
-    api.getSettings().then(s => { if (alive) setBanner(s.banner); });
+    // The festive banner is optional; ignore failures (just don't show it).
+    api.getSettings().then(s => { if (alive) setBanner(s.banner); }).catch(() => {});
     // refresh when admin toggles it (same-tab custom event + storage event)
-    const refresh = () => api.getSettings().then(s => { if (alive) setBanner(s.banner); });
+    const refresh = () => api.getSettings().then(s => { if (alive) setBanner(s.banner); }).catch(() => {});
     window.addEventListener('dilora:settings', refresh);
     window.addEventListener('storage', refresh);
     return () => { alive = false; window.removeEventListener('dilora:settings', refresh); window.removeEventListener('storage', refresh); };

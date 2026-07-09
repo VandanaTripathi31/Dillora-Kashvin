@@ -36,6 +36,36 @@ export const getRatingSummary = asyncHandler(async (req, res) => {
   res.json({ avg: Math.round(avg * 10) / 10, count: reviews.length });
 });
 
+// GET /api/reviews/summary?ids=p1,p2,...  -> { p1:{avg,count}, p2:{...}, ... }
+// Batched rating summaries (approved only) so a product grid fetches every
+// card's rating in ONE request instead of one call per card. Ids not found are
+// returned as { avg:0, count:0 } so the frontend always gets an entry per id.
+export const getRatingSummaries = asyncHandler(async (req, res) => {
+  const ids = [
+    ...new Set(
+      String(req.query.ids || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    ),
+  ].slice(0, 200); // cap to keep the query bounded
+
+  const out = {};
+  for (const id of ids) out[id] = { avg: 0, count: 0 };
+
+  if (ids.length) {
+    const rows = await Review.aggregate([
+      { $match: { productId: { $in: ids }, approved: { $ne: false } } },
+      { $group: { _id: "$productId", avg: { $avg: "$rating" }, count: { $sum: 1 } } },
+    ]);
+    for (const r of rows) {
+      out[r._id] = { avg: Math.round(r.avg * 10) / 10, count: r.count };
+    }
+  }
+
+  res.json(out);
+});
+
 // GET /api/reviews/:productId/can?phone=...  — anyone may review; this only
 // reports whether they're a verified buyer (for the badge). Always ok:true.
 export const canReview = asyncHandler(async (req, res) => {

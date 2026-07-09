@@ -115,9 +115,12 @@ export function Rating({ id, showCount = true }) {
   const [summary, setSummary] = useState(null);
   useEffect(() => {
     let on = true;
-    api.getRatingSummary(id).then((s) => {
-      if (on) setSummary(s);
-    });
+    api
+      .getRatingSummary(id)
+      .then((s) => {
+        if (on) setSummary(s);
+      })
+      .catch(() => {}); // a missing rating just shows "New" — never blocks the card
     return () => {
       on = false;
     };
@@ -230,7 +233,7 @@ export function ProductCard({ product }) {
         </button>
         <button
           onClick={quickAdd}
-          className="absolute inset-x-3 bottom-3 z-[3] translate-y-3.5 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-0 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
+          className="absolute inset-x-3 bottom-3 z-[3] translate-y-0 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-100 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 [@media(hover:hover)]:translate-y-3.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
         >
           {needsOptions ? "Choose options" : "+ Quick add"}
         </button>
@@ -261,6 +264,36 @@ export function Spinner({ label = "Loading" }) {
       </span>
     </div>
   );
+}
+
+// Friendly failure state with an explicit retry — shown instead of an endless
+// spinner when a request fails or times out on a flaky mobile network.
+export function ErrorRetry({ error, onRetry }) {
+  const msg =
+    error?.message && !/->|API |fetch/i.test(error.message)
+      ? error.message
+      : "We couldn't load this right now.";
+  return (
+    <div
+      role="alert"
+      className="flex flex-col items-center justify-center gap-3 py-10 text-center"
+    >
+      <p className="max-w-[300px] text-[0.92rem] text-ink-soft">{msg}</p>
+      {onRetry && (
+        <button type="button" onClick={onRetry} className="btn btn-primary">
+          Try again
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Renders one of: error+retry, loading fallback, or the loaded children.
+// Pass the object returned by useAsync plus what to show when loaded.
+export function Loader({ loading, error, onRetry, fallback, children }) {
+  if (error) return <ErrorRetry error={error} onRetry={onRetry} />;
+  if (loading) return fallback ?? <Spinner />;
+  return children;
 }
 
 export function Toast({ message }) {

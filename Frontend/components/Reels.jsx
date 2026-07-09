@@ -7,7 +7,8 @@ import { api } from '@/data/api';
 export default function Reels() {
   const [videos, setVideos] = useState(null);
 
-  useEffect(() => { api.getVideos().then(setVideos); }, []);
+  // Reels are optional; on failure treat as "no videos" so the section hides.
+  useEffect(() => { api.getVideos().then(setVideos).catch(() => setVideos([])); }, []);
 
   if (videos && videos.length === 0) return null;
 
