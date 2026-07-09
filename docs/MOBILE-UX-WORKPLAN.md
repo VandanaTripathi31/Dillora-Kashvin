@@ -52,7 +52,7 @@ infinite spinners; no console errors.
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1.1 | Skeleton loaders matching final content (grid, PDP, cart) replace spinners | ✅ | grid skeleton on home + category + subcategory; **PDP skeleton + reliability (error/retry + 404 "not found")** on product page; reliability also extended to category/subcategory pages. Cart is localStorage-instant → no skeleton needed. Verified all paths + prod build green |
-| 1.2 | Image loading: LQIP blur-up, `priority` on LCP/hero, correct `sizes`, `aspect-ratio` | ⏳ | fixes CLS + LCP; some already via next/image |
+| 1.2 | Image loading: LQIP blur-up, `priority` on LCP/hero, correct `sizes`, `aspect-ratio` | ✅ | homepage hero (3 blobs, main=priority) + 2.8MB craft PNG → next/image (1600px→~309px, AVIF/WebP, blur-up); `priority` prop on ProductCard applied to first 4 cards on category/subcategory (LCP); PDP main image already had priority. Verified optimized + layout intact + build green. Remaining low-value plain `<img>` → backlog |
 | 1.3 | Optimistic UI for add-to-cart / wishlist / qty (React 19 `useOptimistic`) | ⏳ | instant feedback regardless of network |
 | 1.4 | Server-render + streaming `<Suspense>` for home/category/product | ⏳ | biggest smoothness jump; architectural — do carefully |
 | 1.5 | Paginate `/products` (Search pulls all 108 / 53 KB today) | ⏳ | backend + Search.jsx |
@@ -117,3 +117,4 @@ gracefully, but ratings vanish in the meantime).
 - Duplicate `.reveal` CSS rule (app.css ~416 and ~876) — minor cleanup.
 - ~~Product page reliability + PDP skeleton~~ — DONE in 1.1 (error/retry + 404 "not found" + PDP skeleton; secondary fetches already/now catch).
 - Other pages to audit for the same infinite-spinner pattern: `account`, `order/[id]`, `wishlist`, `checkout`, `page/[slug]` (most read local/context data, but confirm). Small reliability sweep — schedule as a Phase 1 tail task or Phase 3 hardening.
+- Remaining plain `<img>` (lower LCP value) to optionally convert to next/image: `about/page.jsx`, `AdBanners.jsx`, `AdminHero.jsx` (LCP when admin hero enabled — worth doing), `ContentPopup`, `Search.jsx` thumbs, `cart` thumbs (88px, small). Review images already `loading=lazy`. AdminHero is the notable one.

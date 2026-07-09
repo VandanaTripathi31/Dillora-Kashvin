@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Sparkles, ArrowRight, Heart, Truck } from 'lucide-react';
 
@@ -7,6 +8,7 @@ import { useCategories } from '@/context/CategoriesContext';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/data/api';
 import { useAsync } from '@/lib/useAsync';
+import { BLUR } from '@/lib/img';
 import AdminHero from '@/components/AdminHero';
 import { ProductCard, Loader, ProductGridSkeleton } from '@/components/UI';
 import Reveal from '@/components/Reveal';
@@ -72,13 +74,13 @@ export default function Home() {
           <div className="hero__art" aria-hidden="true">
             <div className="hero__halo" />
             <div className="hero__blob hero__blob--main">
-              <img src="/images/resin-art/wall-clock/01.jpg" alt="" />
+              <Image src="/images/resin-art/wall-clock/01.jpg" alt="" fill sizes="(max-width: 980px) 55vw, 28vw" priority placeholder="blur" blurDataURL={BLUR} className="object-cover" />
             </div>
             <div className="hero__blob hero__blob--2">
-              <img src="/images/mobile-covers/soft-case/01.jpg" alt="" />
+              <Image src="/images/mobile-covers/soft-case/01.jpg" alt="" fill sizes="(max-width: 980px) 40vw, 18vw" placeholder="blur" blurDataURL={BLUR} className="object-cover" />
             </div>
             <div className="hero__blob hero__blob--3">
-              <img src="/images/crochet/coin-pouch/01.jpg" alt="" />
+              <Image src="/images/crochet/coin-pouch/01.jpg" alt="" fill sizes="(max-width: 980px) 32vw, 15vw" placeholder="blur" blurDataURL={BLUR} className="object-cover" />
             </div>
             <div className="hero__badge hero__badge--rating">
               <span className="hero__badgeicon">★</span>
@@ -100,7 +102,7 @@ export default function Home() {
       <section className="craft" id="about">
         <div className="container craft__inner">
           <Reveal className="craft__media shine-img">
-            <img src="/images/crochet/coin-pouch/d1.png" alt="Handmade crochet piece by Dillora by Kashvin" title="Handmade crochet piece by Dillora by Kashvin" />
+            <Image src="/images/crochet/coin-pouch/d1.png" alt="Handmade crochet piece by Dillora by Kashvin" title="Handmade crochet piece by Dillora by Kashvin" fill sizes="(max-width: 900px) 90vw, 45vw" placeholder="blur" blurDataURL={BLUR} className="object-cover" />
           </Reveal>
           <Reveal className="craft__copy" delay={120}>
             <span className="craft__eyebrow">About us · Our craft</span>

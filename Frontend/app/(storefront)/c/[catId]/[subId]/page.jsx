@@ -106,7 +106,7 @@ export default function Category() {
         ) : (
           <div className="grid">
             {sorted.map((p, i) => (
-              <Reveal key={p.id} delay={Math.min(i * 50, 300)}><ProductCard product={p} /></Reveal>
+              <Reveal key={p.id} delay={Math.min(i * 50, 300)}><ProductCard product={p} priority={i < 4} /></Reveal>
             ))}
           </div>
         )}

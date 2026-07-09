@@ -158,7 +158,7 @@ export function Rating({ id, showCount = true }) {
   );
 }
 
-export function ProductCard({ product }) {
+export function ProductCard({ product, priority = false }) {
   const router = useRouter();
   const { add } = useCart();
   const { has, toggle } = useWishlist();
@@ -207,6 +207,7 @@ export function ProductCard({ product }) {
           sizes="(max-width: 600px) 50vw, 25vw"
           placeholder="blur"
           blurDataURL={BLUR}
+          priority={priority}
           className="object-cover transition-transform duration-[550ms] ease-brand group-hover:scale-[1.07]"
         />
         {off > 0 && (
