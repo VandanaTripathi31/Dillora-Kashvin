@@ -51,7 +51,7 @@ infinite spinners; no console errors.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1.1 | Skeleton loaders matching final content (grid, PDP, cart) replace spinners | ⏳ | skeletons feel ~20–30% faster than spinners |
+| 1.1 | Skeleton loaders matching final content (grid, PDP, cart) replace spinners | 🟡 | **product grid done on home + category + subcategory** (`ProductGridSkeleton` as `<Loader>` fallback); also **extended 0.4 reliability (useAsync+error/retry) to category/subcategory pages** which had the same infinite-spinner bug. Verified: homepage peak 60 skel blocks/0 spinners, category page 17 cards/0 errors, production build green. TODO: PDP + cart skeletons |
 | 1.2 | Image loading: LQIP blur-up, `priority` on LCP/hero, correct `sizes`, `aspect-ratio` | ⏳ | fixes CLS + LCP; some already via next/image |
 | 1.3 | Optimistic UI for add-to-cart / wishlist / qty (React 19 `useOptimistic`) | ⏳ | instant feedback regardless of network |
 | 1.4 | Server-render + streaming `<Suspense>` for home/category/product | ⏳ | biggest smoothness jump; architectural — do carefully |
@@ -115,3 +115,5 @@ gracefully, but ratings vanish in the meantime).
 ## Backlog / newly found (do NOT fix mid-task — triage here)
 - Duplicate `getSettings` call: `SettingsContext` **and** `FestiveBanner` both fetch settings → dedup (fold into Phase 1 or 2).
 - Duplicate `.reveal` CSS rule (app.css ~416 and ~876) — minor cleanup.
+- **Product page `product/[id]/page.jsx` still uses raw `.then(setX)` with no error handling** for product + brands + related + offers + recent → same infinite-spinner risk as the old category page. Needs the useAsync+Loader treatment (its own task — it has many fetches; do carefully). Add a PDP-shaped skeleton here for 1.1.
+- Other pages to audit for the same pattern: `account`, `order/[id]`, `wishlist`, `checkout`, `page/[slug]`.

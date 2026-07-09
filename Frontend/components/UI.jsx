@@ -296,6 +296,36 @@ export function Loader({ loading, error, onRetry, fallback, children }) {
   return children;
 }
 
+// Content-shaped placeholder that mirrors <ProductCard> exactly so swapping in
+// the real card causes no layout shift.
+export function ProductCardSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex h-full flex-col overflow-hidden rounded-[18px] border border-transparent bg-white shadow-card"
+    >
+      <div className="skel aspect-square w-full !rounded-none" />
+      <div className="flex flex-1 flex-col gap-2 px-[18px] pb-5 pt-4">
+        <div className="skel h-[0.95rem] w-[85%]" />
+        <div className="skel h-[0.95rem] w-[55%]" />
+        <div className="skel mt-1 h-[0.8rem] w-[40%]" />
+        <div className="skel mt-auto h-[1.1rem] w-1/2" />
+      </div>
+    </div>
+  );
+}
+
+// A grid of card skeletons — drop-in loading fallback for a product section.
+export function ProductGridSkeleton({ count = 8 }) {
+  return (
+    <div className="grid" role="status" aria-busy="true" aria-label="Loading products">
+      {Array.from({ length: count }).map((_, i) => (
+        <ProductCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
 export function Toast({ message }) {
   if (!message) return null;
   return (

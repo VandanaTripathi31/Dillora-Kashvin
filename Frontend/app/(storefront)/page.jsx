@@ -8,7 +8,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/data/api';
 import { useAsync } from '@/lib/useAsync';
 import AdminHero from '@/components/AdminHero';
-import { ProductCard, Loader } from '@/components/UI';
+import { ProductCard, Loader, ProductGridSkeleton } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 import CategoryStrip from '@/components/CategoryStrip';
 import AdBanners from '@/components/AdBanners';
@@ -155,7 +155,7 @@ export default function Home() {
           <h2>Loved by everyone</h2>
           <span className="muted">Our most-ordered pieces</span>
         </div>
-        <Loader loading={bestLoading} error={bestErr} onRetry={bestRetry}>
+        <Loader loading={bestLoading} error={bestErr} onRetry={bestRetry} fallback={<ProductGridSkeleton count={8} />}>
           <div className="grid">
             {(best || []).map((p, i) => (
               <Reveal key={p.id} delay={i * 60}><ProductCard product={p} /></Reveal>
@@ -245,7 +245,7 @@ function CategorySection({ cat }) {
         </div>
 
         {/* products */}
-        <Loader loading={loading} error={error} onRetry={retry}>
+        <Loader loading={loading} error={error} onRetry={retry} fallback={<ProductGridSkeleton count={4} />}>
           <div className="grid relative">
             {(items || []).map((p, i) => (
               <Reveal key={p.id} delay={i * 70}><ProductCard product={p} /></Reveal>

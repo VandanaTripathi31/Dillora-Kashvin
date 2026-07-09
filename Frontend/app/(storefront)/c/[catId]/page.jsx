@@ -1,11 +1,12 @@
 'use client';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 import { withMeta } from '@/data/catalog';
 import { api } from '@/data/api';
-import { ProductCard, Spinner } from '@/components/UI';
+import { useAsync } from '@/lib/useAsync';
+import { ProductCard, Spinner, Loader, ProductGridSkeleton, ErrorRetry } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 
 const SORTS = [
@@ -23,18 +24,17 @@ function discountPct(p) {
 export default function Category() {
   const { catId, subId } = useParams();
   const router = useRouter();
-  const [cat, setCat] = useState(null);
-  const [items, setItems] = useState(null);
   const [sort, setSort] = useState('featured');
 
-  useEffect(() => {
-    api.getCategories().then(list => setCat(list.find(c => c.id === catId) || false));
-  }, [catId]);
+  const { data: cat, error: catErr, loading: catLoading, retry: catRetry } = useAsync(
+    () => api.getCategories().then(list => list.find(c => c.id === catId) || false),
+    [catId]
+  );
 
-  useEffect(() => {
-    setItems(null);
-    api.getByCategory(catId, subId).then(list => setItems(withMeta(list)));
-  }, [catId, subId]);
+  const { data: items, error: itemsErr, loading: itemsLoading, retry: itemsRetry } = useAsync(
+    () => api.getByCategory(catId, subId).then(list => withMeta(list)),
+    [catId, subId]
+  );
 
   const sorted = useMemo(() => {
     if (!items) return null;
@@ -49,7 +49,8 @@ export default function Category() {
     return arr;
   }, [items, sort]);
 
-  if (cat === null) return <div className="container section"><Spinner /></div>;
+  if (catErr) return <div className="container section"><ErrorRetry error={catErr} onRetry={catRetry} /></div>;
+  if (catLoading) return <div className="container section"><Spinner /></div>;
   if (!cat) return <div className="container section"><h2>Category not found</h2><Link href="/" className="btn btn-ghost">Back home</Link></div>;
 
   const activeSub = subId ? cat.subs.find(s => s.id === subId) : null;
@@ -96,8 +97,8 @@ export default function Category() {
         </div>
       )}
 
-      {!sorted ? <Spinner /> :
-        sorted.length === 0 ? (
+      <Loader loading={itemsLoading} error={itemsErr} onRetry={itemsRetry} fallback={<ProductGridSkeleton count={8} />}>
+        {(sorted || []).length === 0 ? (
           <div className="empty">
             <p>Nothing here yet — new pieces are on the way.</p>
             <Link href="/" className="btn btn-ghost">Keep browsing</Link>
@@ -109,6 +110,7 @@ export default function Category() {
             ))}
           </div>
         )}
+      </Loader>
     </div>
   );
 }

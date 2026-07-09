@@ -124,6 +124,16 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 .price { font-weight: 700; color: var(--ink); }
 .strike { color: var(--ink-soft); text-decoration: line-through; font-weight: 500; margin-left: 8px; font-size: .9em; }
 
+/* Shimmer skeleton — a content-shaped placeholder shown while data loads. Feels
+   faster than a spinner and reserves the exact space so there's no layout shift.
+   The shimmer stops automatically under prefers-reduced-motion (global rule). */
+.skel {
+  background: linear-gradient(110deg, var(--lilac-100) 30%, var(--lilac-50) 50%, var(--lilac-100) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 8px;
+}
+
 :focus-visible { outline: 3px solid var(--lilac-300); outline-offset: 2px; border-radius: 6px; }
 
 /* ---- Touch interaction baseline: instant, branded tap feel on mobile ----
