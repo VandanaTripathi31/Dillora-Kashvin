@@ -74,7 +74,7 @@ export default function DashLayout({ children }) {
 
       {open && <div className="fixed inset-0 z-[110] animate-[admFade_0.2s_ease] bg-[rgba(20,12,30,.5)] min-[901px]:hidden" onClick={() => setOpen(false)} />}
 
-      <aside className={`sticky top-0 flex h-screen flex-col gap-1.5 border-r border-white/[.06] bg-[linear-gradient(185deg,#3a2456_0%,#2c2336_58%,#221830_100%)] px-3.5 py-5 text-white max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[120] max-[900px]:w-[min(82vw,280px)] max-[900px]:border-r-0 max-[900px]:transition-transform max-[900px]:duration-[280ms] ${open ? 'max-[900px]:translate-x-0 max-[900px]:shadow-[0_30px_80px_rgba(0,0,0,.45)]' : 'max-[900px]:-translate-x-full'}`}>
+      <aside className={`sticky top-0 flex h-screen flex-col gap-1.5 overflow-y-auto overscroll-contain border-r border-white/[.06] bg-[linear-gradient(185deg,#3a2456_0%,#2c2336_58%,#221830_100%)] px-3.5 py-5 text-white max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:z-[120] max-[900px]:w-[min(82vw,280px)] max-[900px]:border-r-0 max-[900px]:transition-transform max-[900px]:duration-[280ms] ${open ? 'max-[900px]:translate-x-0 max-[900px]:shadow-[0_30px_80px_rgba(0,0,0,.45)]' : 'max-[900px]:-translate-x-full'}`}>
         <div className="flex items-center gap-[11px] px-2 pb-5 pt-1.5">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[linear-gradient(135deg,#a64fd6,#7a4ff0)] font-display text-2xl font-bold leading-none text-white shadow-[0_6px_18px_rgba(122,79,240,.45)]">D</span>
           <span className="flex flex-col leading-[1.15]">

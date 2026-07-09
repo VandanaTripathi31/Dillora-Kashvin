@@ -107,10 +107,10 @@ export default function AdminPopups() {
             <label><span className={lbl}>Heading</span><input className={input} value={p.order.heading} onChange={(e) => patch('order', { heading: e.target.value })} placeholder="📦 How to order" /></label>
             <span className={lbl}>Steps</span>
             {(p.order.steps || []).map((s, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-xl border border-[#eee3f3] bg-[#faf7fd] p-2">
+              <div key={i} className="flex flex-wrap items-center gap-2 rounded-xl border border-[#eee3f3] bg-[#faf7fd] p-2">
                 <input className={`${input} w-14 shrink-0 text-center`} value={s.icon || ''} onChange={(e) => patch('order', { steps: p.order.steps.map((x, j) => (j === i ? { ...x, icon: e.target.value } : x)) })} placeholder="1" title="Icon or number" />
-                <input className={input} value={s.title || ''} onChange={(e) => patch('order', { steps: p.order.steps.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)) })} placeholder="Step title (e.g. Choose product)" />
-                <input className={input} value={s.text || ''} onChange={(e) => patch('order', { steps: p.order.steps.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)) })} placeholder="Description (optional)" />
+                <input className={`${input} min-w-0 flex-1`} value={s.title || ''} onChange={(e) => patch('order', { steps: p.order.steps.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)) })} placeholder="Step title (e.g. Choose product)" />
+                <input className={`${input} min-w-0 flex-1 basis-full sm:basis-auto`} value={s.text || ''} onChange={(e) => patch('order', { steps: p.order.steps.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)) })} placeholder="Description (optional)" />
                 <button className="shrink-0 rounded-lg p-2 text-[#b03a4c] hover:bg-[#fdeaed]" onClick={() => patch('order', { steps: p.order.steps.filter((_, j) => j !== i) })}><Trash2 className="h-4 w-4" /></button>
               </div>
             ))}

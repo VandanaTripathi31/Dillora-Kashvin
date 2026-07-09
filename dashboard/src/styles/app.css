@@ -284,7 +284,7 @@
 .adm__pad { width: 100%; max-width: none; padding: 24px; }
 .adm__head { margin-bottom: 24px; }
 .adm__head h1 { font-size: 1.8rem; }
-.adm__head--row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.adm__head--row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
 .stat { padding: 20px; display: flex; flex-direction: column; gap: 4px; }
@@ -306,6 +306,17 @@
 .tbl th { text-align: left; font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); padding: 13px 16px; border-bottom: 1px solid var(--line); }
 .tbl td { padding: 15px 16px; border-bottom: 1px solid var(--line); font-size: .9rem; vertical-align: middle; }
 .tbl tr:last-child td { border-bottom: none; }
+
+/* Mobile: data tables scroll horizontally INSIDE their own card instead of
+   forcing the whole content pane to scroll (which dragged the page title, tabs
+   and search off-screen). The card becomes the scroll container; the table keeps
+   a readable minimum width so columns don't squash. */
+@media (max-width: 760px) {
+  .card:has(.tbl),
+  .modal__box:has(.tbl) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .card:has(.tbl) .tbl,
+  .modal__box:has(.tbl) .tbl { min-width: 640px; }
+}
 .tbl__prod { display: flex; align-items: center; gap: 12px; }
 .tbl__prod img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
 .tbl__actions { white-space: nowrap; text-align: right; }
