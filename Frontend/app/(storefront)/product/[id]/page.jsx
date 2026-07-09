@@ -9,7 +9,7 @@ import { PHONE_BRANDS, findCategory, galleryFor } from '@/data/catalog';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useSettings } from '@/context/SettingsContext';
-import { Price, Spinner, Toast, Rating, ProductCard } from '@/components/UI';
+import { Price, Toast, Rating, ProductCard, ErrorRetry } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 import ProductReviews from '@/components/ProductReviews';
 import ProductPolicy from '@/components/ProductPolicy';
@@ -44,6 +44,8 @@ export default function Product() {
   const { has, toggle } = useWishlist();
 
   const [product, setProduct] = useState(null);
+  const [productErr, setProductErr] = useState(null); // failed/timed-out product load
+  const [reloadKey, setReloadKey] = useState(0);       // bump to retry the load
   const [material, setMaterial] = useState(null);
   const [brands, setBrands] = useState([]);        // [{id,name,models:[{id,name}]}]
   const [brand, setBrand] = useState('');
@@ -91,6 +93,7 @@ export default function Product() {
   useEffect(() => {
     let alive = true;
     setProduct(null);
+    setProductErr(null);
     setActiveImg(0); setBrand(''); setModel(''); setModelOther(false); setSize('');
     setQty(1); setMaterial(null); setErr(''); setZoom(null);
     setResinColor(''); setResinBg(''); setResinNotes(''); setRefPhoto(null);
@@ -110,14 +113,14 @@ export default function Product() {
             if (!alive) return;
             const map = new Map(all.map(x => [x.id, x]));
             setRecent(others.map(x => map.get(x)).filter(Boolean).slice(0, 4));
-          });
+          }).catch(() => {}); // "recently viewed" is optional — ignore failures
         } else { setRecent([]); }
         const next = [p.id, ...others].slice(0, 8);
         localStorage.setItem(RECENT_KEY, JSON.stringify(next));
       } catch { /* ignore */ }
-    });
+    }).catch((e) => { if (alive) setProductErr(e); }); // no more infinite spinner
     return () => { alive = false; };
-  }, [id]);
+  }, [id, reloadKey]);
 
   // Cross-sell: admin-managed pairings (covers → charms) or same-category
   // "you may also like", paginated. Refetches when the page changes.
@@ -137,7 +140,25 @@ export default function Product() {
     return () => { alive = false; };
   }, [product?.id]);
 
-  if (!product) return <div className="container section"><Spinner /></div>;
+  if (productErr) {
+    // A 404 means the product genuinely doesn't exist; anything else is a
+    // network/timeout failure the shopper can retry.
+    if (productErr.status === 404) {
+      return (
+        <div className="container section">
+          <h2>Product not found</h2>
+          <p className="muted mt-1">This piece may have sold out or been removed.</p>
+          <Link href="/" className="btn btn-ghost mt-4">Back home</Link>
+        </div>
+      );
+    }
+    return (
+      <div className="container section">
+        <ErrorRetry error={productErr} onRetry={() => setReloadKey((k) => k + 1)} />
+      </div>
+    );
+  }
+  if (!product) return <ProductPageSkeleton />;
 
   const cat = findCategory(product.category);
   const gallery = galleryFor(product);
@@ -611,6 +632,33 @@ export default function Product() {
       </div>
 
       <Toast message={toast} />
+    </div>
+  );
+}
+
+// Content-shaped placeholder shown while the product loads — mirrors the .pdp
+// gallery + info layout so there's no jump when the real page arrives.
+function ProductPageSkeleton() {
+  return (
+    <div className="container section">
+      <div className="pdp">
+        <div className="flex flex-col gap-3">
+          <div className="skel aspect-square w-full rounded-[18px]" />
+          <div className="flex gap-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skel h-16 w-16 rounded-lg" />
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 pt-2">
+          <div className="skel h-8 w-3/4" />
+          <div className="skel h-5 w-1/3" />
+          <div className="skel h-7 w-1/4" />
+          <div className="skel h-24 w-full rounded-xl" />
+          <div className="skel h-12 w-full max-w-[360px] rounded-xl" />
+          <div className="skel h-12 w-44 rounded-full" />
+        </div>
+      </div>
     </div>
   );
 }
