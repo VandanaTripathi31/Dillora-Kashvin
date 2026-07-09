@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { CATEGORY_IMG } from '@/data/catalog';
 import { useCategories } from '@/context/CategoriesContext';
 
@@ -28,7 +29,17 @@ export default function CategoryStrip() {
           <Link key={c.id} href={`/c/${c.id}`} className="catcircle">
             <div className="catcircle__ring" style={{ '--ringc': CAT_RING[c.id] || '#a64fd6' }}>
               <div className="catcircle__img">
-                <img src={CATEGORY_IMG[c.id] || c.image || '/logo.png'} alt={c.name} loading="lazy" />
+                {/* next/image → optimized WebP/AVIF at the right size; eager (not
+                    lazy) so the strip is ready on mobile; a rotating spinner
+                    (.catcircle__img::after) shows underneath until it paints. */}
+                <Image
+                  src={CATEGORY_IMG[c.id] || c.image || '/logo.png'}
+                  alt={c.name}
+                  fill
+                  sizes="(max-width:380px) 80px, (max-width:720px) 92px, 150px"
+                  loading="eager"
+                  className="object-cover"
+                />
               </div>
             </div>
             <span className="catcircle__label">{c.name}</span>
