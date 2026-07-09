@@ -118,6 +118,9 @@ export default function OrderConfirm() {
             <div className="flex justify-between py-2 text-[0.95rem] font-semibold text-[#8a6d1a]"><span>Balance on delivery</span><span>₹{(order.pendingAmount || 0).toLocaleString('en-IN')}</span></div>
           </>
         )}
+        {order.paymentStatus === 'pending' && (
+          <div className="flex justify-between py-2 text-[0.95rem] font-semibold text-[#2e7d52]"><span>Pay on delivery</span><span>₹{(order.pendingAmount || order.total || 0).toLocaleString('en-IN')}</span></div>
+        )}
         <div className="flex justify-between py-2 text-[0.95rem]"><span>Deliver to</span><span className="text-right">{order.customer?.address}</span></div>
       </div>
 

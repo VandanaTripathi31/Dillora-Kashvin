@@ -10,9 +10,13 @@ import { loadRazorpayScript } from '@/lib/razorpay';
 // Both options collect an online payment now (full amount, or the 50% "pay now"
 // for half-cod), so both open Razorpay Checkout. The order is only persisted
 // after the payment signature is verified on the backend.
+// `coversOnly` options only appear when every item in the cart is a mobile
+// cover (standard stock). Full COD is not offered for handmade / made-to-order
+// items — those need an online or 50% advance payment.
 const PAYMENTS = [
   { id:'online',  title:'Pay online',        desc:'UPI, QR, Cards, Net Banking & Wallets (full amount)' },
   { id:'half-cod',title:'Half online + COD', desc:'Pay 50% now, rest on delivery' },
+  { id:'cod',     title:'Cash on Delivery',  desc:'Pay the full amount in cash when your order arrives', coversOnly:true },
 ];
 
 export default function Checkout() {
@@ -68,9 +72,17 @@ export default function Checkout() {
   const shipping = subtotal >= 299 ? 0 : 49;
   const discount = coupon?.discount || 0;
   const total = Math.max(0, subtotal - discount - offerDiscount) + shipping;
-  const payNow = payment === 'half-cod' ? Math.round(total/2) : payment === 'online' ? total : 0;
+  const payNow = payment === 'half-cod' ? Math.round(total/2) : payment === 'cod' ? 0 : payment === 'online' ? total : 0;
   // Customized items (resin / reference-photo orders) can be reserved with 50% advance.
   const hasCustom = items.some(l => l.refPhoto || l.category === 'resin-art');
+  // Full COD is offered only when the whole cart is mobile covers (standard stock).
+  const allCovers = items.length > 0 && items.every(l => l.category === 'mobile-covers');
+  const availablePayments = PAYMENTS.filter(p => !p.coversOnly || allCovers);
+
+  // If COD was selected but the cart is no longer covers-only, fall back to online.
+  useEffect(() => {
+    if (payment === 'cod' && !allCovers) setPayment('online');
+  }, [allCovers, payment]);
 
   // Cart count comes from localStorage (0 on the server), so gate the cart-empty
   // logic behind mount to keep server + first client render consistent.
@@ -129,6 +141,18 @@ export default function Checkout() {
     setError(''); setPlacing(true);
 
     const orderPayload = buildOrderPayload();
+
+    // Full Cash on Delivery — no online payment, place the order directly.
+    if (payment === 'cod') {
+      try {
+        const order = await api.createOrder(orderPayload);
+        finishOrder(order);
+      } catch (err) {
+        setPlacing(false);
+        setError(err.message || 'Could not place your order. Please try again.');
+      }
+      return;
+    }
 
     try {
       // 1) Make sure the Razorpay Checkout script is available.
@@ -231,7 +255,7 @@ export default function Checkout() {
           <section className="card p-6">
             <h3 className="mb-[18px]">Payment method</h3>
             <div className="flex flex-col gap-3">
-              {PAYMENTS.map(p => (
+              {availablePayments.map(p => (
                 <label key={p.id} className={`flex cursor-pointer items-center gap-3.5 rounded-[14px] border-[1.5px] p-4 transition-colors duration-150 ${payment===p.id ? 'border-orchid-500 bg-[#f9f2fd]' : 'border-[#eee3f3]'}`}>
                   <input type="radio" name="pay" value={p.id} checked={payment===p.id} onChange={() => setPayment(p.id)} className="h-[18px] w-[18px] accent-orchid-500" />
                   <div className="flex flex-col">
@@ -244,6 +268,16 @@ export default function Checkout() {
             {hasCustom && (
               <p className="mt-3.5 rounded-[10px] bg-[#fdf8ec] px-3 py-2.5 text-[0.82rem] font-medium text-[#8a6d1a]">
                 🎨 You have a customised item — reserve it by paying just <strong>50% now</strong> with “Half online + COD”, and pay the balance on delivery.
+              </p>
+            )}
+            {!allCovers && (
+              <p className="mt-3.5 rounded-[10px] bg-cream-2 px-3 py-2.5 text-[0.82rem] text-ink-soft">
+                💵 Cash on Delivery is available only for orders containing <strong>mobile covers</strong> alone.
+              </p>
+            )}
+            {payment === 'cod' && (
+              <p className="mt-3.5 rounded-[10px] bg-[#eef7f0] px-3 py-2.5 text-[0.82rem] font-medium text-[#2e7d52]">
+                💵 You&apos;ll pay <strong>₹{total.toLocaleString('en-IN')}</strong> in cash when your order is delivered. No online payment needed now.
               </p>
             )}
             <p className="mt-3.5 rounded-[10px] bg-cream-2 px-3 py-2.5 text-[0.82rem] text-ink-soft">🔒 Secure payment powered by Razorpay — pay by <strong>UPI / QR scan, cards, net banking &amp; wallets</strong>. Choose your method in the payment window.</p>
@@ -296,6 +330,8 @@ export default function Checkout() {
             <div className="flex justify-between py-2 text-[0.95rem] font-bold text-orchid-600"><span>Pay now (50% advance)</span><span>₹{payNow.toLocaleString('en-IN')}</span></div>}
           {payment === 'half-cod' && (total - payNow) > 0 &&
             <div className="flex justify-between py-2 text-[0.9rem] text-ink-soft"><span>Balance on delivery</span><span>₹{(total - payNow).toLocaleString('en-IN')}</span></div>}
+          {payment === 'cod' &&
+            <div className="flex justify-between py-2 text-[0.95rem] font-bold text-[#2e7d52]"><span>Pay on delivery</span><span>₹{total.toLocaleString('en-IN')}</span></div>}
           {error && <p className="my-2 text-[0.9rem] font-semibold text-[#c4495b]">{error}</p>}
           <button className="btn btn-primary btn-block mt-4" disabled={placing} onClick={placeOrder}>
             {placing ? 'Placing order…' : 'Place order'}

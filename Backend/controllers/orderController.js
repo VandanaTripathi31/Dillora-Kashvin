@@ -39,8 +39,17 @@ export function paymentBreakdown(payment, total) {
     const advancePaid = Math.round(t / 2);
     return { advancePaid, pendingAmount: t - advancePaid, paymentStatus: "advance-paid" };
   }
+  if (payment === "cod") {
+    // Full cash on delivery — nothing collected online, the whole amount is due
+    // on delivery. Restricted to mobile-cover-only carts (see createOrder).
+    return { advancePaid: 0, pendingAmount: t, paymentStatus: "pending" };
+  }
   return { advancePaid: t, pendingAmount: 0, paymentStatus: "paid" };
 }
+
+/** Whether every line item in an order is a mobile cover. */
+const isCoversOnly = (items) =>
+  Array.isArray(items) && items.length > 0 && items.every((i) => i.category === CANCEL_CATEGORY);
 
 // GET /api/orders  (protected — admin)
 export const getOrders = asyncHandler(async (req, res) => {
@@ -59,6 +68,12 @@ export const getOrdersByPhone = asyncHandler(async (req, res) => {
 
 // POST /api/orders
 export const createOrder = asyncHandler(async (req, res) => {
+  // Full COD is allowed only for mobile-cover-only carts (standard stock).
+  // Handmade / made-to-order items require an online or advance payment.
+  // Enforced here so the storefront rule can't be bypassed by a crafted request.
+  if (req.body?.payment === "cod" && !isCoversOnly(req.body?.items)) {
+    return res.status(400).json({ error: "Cash on delivery is available only for mobile cover orders." });
+  }
   const id = await nextOrderId();
   const breakdown = paymentBreakdown(req.body?.payment, req.body?.total);
   const order = await Order.create({
@@ -177,7 +192,9 @@ export const decideCancellation = asyncHandler(async (req, res) => {
 export const collectBalance = asyncHandler(async (req, res) => {
   const order = await Order.findOne({ id: req.params.id });
   if (!order) return res.status(404).json({ error: "Order not found." });
-  if (order.paymentStatus !== "advance-paid") {
+  // Advance-paid (half-COD) has a partial balance; pending (full COD) has the
+  // whole amount due on delivery. Both are collectable here.
+  if (order.paymentStatus !== "advance-paid" && order.paymentStatus !== "pending") {
     return res.status(400).json({ error: "This order has no pending balance." });
   }
   const by = req.admin?.name || req.admin?.email || "admin";

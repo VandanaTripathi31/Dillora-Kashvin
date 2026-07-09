@@ -17,12 +17,24 @@ import { useCategories } from '@/context/CategoriesContext';
 import { useSettings } from '@/context/SettingsContext';
 
 const DEFAULT_IG = 'https://www.instagram.com/dillora_by_kashvin';
+const DEFAULT_WA = '918369830139'; // 91 + 8369830139 (support / WhatsApp)
+
+// "918369830139" -> "+91 83698 30139" for display.
+function prettyPhone(digits) {
+  const d = String(digits || '').replace(/\D/g, '');
+  const local = d.length > 10 ? d.slice(-10) : d;
+  const cc = d.length > 10 ? d.slice(0, d.length - 10) : '91';
+  if (local.length !== 10) return '+' + d;
+  return `+${cc} ${local.slice(0, 5)} ${local.slice(5)}`;
+}
 
 export default function Footer() {
   const year = new Date().getFullYear();
   const { categories } = useCategories();
   const { settings } = useSettings();
   const instagramUrl = settings?.instagramUrl || DEFAULT_IG;
+  const waNumber = (settings?.whatsappNumber || '').replace(/\D/g, '') || DEFAULT_WA;
+  const phoneDisplay = prettyPhone(waNumber);
 
   return (
     <footer className="relative mt-16 overflow-hidden" style={{ color: '#fff' }}>
@@ -81,7 +93,7 @@ export default function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color:'#d4aeec' }}>Contact</h4>
             <ul className="space-y-2.5 text-sm list-none p-0 m-0" style={{ color:'rgba(255,255,255,.75)' }}>
               <li className="flex items-center gap-2"><Mail className="w-4 h-4 shrink-0" style={{ color:'#d4aeec' }} /> support@kashvin.in</li>
-              <li className="flex items-center gap-2"><Phone className="w-4 h-4 shrink-0" style={{ color:'#d4aeec' }} /> +91 90000 00000</li>
+              <li className="flex items-center gap-2"><Phone className="w-4 h-4 shrink-0" style={{ color:'#d4aeec' }} /><a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="hover:underline">{phoneDisplay}</a></li>
               <li className="flex items-center gap-2"><MapPin className="w-4 h-4 shrink-0" style={{ color:'#d4aeec' }} /> Kashvin, India</li>
               <li><a href={process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:3001'} target="_blank" rel="noreferrer" className="text-xs transition-colors" style={{ color:'rgba(255,255,255,.4)' }}>Admin login</a></li>
             </ul>
