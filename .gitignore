@@ -41,3 +41,6 @@ Backend/uploads/*
 
 # ---- temporary local-demo helper (in-memory Mongo runner) ----
 Backend/_*.mjs
+
+# ---- Claude Code: keep shared launch config, ignore machine-local settings ----
+.claude/settings.local.json
