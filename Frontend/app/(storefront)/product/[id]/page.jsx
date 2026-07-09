@@ -418,33 +418,38 @@ export default function Product() {
             </div>
           )}
 
-          {/* Colour variants (admin-managed) */}
+          {/* Colour variants (admin-managed) — dropdown; colours come dynamically
+              from the product's colorOptions set in the admin dashboard. */}
           {hasColors && (
             <div className="mb-5">
-              <label className={optLabel}>Colour{color ? <span className="ml-1.5 normal-case text-ink-soft">· {color}</span> : ''}</label>
-              <div className="flex flex-wrap gap-2.5">
-                {colorList.map((c) => {
-                  const on = color === c.name;
+              <label className={optLabel}>
+                Colour
+                {color && (() => {
+                  const sel = colorList.find((c) => c.name === color);
                   return (
-                    <button
-                      key={c.name}
-                      type="button"
-                      onClick={() => setColor(c.name)}
-                      title={c.name}
-                      aria-label={c.name}
-                      aria-pressed={on}
-                      className={`flex items-center gap-2 rounded-xl border-[1.5px] px-3 py-2 text-[0.85rem] font-semibold transition-all duration-[180ms] ${on ? 'border-orchid-500 bg-[#f9f2fd] text-ink shadow-[0_0_0_3px_rgba(166,79,214,.15)]' : 'border-[#eee3f3] bg-white text-ink-soft hover:border-orchid-300'}`}
-                    >
+                    <span className="ml-1.5 inline-flex items-center gap-1.5 normal-case text-ink-soft">
+                      ·
                       <span
-                        className="h-5 w-5 shrink-0 rounded-full border border-black/10 bg-cover bg-center"
-                        style={c.image ? { backgroundImage: `url(${c.image})` } : { background: c.hex || '#e9e2f2' }}
+                        className="inline-block h-3.5 w-3.5 rounded-full border border-black/10 bg-cover bg-center align-middle"
+                        style={sel?.image ? { backgroundImage: `url(${sel.image})` } : { background: sel?.hex || '#e9e2f2' }}
                         aria-hidden="true"
                       />
-                      {c.name}
-                    </button>
+                      {color}
+                    </span>
                   );
-                })}
-              </div>
+                })()}
+              </label>
+              <select
+                className={optSelect}
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                aria-label="Select colour"
+              >
+                <option value="">Select a colour</option>
+                {colorList.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </select>
             </div>
           )}
 
