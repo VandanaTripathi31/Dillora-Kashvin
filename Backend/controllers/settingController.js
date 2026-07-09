@@ -21,21 +21,33 @@ export const updateSettings = asyncHandler(async (req, res) => {
   const patch = req.body || {};
 
   if (patch.banner && typeof patch.banner === "object") {
-    doc.banner = { ...doc.banner.toObject?.() ?? doc.banner, ...patch.banner };
+    doc.banner = {
+      ...(doc.banner.toObject?.() ?? doc.banner),
+      ...patch.banner,
+    };
   }
-  if (patch.showDiscounts !== undefined) doc.showDiscounts = !!patch.showDiscounts;
+  if (patch.showDiscounts !== undefined)
+    doc.showDiscounts = !!patch.showDiscounts;
   if (patch.hero && typeof patch.hero === "object") {
     const cur = doc.hero?.toObject?.() ?? doc.hero ?? {};
     const h = patch.hero;
-    const str = (k, max = 300) => (h[k] !== undefined ? String(h[k] || "").slice(0, max) : cur[k]);
+    const str = (k, max = 300) =>
+      h[k] !== undefined ? String(h[k] || "").slice(0, max) : cur[k];
     doc.hero = {
       enabled: h.enabled !== undefined ? !!h.enabled : cur.enabled,
-      headline: str("headline"), subheadline: str("subheadline"),
-      ctaText: str("ctaText"), ctaLink: str("ctaLink"),
-      cta2Text: str("cta2Text"), cta2Link: str("cta2Link"),
-      imageDesktop: str("imageDesktop", 500), imageMobile: str("imageMobile", 500),
+      headline: str("headline"),
+      subheadline: str("subheadline"),
+      ctaText: str("ctaText"),
+      ctaLink: str("ctaLink"),
+      cta2Text: str("cta2Text"),
+      cta2Link: str("cta2Link"),
+      imageDesktop: str("imageDesktop", 500),
+      imageMobile: str("imageMobile", 500),
       bgColor: str("bgColor", 60),
-      overlay: h.overlay !== undefined ? Math.max(0, Math.min(100, Number(h.overlay) || 0)) : cur.overlay,
+      overlay:
+        h.overlay !== undefined
+          ? Math.max(0, Math.min(100, Number(h.overlay) || 0))
+          : cur.overlay,
     };
   }
   if (patch.feedbackPopup && typeof patch.feedbackPopup === "object") {
@@ -43,7 +55,10 @@ export const updateSettings = asyncHandler(async (req, res) => {
     const f = patch.feedbackPopup;
     doc.feedbackPopup = {
       enabled: f.enabled !== undefined ? !!f.enabled : cur.enabled,
-      question: f.question !== undefined ? String(f.question).slice(0, 200) : cur.question,
+      question:
+        f.question !== undefined
+          ? String(f.question).slice(0, 200)
+          : cur.question,
     };
   }
   if (patch.reviewReward && typeof patch.reviewReward === "object") {
@@ -51,8 +66,12 @@ export const updateSettings = asyncHandler(async (req, res) => {
     const rr = patch.reviewReward;
     doc.reviewReward = {
       enabled: rr.enabled !== undefined ? !!rr.enabled : cur.enabled,
-      percent: rr.percent !== undefined ? Math.max(1, Math.min(90, Number(rr.percent) || 10)) : cur.percent,
-      days: rr.days !== undefined ? Math.max(1, Number(rr.days) || 30) : cur.days,
+      percent:
+        rr.percent !== undefined
+          ? Math.max(1, Math.min(90, Number(rr.percent) || 10))
+          : cur.percent,
+      days:
+        rr.days !== undefined ? Math.max(1, Number(rr.days) || 30) : cur.days,
     };
   }
   if (patch.saleCountdown && typeof patch.saleCountdown === "object") {
@@ -64,18 +83,30 @@ export const updateSettings = asyncHandler(async (req, res) => {
       endsAt: p.endsAt !== undefined ? Number(p.endsAt) || 0 : cur.endsAt,
     };
   }
-  if (patch.whatsappNumber !== undefined) doc.whatsappNumber = String(patch.whatsappNumber || "").replace(/[^\d]/g, "");
-  if (patch.whatsappTemplate !== undefined) doc.whatsappTemplate = String(patch.whatsappTemplate || "").slice(0, 500);
-  if (patch.instagramUrl !== undefined) doc.instagramUrl = String(patch.instagramUrl || "").trim();
+  if (patch.whatsappNumber !== undefined)
+    doc.whatsappNumber = String(patch.whatsappNumber || "").replace(
+      /[^\d]/g,
+      "",
+    );
+  if (patch.whatsappTemplate !== undefined)
+    doc.whatsappTemplate = String(patch.whatsappTemplate || "").slice(0, 500);
+  if (patch.instagramUrl !== undefined)
+    doc.instagramUrl = String(patch.instagramUrl || "").trim();
 
   // Delivery/policy info — deep-merge so partial updates keep other fields.
   if (patch.delivery && typeof patch.delivery === "object") {
-    doc.delivery = { ...doc.delivery.toObject?.() ?? doc.delivery, ...patch.delivery };
+    doc.delivery = {
+      ...(doc.delivery.toObject?.() ?? doc.delivery),
+      ...patch.delivery,
+    };
   }
 
   // Invoice/seller/GST details — deep-merge.
   if (patch.invoice && typeof patch.invoice === "object") {
-    doc.invoice = { ...doc.invoice.toObject?.() ?? doc.invoice, ...patch.invoice };
+    doc.invoice = {
+      ...(doc.invoice.toObject?.() ?? doc.invoice),
+      ...patch.invoice,
+    };
   }
 
   // Image popups — deep-merge each popup so partial updates keep other fields.
@@ -96,7 +127,9 @@ export const updateSettings = asyncHandler(async (req, res) => {
       title: b.title || "",
       subtitle: b.subtitle || "",
       offerText: b.offerText || "",
-      couponCode: String(b.couponCode || "").toUpperCase().trim(),
+      couponCode: String(b.couponCode || "")
+        .toUpperCase()
+        .trim(),
       ctaText: b.ctaText || "",
       ctaLink: b.ctaLink || "",
       countdownEndsAt: Number(b.countdownEndsAt) || 0,

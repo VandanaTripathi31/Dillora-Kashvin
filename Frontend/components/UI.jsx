@@ -1,14 +1,14 @@
-'use client';
-import Link from 'next/link';
-import Image from 'next/image';
-import { BLUR } from '@/lib/img';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+import { BLUR } from "@/lib/img";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-import { api } from '@/data/api';
-import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
-import { useSettings } from '@/context/SettingsContext';
+import { api } from "@/data/api";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useSettings } from "@/context/SettingsContext";
 
 export function Logo({ size = 26, light = false }) {
   // On dark / purple backgrounds (footer, mobile drawer) the brand logo PNG —
@@ -16,12 +16,39 @@ export function Logo({ size = 26, light = false }) {
   // there. On the light header we show the real brand logo image.
   if (light) {
     return (
-      <Link href="/" className="dilora-logo" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
-        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.02 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: size, letterSpacing: '.3px', color: '#fff' }}>
+      <Link
+        href="/"
+        className="dilora-logo"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 9,
+          textDecoration: "none",
+        }}
+      >
+        <span
+          style={{ display: "flex", flexDirection: "column", lineHeight: 1.02 }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: size,
+              letterSpacing: ".3px",
+              color: "#fff",
+            }}
+          >
             Dillora
           </span>
-          <span style={{ fontSize: size * 0.38, color: 'rgba(255,255,255,.8)', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
+          <span
+            style={{
+              fontSize: size * 0.38,
+              color: "rgba(255,255,255,.8)",
+              fontWeight: 600,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+            }}
+          >
             by Kashvin
           </span>
         </span>
@@ -30,12 +57,21 @@ export function Logo({ size = 26, light = false }) {
   }
 
   return (
-    <Link href="/" className="dilora-logo group" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }} aria-label="Dillora by Kashvin — home">
+    <Link
+      href="/"
+      className="dilora-logo group"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        textDecoration: "none",
+      }}
+      aria-label="Dillora by Kashvin — home"
+    >
       <img
-        src="/logo.png"
+        src="/Dillora.png"
         alt="Dillora by Kashvin"
         className="transition-transform duration-300 group-hover:scale-[1.04]"
-        style={{ height: size * 2.15, width: 'auto', display: 'block' }}
+        style={{ height: size * 2.15, width: "auto", display: "block" }}
       />
     </Link>
   );
@@ -46,8 +82,10 @@ export function Price({ price, mrp }) {
   const showMrp = showDiscounts && mrp && mrp > price;
   return (
     <span>
-      <span className="price">₹{price.toLocaleString('en-IN')}</span>
-      {showMrp && <span className="strike">₹{mrp.toLocaleString('en-IN')}</span>}
+      <span className="price">₹{price.toLocaleString("en-IN")}</span>
+      {showMrp && (
+        <span className="strike">₹{mrp.toLocaleString("en-IN")}</span>
+      )}
     </span>
   );
 }
@@ -57,14 +95,23 @@ export function Rating({ id, showCount = true }) {
   const [summary, setSummary] = useState(null);
   useEffect(() => {
     let on = true;
-    api.getRatingSummary(id).then(s => { if (on) setSummary(s); });
-    return () => { on = false; };
+    api.getRatingSummary(id).then((s) => {
+      if (on) setSummary(s);
+    });
+    return () => {
+      on = false;
+    };
   }, [id]);
 
   if (!summary || summary.count === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-[0.82rem]" aria-label="No reviews yet">
-        <span className="text-[0.9rem] tracking-[1px] text-[#e8a93a]">☆☆☆☆☆</span>
+      <span
+        className="inline-flex items-center gap-1 text-[0.82rem]"
+        aria-label="No reviews yet"
+      >
+        <span className="text-[0.9rem] tracking-[1px] text-[#e8a93a]">
+          ☆☆☆☆☆
+        </span>
         <span className="text-[0.78rem] text-ink-soft opacity-75">New</span>
       </span>
     );
@@ -72,9 +119,18 @@ export function Rating({ id, showCount = true }) {
 
   const full = Math.round(summary.avg);
   return (
-    <span className="inline-flex items-center gap-1 text-[0.82rem]" aria-label={`Rated ${summary.avg} out of 5`}>
-      <span className="text-[0.9rem] tracking-[1px] text-[#e8a93a]">{'★'.repeat(full)}{'☆'.repeat(5 - full)}</span>
-      <span className="text-[0.78rem] text-ink-soft">{summary.avg}{showCount ? ` (${summary.count})` : ''}</span>
+    <span
+      className="inline-flex items-center gap-1 text-[0.82rem]"
+      aria-label={`Rated ${summary.avg} out of 5`}
+    >
+      <span className="text-[0.9rem] tracking-[1px] text-[#e8a93a]">
+        {"★".repeat(full)}
+        {"☆".repeat(5 - full)}
+      </span>
+      <span className="text-[0.78rem] text-ink-soft">
+        {summary.avg}
+        {showCount ? ` (${summary.count})` : ""}
+      </span>
     </span>
   );
 }
@@ -84,23 +140,36 @@ export function ProductCard({ product }) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
   const { showDiscounts } = useSettings();
-  const off = showDiscounts && product.mrp && product.mrp > product.price
-    ? Math.round((1 - product.price / product.mrp) * 100) : 0;
-  const needsOptions = product.optionType && product.optionType !== 'none';
+  const off =
+    showDiscounts && product.mrp && product.mrp > product.price
+      ? Math.round((1 - product.price / product.mrp) * 100)
+      : 0;
+  const needsOptions = product.optionType && product.optionType !== "none";
   const wished = has(product.id);
 
   const quickAdd = (e) => {
     e.preventDefault();
-    if (needsOptions) { router.push(`/product/${product.id}`); return; }
+    if (needsOptions) {
+      router.push(`/product/${product.id}`);
+      return;
+    }
     add({
-      productId: product.id, name: product.name, image: product.image,
-      category: product.category, options: '—', refPhoto: null,
-      price: product.price, qty: 1,
+      productId: product.id,
+      name: product.name,
+      image: product.image,
+      category: product.category,
+      options: "—",
+      refPhoto: null,
+      price: product.price,
+      qty: 1,
     });
-    router.push('/cart');
+    router.push("/cart");
   };
 
-  const heart = (e) => { e.preventDefault(); toggle(product.id); };
+  const heart = (e) => {
+    e.preventDefault();
+    toggle(product.id);
+  };
 
   return (
     <Link
@@ -124,37 +193,61 @@ export function ProductCard({ product }) {
         )}
         <button
           onClick={heart}
-          aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-          className={`absolute right-2.5 top-2.5 z-[3] grid h-[34px] w-[34px] place-items-center rounded-full bg-white/[.92] shadow-soft backdrop-blur-[6px] transition duration-150 hover:scale-[1.08] hover:text-violet-500 ${wished ? 'text-violet-500' : 'text-ink-soft'}`}
+          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+          className={`absolute right-2.5 top-2.5 z-[3] grid h-[34px] w-[34px] place-items-center rounded-full bg-white/[.92] shadow-soft backdrop-blur-[6px] transition duration-150 hover:scale-[1.08] hover:text-violet-500 ${wished ? "text-violet-500" : "text-ink-soft"}`}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill={wished ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill={wished ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          >
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         </button>
         <button
           onClick={quickAdd}
           className="absolute inset-x-3 bottom-3 z-[3] translate-y-3.5 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-0 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
         >
-          {needsOptions ? 'Choose options' : '+ Quick add'}
+          {needsOptions ? "Choose options" : "+ Quick add"}
         </button>
       </div>
       <div className="flex flex-1 flex-col px-[18px] pb-5 pt-4">
-        <h3 className="mb-1.5 line-clamp-2 min-h-[2.6em] font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">{product.name}</h3>
-        <div className="mb-1.5 mt-0.5"><Rating id={product.id} showCount={false} /></div>
-        <div className="mt-auto"><Price price={product.price} mrp={product.mrp} /></div>
+        <h3 className="mb-1.5 line-clamp-2 min-h-[2.6em] font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">
+          {product.name}
+        </h3>
+        <div className="mb-1.5 mt-0.5">
+          <Rating id={product.id} showCount={false} />
+        </div>
+        <div className="mt-auto">
+          <Price price={product.price} mrp={product.mrp} />
+        </div>
       </div>
     </Link>
   );
 }
 
-export function Spinner({ label = 'Loading' }) {
-  return <div className="spinner" role="status" aria-live="polite">
-    <div className="spinner__dot" /><div className="spinner__dot" /><div className="spinner__dot" />
-    <span className="sr-only" style={{ position:'absolute', left:-9999 }}>{label}</span>
-  </div>;
+export function Spinner({ label = "Loading" }) {
+  return (
+    <div className="spinner" role="status" aria-live="polite">
+      <div className="spinner__dot" />
+      <div className="spinner__dot" />
+      <div className="spinner__dot" />
+      <span className="sr-only" style={{ position: "absolute", left: -9999 }}>
+        {label}
+      </span>
+    </div>
+  );
 }
 
 export function Toast({ message }) {
   if (!message) return null;
-  return <div className="toast" role="status">{message}</div>;
+  return (
+    <div className="toast" role="status">
+      {message}
+    </div>
+  );
 }

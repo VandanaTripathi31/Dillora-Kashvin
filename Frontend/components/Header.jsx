@@ -16,9 +16,6 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  // Cart/wishlist counts come from localStorage, so they're 0 on the server and
-  // real on the client. Gate the badges behind `mounted` to avoid a hydration
-  // mismatch (badge only renders after the first client render).
   const [mounted, setMounted] = useState(false);
   const { count } = useCart();
   const { count: wishCount } = useWishlist();
@@ -27,8 +24,6 @@ export default function Header() {
   const router = useRouter();
 
   useEffect(() => {
-    // Use matchMedia (true layout viewport) instead of window.innerWidth, which
-    // can be unreliable with device pixel ratio / zoom on some devices.
     const mql = window.matchMedia('(max-width: 899px)');
     const check = () => {
       setIsMobile(mql.matches);
