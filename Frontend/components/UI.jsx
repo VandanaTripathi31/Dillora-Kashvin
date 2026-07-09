@@ -56,24 +56,44 @@ export function Logo({ size = 26, light = false }) {
     );
   }
 
+  // Dillora.png is a 500×500 wordmark with a lot of transparent padding, so
+  // shown raw it looks tiny. We crop to the wordmark band via an overflow-hidden
+  // box (see LogoMark) so it renders large & crisp. `size` = visible height.
   return (
     <Link
       href="/"
       className="dilora-logo group"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        textDecoration: "none",
-      }}
+      style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
       aria-label="Dillora by Kashvin — home"
+    >
+      <LogoMark size={size} className="transition-transform duration-300 group-hover:scale-[1.04]" />
+    </Link>
+  );
+}
+
+// Cropped Dillora.png wordmark (no link). The source is a 500×500 image with the
+// wordmark in the x[87–415], y[204–280] band (measured from its alpha channel);
+// these offsets crop to that band so it renders large & crisp at height `size`.
+// Used inside the header logo link and the footer chip for one consistent mark.
+export function LogoMark({ size = 40, className = "" }) {
+  return (
+    <span
+      className={`block overflow-hidden ${className}`}
+      style={{ height: size, width: size * 3.7, position: "relative" }}
     >
       <img
         src="/Dillora.png"
         alt="Dillora by Kashvin"
-        className="transition-transform duration-300 group-hover:scale-[1.04]"
-        style={{ height: size * 2.15, width: "auto", display: "block" }}
+        style={{
+          position: "absolute",
+          height: size * 5.26,
+          width: size * 5.26,
+          left: -size * 0.79,
+          top: -size * 2.05,
+          maxWidth: "none",
+        }}
       />
-    </Link>
+    </span>
   );
 }
 

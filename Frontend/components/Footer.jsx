@@ -15,6 +15,7 @@ function InstagramIcon({ className }) {
 
 import { useCategories } from '@/context/CategoriesContext';
 import { useSettings } from '@/context/SettingsContext';
+import { LogoMark } from '@/components/UI';
 
 const DEFAULT_IG = 'https://www.instagram.com/dillora_by_kashvin';
 const DEFAULT_WA = '919004779954'; // 91 + 9004779954 (support / WhatsApp)
@@ -48,10 +49,11 @@ export default function Footer() {
         {/* Columns */}
         <div className="max-w-[1240px] mx-auto px-5 pt-14 pb-10 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-            {/* Original Kashvin logo — shown on a light chip so the artwork reads on the dark footer */}
-            <Link href="/" aria-label="Dillora by Kashvin — home" className="inline-flex rounded-2xl bg-white px-3 py-2 shadow-[0_6px_18px_rgba(0,0,0,.18)]">
-              <img src="/logo.png" alt="Dillora by Kashvin" className="h-11 w-auto block" />
+            {/* Brand logo — shown on a light chip so the colourful wordmark reads on the dark footer */}
+            <Link href="/" aria-label="Dillora by Kashvin — home" className="inline-flex rounded-2xl bg-white px-4 py-2.5 shadow-[0_6px_18px_rgba(0,0,0,.18)]">
+              <LogoMark size={34} />
             </Link>
+            <p className="font-display text-lg font-bold mt-3 text-white">Dillora by Kashvin</p>
             <p className="text-sm leading-relaxed mt-3 max-w-xs" style={{ color:'rgba(255,255,255,.65)' }}>
               Handmade phone covers, charms, crochet, resin art and oversize tees — made to order, with care, in India.
             </p>

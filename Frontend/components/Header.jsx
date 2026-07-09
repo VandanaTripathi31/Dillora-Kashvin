@@ -73,7 +73,7 @@ export default function Header() {
                 <Menu className="w-6 h-6" />
               </button>
             )}
-            <Logo size={26} />
+            <Logo size={40} />
           </div>
 
           {/* CENTER: category links in a floating glass pill (desktop only) */}
