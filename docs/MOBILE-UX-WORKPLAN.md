@@ -65,8 +65,8 @@ infinite spinners; no console errors.
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 2.1 | Native View Transitions API for routes + `<Link>` prefetch | ⏳ | cheaper than JS libs on low-end Android; prefetch is required |
-| 2.2 | ScrollProgress → rAF write or CSS scroll-driven (stop per-frame React re-render) | ⏳ | current impl re-renders every scroll event |
-| 2.3 | Gate all hover behind `@media (hover:hover)`; scope `transition-all`→transform/opacity; surgical `will-change` | ⏳ | prevents stuck hover on touch; avoids jank |
+| 2.2 | ScrollProgress → rAF write (stop per-frame React re-render) | ✅ | rewritten with ref + rAF, no state; verified bar tracks scroll, 0 re-renders. Commit dcc47a1 |
+| 2.3 | Gate hover behind `@media (hover:hover)` | ✅ | `future.hoverOnlyWhenSupported: true` in tailwind.config → ALL Tailwind hover utilities now compile inside `@media (hover:hover)` (verified 13/13 transform-hover rules gated). Desktop unaffected. `will-change` was a non-issue (`.product-card` CSS is dead/unused). transition-all + plain-CSS `:hover` + dead .product-card CSS → backlog (low value) |
 | 2.4 | Tokenized easing/duration (~250ms ease-out `cubic-bezier(.22,1,.36,1)`) | ⏳ | consistent premium feel |
 | 2.5 | Reduce heavy always-on hero animations on mobile (animated blur, many infinite loops) | ⏳ | battery/CPU |
 | 2.6 | Sticky add-to-cart bar + bottom-sheet variant picker on PDP | ⏳ | ~8–15% mobile conversion lift; `.stickybar` scaffold exists |
@@ -118,3 +118,5 @@ gracefully, but ratings vanish in the meantime).
 - ~~Product page reliability + PDP skeleton~~ — DONE in 1.1 (error/retry + 404 "not found" + PDP skeleton; secondary fetches already/now catch).
 - Other pages to audit for the same infinite-spinner pattern: `account`, `order/[id]`, `wishlist`, `checkout`, `page/[slug]` (most read local/context data, but confirm). Small reliability sweep — schedule as a Phase 1 tail task or Phase 3 hardening.
 - Remaining plain `<img>` (lower LCP value) to optionally convert to next/image: `about/page.jsx`, `AdBanners.jsx`, `AdminHero.jsx` (LCP when admin hero enabled — worth doing), `ContentPopup`, `Search.jsx` thumbs, `cart` thumbs (88px, small). Review images already `loading=lazy`. AdminHero is the notable one.
+- Dead CSS: the entire `.product-card` / `.product-card__*` rule set in app.css (lines ~102-109, 422-436, 492-494, 626-629, 801-833, 1044-1064) is unused (current ProductCard is Tailwind-based) — safe to delete in a cleanup pass. Also duplicate `.reveal` rule.
+- Minor: a few `transition-all` (footer/header/pills/page chips) could be scoped to specific props; low value now that hover is gated. Plain-CSS `:hover` states (.dlr-ic, .btn) not media-gated, but most navigate away on tap so sticky-hover is moot.
