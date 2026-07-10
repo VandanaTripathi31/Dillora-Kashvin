@@ -15,8 +15,8 @@ per task/small group, keep this file's statuses current. Legend: ✅ done ·
 ## Phase 1 — Trust & honesty  (🔴 launch-critical · quick, no input)
 | # | Task | Status |
 |---|------|--------|
-| 1.1 | Remove the "Demo sign-in …" text shown to customers (`account/page.jsx`) | ⏳ |
-| 1.2 | Replace fabricated stats — "8,000+ customers / 2,000+ reviews / 4.8" — with honest "new store" copy (`page.jsx` hero social row + hero badge + stats band) | ⏳ |
+| 1.1 | Remove the "Demo sign-in …" text shown to customers (`account/page.jsx`) | ✅ |
+| 1.2 | Replace fabricated stats with honest copy (hero: "Handmade to order in India"; stats band: 100+ designs / 5 collections / 100% handmade / free shipping) | ✅ verified live, committed 5493790 |
 
 ## Phase 2 — Don't lose orders  (🔴 launch-critical)
 | # | Task | Status |

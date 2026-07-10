@@ -9,6 +9,7 @@ import { recordOfferUsage } from "../services/offerService.js";
 import { recordCouponUsage } from "../services/couponService.js";
 import { computeOrderPricing, sanitizeCustomer, PricingError } from "../services/pricingService.js";
 import { reserveStock } from "../services/stockService.js";
+import { notifyNewOrder } from "../services/emailService.js";
 import { paymentBreakdown } from "./orderController.js";
 import {
   getRazorpay,
@@ -154,6 +155,7 @@ async function finalizeOrder({ razorpayOrderId, razorpayPaymentId, razorpaySigna
   await reserveStock(created.items, "order-online");
   recordOfferUsage(created.offers).catch(() => {});
   if (created.coupon?.code) recordCouponUsage(created.coupon.code).catch(() => {});
+  notifyNewOrder(created).catch(() => {}); // alert the owner (best-effort)
   await issueInvoice(created);
 
   return created;

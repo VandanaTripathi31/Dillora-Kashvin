@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/responseHandler.js";
 import { nextOrderId } from "../services/idService.js";
 import { issueInvoice } from "../services/invoiceService.js";
 import { adjustStock, reserveStock } from "../services/stockService.js";
-import { notifyOps, esc } from "../services/emailService.js";
+import { notifyOps, notifyNewOrder, esc } from "../services/emailService.js";
 import { recordOfferUsage } from "../services/offerService.js";
 import { recordCouponUsage } from "../services/couponService.js";
 import { computeOrderPricing, sanitizeCustomer, PricingError } from "../services/pricingService.js";
@@ -120,6 +120,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   await reserveStock(order.items, "order-cod");
   recordOfferUsage(order.offers).catch(() => {});
   if (order.coupon?.code) recordCouponUsage(order.coupon.code).catch(() => {});
+  notifyNewOrder(order).catch(() => {}); // alert the owner (best-effort)
   await issueInvoice(order);
 
   res.status(201).json(order.toJSON());
