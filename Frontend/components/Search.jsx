@@ -14,7 +14,7 @@ export default function Search({ open, onClose }) {
   const { categories } = useCategories();
   const catName = (id) => categories.find(c => c.id === id)?.name || '';
 
-  useEffect(() => { if (open) api.getProducts().then(setAll); }, [open]);
+  useEffect(() => { if (open) api.getSearchIndex().then(setAll).catch(() => {}); }, [open]);
   useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 50); else setQ(''); }, [open]);
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };

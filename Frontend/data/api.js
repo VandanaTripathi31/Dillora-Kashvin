@@ -14,6 +14,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 // refetching the same product's rating across multiple cards/sections.
 const _ratingCache = new Map();
 
+// Session cache for the lightweight search index (see getSearchIndex).
+let _searchIndexPromise = null;
+
 // Rating summaries are read by every product card. Rather than one request per
 // card (a 24-request fan-out on the homepage), calls made in the same tick are
 // coalesced into a single batched request: GET /reviews/summary?ids=a,b,c.
@@ -173,6 +176,17 @@ export const api = {
 
   // ---- products ----
   async getProducts() { return req('/products'); },
+  // Lightweight list (id/name/image/category/sub/price) for the search box.
+  // Cached for the session so re-opening search never refetches.
+  getSearchIndex() {
+    if (!_searchIndexPromise) {
+      _searchIndexPromise = req('/products/search-index').catch((e) => {
+        _searchIndexPromise = null; // allow a retry after a failure
+        throw e;
+      });
+    }
+    return _searchIndexPromise;
+  },
   async getProduct(id) { return req(`/products/${id}`); },
   async getByCategory(catId, subId = null) {
     return req(`/products/category/${catId}${subId ? `?sub=${encodeURIComponent(subId)}` : ''}`);

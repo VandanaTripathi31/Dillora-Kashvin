@@ -55,7 +55,7 @@ infinite spinners; no console errors.
 | 1.2 | Image loading: LQIP blur-up, `priority` on LCP/hero, correct `sizes`, `aspect-ratio` | ✅ | homepage hero (3 blobs, main=priority) + 2.8MB craft PNG → next/image (1600px→~309px, AVIF/WebP, blur-up); `priority` prop on ProductCard applied to first 4 cards on category/subcategory (LCP); PDP main image already had priority. Verified optimized + layout intact + build green. Remaining low-value plain `<img>` → backlog |
 | 1.3 | Instant/tactile cart feedback | ✅ | **Reframed:** cart & wishlist are localStorage → already instant, so React 19 `useOptimistic` (async-only) does NOT apply. PDP "Add to cart" already toasts + stays (good). Delivered: **cart/wishlist badge "pop" animation** on count change (verified `badgePop` applies, count updates, respects reduced-motion). **RESOLVED** (owner chose toast+stay): quick-add now adds + shows "Added to cart" toast + badge pop and keeps the shopper on the page (consistent with PDP). Verified: stays on page, badge increments, toast renders, build green. Heart-pop micro-anim → Phase 2 |
 | 1.4 | Server-render + streaming `<Suspense>` for home/category/product | ⏳ | biggest smoothness jump; architectural — do carefully |
-| 1.5 | Paginate `/products` (Search pulls all 108 / 53 KB today) | ⏳ | backend + Search.jsx |
+| 1.5 | Lighten Search payload (was all 108 / 53 KB) | ✅ | new backend `GET /products/search-index` (6 fields only, ~20 KB vs 53 KB) + session-cached `getSearchIndex()`; Search.jsx uses it (client-side search UX unchanged). Verified: "charm" → 8 results, hit search-index endpoint, build green. NOTE: backend-first deploy (new endpoint) |
 
 ---
 

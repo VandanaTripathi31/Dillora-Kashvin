@@ -29,6 +29,26 @@ export const getBestsellers = asyncHandler(async (req, res) => {
   res.json(products.map((p) => p.toJSON()));
 });
 
+// GET /api/products/search-index
+// Minimal fields (id/name/image/category/sub/price) for the instant client-side
+// search box — a fraction of the full /products payload, so opening search on a
+// phone stays cheap even as the catalog grows.
+export const getSearchIndex = asyncHandler(async (req, res) => {
+  const products = await Product.find({}, "id name image category sub price -_id").sort({
+    createdAt: 1,
+  });
+  res.json(
+    products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      image: p.image,
+      category: p.category,
+      sub: p.sub,
+      price: p.price,
+    }))
+  );
+});
+
 // GET /api/products/category/:catId?sub=subId
 export const getByCategory = asyncHandler(async (req, res) => {
   const filter = { category: req.params.catId };
