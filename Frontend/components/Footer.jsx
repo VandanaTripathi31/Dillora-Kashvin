@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
+import { useState } from 'react';
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
+import { api } from '@/data/api';
 
 // Inline Instagram glyph (this lucide-react version doesn't export `Instagram`).
 function InstagramIcon({ className }) {
@@ -29,6 +31,47 @@ function prettyPhone(digits) {
   return `+${cc} ${local.slice(0, 5)} ${local.slice(5)}`;
 }
 
+// Email capture — builds an owned audience for launch/marketing emails.
+function NewsletterSignup() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState(''); // '' | 'ok' | 'err'
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) { setStatus('err'); return; }
+    setBusy(true); setStatus('');
+    try { await api.subscribe(email.trim(), 'footer'); setStatus('ok'); setEmail(''); }
+    catch { setStatus('err'); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="max-w-[1240px] mx-auto px-5 pt-12">
+      <div className="rounded-3xl border border-white/10 bg-white/[.06] px-6 py-6 backdrop-blur sm:px-8 sm:py-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-display text-xl font-semibold text-white">Join the Dillora circle 💜</h3>
+            <p className="text-sm text-white/70">New handmade drops, offers &amp; restocks — straight to your inbox.</p>
+          </div>
+          <form onSubmit={submit} className="flex w-full gap-2 sm:w-auto">
+            <input
+              type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@email.com" aria-label="Email address"
+              className="min-w-0 flex-1 rounded-full border border-white/20 bg-white/95 px-4 py-2.5 text-ink placeholder:text-ink-soft/70 focus:outline-none sm:w-64"
+            />
+            <button type="submit" disabled={busy} className="btn btn-primary shrink-0 whitespace-nowrap">
+              {busy ? '…' : 'Subscribe'}
+            </button>
+          </form>
+        </div>
+        {status === 'ok' && <p className="mt-3 text-sm font-semibold text-[#9be7c4]">Thanks! You&apos;re on the list. 🎉</p>}
+        {status === 'err' && <p className="mt-3 text-sm font-semibold text-[#ffb3c1]">Please enter a valid email address.</p>}
+      </div>
+    </div>
+  );
+}
+
 export default function Footer() {
   const year = new Date().getFullYear();
   const { categories } = useCategories();
@@ -46,8 +89,9 @@ export default function Footer() {
       <div className="absolute -bottom-24 right-0 w-72 h-72 rounded-full blur-3xl" style={{ background:'rgba(122,79,240,.22)' }} />
 
       <div className="relative">
+        <NewsletterSignup />
         {/* Columns */}
-        <div className="max-w-[1240px] mx-auto px-5 pt-14 pb-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-[1240px] mx-auto px-5 pt-12 pb-10 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             {/* Brand logo — shown on a light chip so the colourful wordmark reads on the dark footer */}
             <Link href="/" aria-label="Dillora by Kashvin — home" className="inline-flex rounded-2xl bg-white px-4 py-2.5 shadow-[0_6px_18px_rgba(0,0,0,.18)]">

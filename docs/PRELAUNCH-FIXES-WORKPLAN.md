@@ -28,8 +28,8 @@ per task/small group, keep this file's statuses current. Legend: ✅ done ·
 ## Phase 3 — Measure & capture  (🔴 analytics · 🟠 email)
 | # | Task | Status |
 |---|------|--------|
-| 3.1 | Install GA4 + ecommerce events (view_item / add_to_cart / begin_checkout / purchase / search) | 🔵 needs GA4 Measurement ID |
-| 3.2 | Email capture / newsletter — field in footer + welcome popup; backend to store subscribers | ⏳ |
+| 3.1 | Install GA4 + ecommerce events | ⏭️ deferred by owner (skip analytics for now) |
+| 3.2 | Email capture / newsletter — footer signup + backend `POST /api/newsletter` (Subscriber model, admin list export) | ✅ verified (valid/dup/invalid + live submit), commit below |
 
 ## Phase 4 — Found on Google  (🟠 · biggest job)
 | # | Task | Status |

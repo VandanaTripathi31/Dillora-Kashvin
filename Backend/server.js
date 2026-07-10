@@ -24,6 +24,7 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
 import offerRoutes from "./routes/offerRoutes.js";
 import policyRoutes from "./routes/policyRoutes.js";
+import subscriberRoutes from "./routes/subscriberRoutes.js";
 
 config({ override: true });
 
@@ -90,6 +91,7 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/upload", writeLimiter);
 app.use("/api/reviews", (req, res, next) => (req.method === "POST" ? writeLimiter(req, res, next) : next()));
 app.use("/api/feedback", (req, res, next) => (req.method === "POST" ? writeLimiter(req, res, next) : next()));
+app.use("/api/newsletter", (req, res, next) => (req.method === "POST" ? writeLimiter(req, res, next) : next()));
 
 // --- Health check ---
 app.get("/api/health", (req, res) =>
@@ -112,6 +114,7 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/policy", policyRoutes);
+app.use("/api/newsletter", subscriberRoutes);
 
 // --- Errors ---
 app.use(notFound);

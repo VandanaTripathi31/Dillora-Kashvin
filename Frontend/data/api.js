@@ -303,4 +303,7 @@ export const api = {
   async getFeedbackSummary() { return req('/feedback/summary'); },
   async canSubmitFeedback(phone) { return req(`/feedback/can?phone=${encodeURIComponent(phone || '')}`); },
   async submitFeedback(data) { return req('/feedback', { method:'POST', body:data }); },
+
+  // ---- newsletter / email capture ----
+  async subscribe(email, source = 'footer') { return req('/newsletter', { method:'POST', body:{ email, source } }); },
 };
