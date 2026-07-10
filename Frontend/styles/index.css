@@ -99,10 +99,13 @@ img { max-width: 100%; display: block; }
    icons usable inline with text while removing the baseline gap; flex/grid
    parents blockify them so they centre cleanly. */
 svg { display: inline-block; vertical-align: middle; flex-shrink: 0; }
-/* `grid place-items-center` reliably centres a lone <svg> vertically but not
-   horizontally; flex does both. Convert any grid/inline-grid icon tile (its only
-   child is an svg) to centred flex so icon buttons/badges/tiles sit dead-centre. */
-:where(.grid, .inline-grid):has(> svg:only-child) {
+/* `grid place-items-center` reliably centres a lone child vertically but not
+   horizontally; flex does both. Convert any grid/inline-grid tile whose content
+   is a single icon (lone <svg>) OR just text (an avatar initial, a "×" close
+   button, a page number) to centred flex so it sits dead-centre. Tiles that
+   contain other element children (e.g. icon + label) are left untouched. */
+:where(.grid, .inline-grid):has(> svg:only-child),
+:where(.grid, .inline-grid):not(:has(> *)) {
   display: flex;
   align-items: center;
   justify-content: center;
