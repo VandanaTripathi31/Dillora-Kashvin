@@ -21,8 +21,8 @@ per task/small group, keep this file's statuses current. Legend: ✅ done ·
 ## Phase 2 — Don't lose orders  (🔴 launch-critical)
 | # | Task | Status |
 |---|------|--------|
-| 2.1 | Email the owner on every new order — COD (`orderController.createOrder`) + online (`paymentController.finalizeOrder`) via existing `notifyOps` | ⏳ |
-| 2.2 | Guest order retrieval — public "track by Order ID + phone" lookup (backend endpoint + storefront UI on `order/[id]` / a track page) | ⏳ |
+| 2.1 | Email the owner on every new order (COD + online) via `notifyNewOrder`/`notifyOps` | ✅ verified, commit 4b9637c |
+| 2.2 | Guest order retrieval — `GET /orders/:id/track?phone=` (leak-safe) + "Track your order" form on `order/[id]` | ✅ verified, commit 4b6e1a0 |
 | 2.3 | Stock / "Sold out" display on PDP + product card; disable add-to-cart when a tracked item is out of stock (resolve the stock===0 made-to-order ambiguity) | ⏳ |
 
 ## Phase 3 — Measure & capture  (🔴 analytics · 🟠 email)

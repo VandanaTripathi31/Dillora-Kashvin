@@ -164,6 +164,12 @@ export default function Product() {
   const gallery = galleryFor(product);
   const unitPrice = material ? material.price : product.price;
 
+  // Only mobile-covers track real stock; everything else is made to order and
+  // always available. So "Sold out" / low-stock only applies to covers.
+  const tracksStock = product.category === 'mobile-covers';
+  const outOfStock = tracksStock && (Number(product.stock) || 0) <= 0;
+  const lowStock = tracksStock && product.stock > 0 && product.stock <= 5;
+
   // Admin-managed colour variants (T-shirts, crochet, etc.). Shown as a swatch
   // picker whenever the product has any.
   const colorList = product.colorOptions || [];
@@ -220,6 +226,7 @@ export default function Product() {
   };
 
   const handleAdd = (buyNow) => {
+    if (outOfStock) { setErr('This piece is currently sold out.'); return; }
     const opt = buildOptions();
     if (!opt.ok) { setErr(opt.msg); return; }
     setErr('');
@@ -298,6 +305,11 @@ export default function Product() {
             )}
           </div>
           <div className="pdp__price"><Price price={unitPrice} mrp={product.mrp} /></div>
+          {outOfStock ? (
+            <p className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#f6e9ee] px-3 py-1 text-[0.9rem] font-bold text-[#c4495b]">● Sold out</p>
+          ) : lowStock ? (
+            <p className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#fdf1e3] px-3 py-1 text-[0.9rem] font-bold text-[#c9892f]">● Only {product.stock} left — order soon</p>
+          ) : null}
           <p className="mb-4 text-[0.9rem] font-semibold text-[#3f9d6b]">✓ Free shipping · Made to order (3–5 days)</p>
 
           {/* Special Offers (active promotions) */}
@@ -494,8 +506,8 @@ export default function Product() {
           {err && <p className="my-2 text-[0.9rem] font-semibold text-[#c4495b]">{err}</p>}
 
           <div className="my-6 flex gap-3">
-            <button className="btn btn-primary btn-block" onClick={() => handleAdd(false)}>Add to cart</button>
-            <button className="btn btn-accent btn-block" onClick={() => handleAdd(true)}>Buy now</button>
+            <button className="btn btn-primary btn-block" onClick={() => handleAdd(false)} disabled={outOfStock}>{outOfStock ? 'Sold out' : 'Add to cart'}</button>
+            {!outOfStock && <button className="btn btn-accent btn-block" onClick={() => handleAdd(true)}>Buy now</button>}
             <button
               onClick={() => toggle(product.id)}
               aria-label={has(product.id) ? 'Remove from wishlist' : 'Save to wishlist'}
@@ -635,7 +647,7 @@ export default function Product() {
           <span className="stickybar__price">₹{unitPrice.toLocaleString('en-IN')}</span>
           {showDiscounts && product.mrp > unitPrice && <span className="stickybar__mrp">₹{product.mrp.toLocaleString('en-IN')}</span>}
         </div>
-        <button className="btn btn-primary stickybar__btn" onClick={() => handleAdd(false)}>Add to cart</button>
+        <button className="btn btn-primary stickybar__btn" onClick={() => handleAdd(false)} disabled={outOfStock}>{outOfStock ? 'Sold out' : 'Add to cart'}</button>
       </div>
 
       <Toast message={toast} />

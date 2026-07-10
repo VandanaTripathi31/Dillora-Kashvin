@@ -170,9 +170,13 @@ export function ProductCard({ product, priority = false }) {
       : 0;
   const needsOptions = product.optionType && product.optionType !== "none";
   const wished = has(product.id);
+  // Only mobile-covers carry real stock; everything else is made to order and
+  // always available — so "Sold out" only ever applies to covers.
+  const soldOut = product.category === "mobile-covers" && (Number(product.stock) || 0) <= 0;
 
   const quickAdd = (e) => {
     e.preventDefault();
+    if (soldOut) return;
     if (needsOptions) {
       router.push(`/product/${product.id}`);
       return;
@@ -213,13 +217,17 @@ export function ProductCard({ product, priority = false }) {
           placeholder="blur"
           blurDataURL={BLUR}
           priority={priority}
-          className="object-cover transition-transform duration-[550ms] ease-brand group-hover:scale-[1.07]"
+          className={`object-cover transition-transform duration-[550ms] ease-brand group-hover:scale-[1.07] ${soldOut ? "opacity-70" : ""}`}
         />
-        {off > 0 && (
+        {soldOut ? (
+          <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-[11px] py-[5px] text-[0.72rem] font-bold text-white shadow-[0_4px_12px_rgba(0,0,0,.2)]">
+            Sold out
+          </span>
+        ) : off > 0 ? (
           <span className="absolute left-3 top-3 rounded-full bg-violet-500 px-[11px] py-[5px] text-[0.72rem] font-bold text-white shadow-[0_4px_12px_rgba(122,79,240,.3)]">
             {off}% off
           </span>
-        )}
+        ) : null}
         <button
           onClick={heart}
           aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
@@ -237,12 +245,18 @@ export function ProductCard({ product, priority = false }) {
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         </button>
-        <button
-          onClick={quickAdd}
-          className="absolute inset-x-3 bottom-3 z-[3] translate-y-0 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-100 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 [@media(hover:hover)]:translate-y-3.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
-        >
-          {needsOptions ? "Choose options" : "+ Quick add"}
-        </button>
+        {soldOut ? (
+          <span className="absolute inset-x-3 bottom-3 z-[3] rounded-full bg-white/[.96] py-[9px] text-center text-[0.85rem] font-semibold text-ink-soft shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px]">
+            Sold out
+          </span>
+        ) : (
+          <button
+            onClick={quickAdd}
+            className="absolute inset-x-3 bottom-3 z-[3] translate-y-0 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-100 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 [@media(hover:hover)]:translate-y-3.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
+          >
+            {needsOptions ? "Choose options" : "+ Quick add"}
+          </button>
+        )}
       </div>
       <div className="flex flex-1 flex-col px-[18px] pb-5 pt-4">
         <h3 className="mb-1.5 line-clamp-2 min-h-[2.6em] font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">
