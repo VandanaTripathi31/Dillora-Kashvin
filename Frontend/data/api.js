@@ -204,6 +204,8 @@ export const api = {
   // ---- orders ----
   async getOrders() { return req('/orders'); },
   async getOrdersByPhone(phone) { return req(`/orders/by-phone/${encodeURIComponent(phone)}`); },
+  // Guest order lookup — needs both the Order ID and the phone used at checkout.
+  async trackOrder(id, phone) { return req(`/orders/${encodeURIComponent(id)}/track?phone=${encodeURIComponent(phone)}`); },
   async createOrder(order) { return req('/orders', { method:'POST', body:order }); },
   async updateOrderStatus(id, status) {
     return req(`/orders/${id}/status`, { method:'PUT', body:{ status } });

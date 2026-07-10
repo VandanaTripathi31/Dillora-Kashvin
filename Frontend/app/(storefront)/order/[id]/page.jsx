@@ -38,6 +38,24 @@ export default function OrderConfirm() {
   const { user } = useAuth();
   const { settings } = useSettings();
   const [order, setOrder] = useState(null); // null = loading, false = not found
+  const [phoneInput, setPhoneInput] = useState('');
+  const [lookupErr, setLookupErr] = useState('');
+  const [lookingUp, setLookingUp] = useState(false);
+
+  // Guest lookup: re-open this order with the phone used at checkout.
+  const lookup = async () => {
+    const p = phoneInput.trim();
+    if (!/^\d{10}$/.test(p)) { setLookupErr('Enter the 10-digit phone number used at checkout.'); return; }
+    setLookingUp(true); setLookupErr('');
+    try {
+      const o = await api.trackOrder(id, p);
+      setOrder(o);
+    } catch {
+      setLookupErr('No order found with that ID and phone number.');
+    } finally {
+      setLookingUp(false);
+    }
+  };
 
   useEffect(() => {
     // 1) Prefer the order we just placed (stashed at checkout) — no auth needed.
@@ -68,10 +86,24 @@ export default function OrderConfirm() {
 
   if (order === null) return <div className="container section"><Spinner /></div>;
   if (!order) return (
-    <div className="container section">
-      <h2>Order not found</h2>
-      <p className="muted">We couldn&apos;t find this order. If you just placed it, check your account for order history.</p>
-      <Link href="/" className="btn btn-ghost">Back home</Link>
+    <div className="container section" style={{ maxWidth: 460 }}>
+      <h2>Track your order</h2>
+      <p className="muted mb-4">Enter the phone number you used at checkout to view order <b>{id}</b>.</p>
+      <input
+        className="w-full rounded-xl border-[1.5px] border-[#eee3f3] bg-white px-3.5 py-3 text-ink transition-[border-color] focus:border-orchid-500 focus:outline-none"
+        value={phoneInput}
+        onChange={e => setPhoneInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') lookup(); }}
+        inputMode="numeric"
+        maxLength={10}
+        placeholder="10-digit phone number"
+        aria-label="Phone number used at checkout"
+      />
+      {lookupErr && <p className="mt-2 text-[0.9rem] font-semibold text-[#c4495b]">{lookupErr}</p>}
+      <button className="btn btn-primary btn-block mt-3" onClick={lookup} disabled={lookingUp}>
+        {lookingUp ? 'Looking up…' : 'View order'}
+      </button>
+      <Link href="/" className="btn btn-ghost btn-block mt-2">Back home</Link>
     </div>
   );
 

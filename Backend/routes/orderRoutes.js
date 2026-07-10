@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getOrders,
   getOrdersByPhone,
+  trackOrder,
   createOrder,
   updateOrderStatus,
   requestCancellation,
@@ -16,6 +17,7 @@ const router = Router();
 // Customer: place an order, look up own orders by phone, request a cancellation.
 router.post("/", createOrder);
 router.get("/by-phone/:phone", getOrdersByPhone);
+router.get("/:id/track", trackOrder);
 router.post("/:id/cancel", requestCancellation);
 
 // Admin: view all orders, change status, decide cancellations, track refunds.

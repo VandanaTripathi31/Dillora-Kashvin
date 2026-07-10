@@ -67,6 +67,20 @@ export const getOrdersByPhone = asyncHandler(async (req, res) => {
   res.json(orders.map((o) => o.toJSON()));
 });
 
+// GET /api/orders/:id/track?phone=...  (public — ownership-verified)
+// Lets a guest re-open their order using the Order ID + the phone used at
+// checkout. Both must match, and a mismatch returns the same 404 as a missing
+// order so order IDs can't be enumerated and no one else's order leaks.
+export const trackOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findOne({ id: req.params.id });
+  const phone = String(req.query.phone || "").trim();
+  const owns = !!order && !!phone && (order.customer?.phone === phone || order.userPhone === phone);
+  if (!owns) {
+    return res.status(404).json({ error: "No order found with that ID and phone number." });
+  }
+  res.json(order.toJSON());
+});
+
 // POST /api/orders  (public — Cash-on-Delivery path only)
 export const createOrder = asyncHandler(async (req, res) => {
   // Recompute the authoritative pricing from trusted DB prices. The client never
