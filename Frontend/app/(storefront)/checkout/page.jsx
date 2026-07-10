@@ -76,7 +76,11 @@ export default function Checkout() {
   // Customized items (resin / reference-photo orders) can be reserved with 50% advance.
   const hasCustom = items.some(l => l.refPhoto || l.category === 'resin-art');
   // Full COD is offered only when the whole cart is mobile covers (standard stock).
-  const allCovers = items.length > 0 && items.every(l => l.category === 'mobile-covers');
+  // Match the category id ('mobile-covers') and tolerate the display name
+  // ('Mobile Covers') for items already in a cart from before the id was stored
+  // consistently, so COD shows correctly either way.
+  const isCoverItem = (l) => ['mobile-covers', 'mobile covers'].includes(String(l.category || '').toLowerCase());
+  const allCovers = items.length > 0 && items.every(isCoverItem);
   const availablePayments = PAYMENTS.filter(p => !p.coversOnly || allCovers);
 
   // If COD was selected but the cart is no longer covers-only, fall back to online.

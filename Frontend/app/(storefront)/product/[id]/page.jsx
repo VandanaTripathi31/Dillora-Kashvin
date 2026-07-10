@@ -227,7 +227,9 @@ export default function Product() {
       productId: product.id,
       name: product.name,
       image: product.image,
-      category: cat.name,
+      category: product.category, // store the category ID (e.g. "mobile-covers"),
+                                  // not the display name — the COD/covers-only
+                                  // and offer logic all key off the id.
       options: opt.str,
       refPhoto: refPhoto?.dataUrl || null,
       price: unitPrice,
