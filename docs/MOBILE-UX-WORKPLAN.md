@@ -59,12 +59,12 @@ infinite spinners; no console errors.
 
 ---
 
-## Phase 2 — Motion & transition polish
+## Phase 2 — Motion & transition polish  ✅ COMPLETE (2.1 deferred to post-launch)
 *Premium, 60fps motion on both mobile and desktop.*
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Native View Transitions API for routes + `<Link>` prefetch | ⏳ | cheaper than JS libs on low-end Android; prefetch is required |
+| 2.1 | Native View Transitions API for routes + `<Link>` prefetch | ⏭️ | **Deferred to post-launch (owner decision).** Site already has smooth `.pagefade` route transitions; native View Transitions is experimental in Next 16, would need to replace pagefade, and its *feel* needs real-device verification. Bundle with 1.4 (SSR) in a post-launch session. |
 | 2.2 | ScrollProgress → rAF write (stop per-frame React re-render) | ✅ | rewritten with ref + rAF, no state; verified bar tracks scroll, 0 re-renders. Commit dcc47a1 |
 | 2.3 | Gate hover behind `@media (hover:hover)` | ✅ | `future.hoverOnlyWhenSupported: true` in tailwind.config → ALL Tailwind hover utilities now compile inside `@media (hover:hover)` (verified 13/13 transform-hover rules gated). Desktop unaffected. `will-change` was a non-issue (`.product-card` CSS is dead/unused). transition-all + plain-CSS `:hover` + dead .product-card CSS → backlog (low value) |
 | 2.4 | Tokenized easing/duration | ✅ | **Already satisfied** — `--ease` (index.css) + `ease-brand` (tailwind) token exists and is used consistently (58 uses vs 7 plain `ease`); durations sensible per interaction. No change needed. |
