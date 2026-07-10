@@ -480,7 +480,12 @@ export default function Product() {
             <div className="qty">
               <button onClick={() => setQty(q => Math.max(1, q-1))} aria-label="Decrease">−</button>
               <span>{qty}</span>
-              <button onClick={() => setQty(q => q+1)} aria-label="Increase">+</button>
+              <button onClick={() => setQty(q => {
+                // Cap at available stock for tracked items; a sane max for
+                // made-to-order (stock 0 = not tracked).
+                const max = product.stock > 0 ? product.stock : 20;
+                return Math.min(max, q + 1);
+              })} aria-label="Increase">+</button>
             </div>
           </div>
 

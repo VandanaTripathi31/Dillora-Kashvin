@@ -162,7 +162,11 @@ function Dashboard({ user, logout }) {
   const router = useRouter();
   const { add } = useCart();
 
-  const refresh = useCallback(() => api.getOrdersByPhone(user.phone).then(setOrders), [user.phone]);
+  // On failure show "no orders" rather than an endless spinner.
+  const refresh = useCallback(
+    () => api.getOrdersByPhone(user.phone).then(setOrders).catch(() => setOrders([])),
+    [user.phone]
+  );
   useEffect(() => { refresh(); }, [refresh]);
 
   const reorder = (order) => {

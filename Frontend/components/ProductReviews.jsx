@@ -40,7 +40,9 @@ export default function ProductReviews({ productId }) {
   const [copied, setCopied] = useState(false);
 
   const load = useCallback(() => {
-    api.getReviews(productId).then(setReviews);
+    // On failure show "no reviews yet" (and keep the write form) rather than
+    // hiding the whole section forever.
+    api.getReviews(productId).then(setReviews).catch(() => setReviews([]));
   }, [productId]);
   useEffect(() => { load(); }, [load]);
 
@@ -65,19 +67,24 @@ export default function ProductReviews({ productId }) {
   const submit = async () => {
     if (!rating) { setMsg('Please pick a star rating.'); return; }
     setBusy(true); setMsg('');
-    const res = await api.addReview(productId, {
-      name: name.trim() || user?.name, phone: user?.phone, rating, text, images,
-    });
-    setBusy(false);
-    if (!res.ok) {
-      setMsg(res.reason === 'rating' ? 'Please pick a star rating.' : 'Could not submit review.');
-      return;
+    try {
+      const res = await api.addReview(productId, {
+        name: name.trim() || user?.name, phone: user?.phone, rating, text, images,
+      });
+      if (!res.ok) {
+        setMsg(res.reason === 'rating' ? 'Please pick a star rating.' : 'Could not submit review.');
+        return;
+      }
+      setRating(0); setText(''); setImages([]);
+      setName(user?.name || '');
+      setMsg('Thanks! Your review is posted. 💜');
+      if (res.reward?.code) { setReward(res.reward); setCopied(false); }
+      load();
+    } catch {
+      setMsg('Could not submit your review right now. Please try again.');
+    } finally {
+      setBusy(false); // never leave the button stuck on "Posting…"
     }
-    setRating(0); setText(''); setImages([]);
-    setName(user?.name || '');
-    setMsg('Thanks! Your review is posted. 💜');
-    if (res.reward?.code) { setReward(res.reward); setCopied(false); }
-    load();
   };
 
   if (reviews === null) return null;
@@ -139,7 +146,7 @@ export default function ProductReviews({ productId }) {
               <div className="mb-1.5 flex items-center justify-between gap-2.5">
                 <span className="flex items-center gap-2 font-semibold">
                   {r.name}
-                  {r.verified !== false && <span className="rounded-full bg-[#e8f7ee] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#2e9e6b]">✓ Verified buyer</span>}
+                  {r.verified === true && <span className="rounded-full bg-[#e8f7ee] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#2e9e6b]">✓ Verified buyer</span>}
                 </span>
                 <Stars value={r.rating} />
               </div>

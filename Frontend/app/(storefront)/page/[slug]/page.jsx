@@ -17,7 +17,6 @@ export default function PolicyPage() {
     <div className="container section policy">
       <h1 className="pagetitle">{p.title}</h1>
       <p>{p.body}</p>
-      <p className="muted" style={{marginTop:24}}>Final policy text will be provided by Kashvin before launch (required for payment approval).</p>
     </div>
   );
 }

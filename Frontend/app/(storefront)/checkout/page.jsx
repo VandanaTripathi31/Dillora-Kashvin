@@ -101,11 +101,17 @@ export default function Checkout() {
 
   const applyCoupon = async () => {
     setChecking(true); setCouponMsg('');
-    const res = await api.validateCoupon(couponInput, subtotal, items);
-    setChecking(false);
-    if (!res.ok) { setCoupon(null); setCouponMsg(res.reason); return; }
-    setCoupon({ code: res.coupon.code, discount: res.discount });
-    setCouponMsg('');
+    try {
+      const res = await api.validateCoupon(couponInput, subtotal, items);
+      if (!res.ok) { setCoupon(null); setCouponMsg(res.reason); return; }
+      setCoupon({ code: res.coupon.code, discount: res.discount });
+      setCouponMsg('');
+    } catch {
+      setCoupon(null);
+      setCouponMsg('Could not check that code right now. Please try again.');
+    } finally {
+      setChecking(false); // never leave the button stuck on "…"
+    }
   };
 
   const removeCoupon = () => { setCoupon(null); setCouponInput(''); setCouponMsg(''); };

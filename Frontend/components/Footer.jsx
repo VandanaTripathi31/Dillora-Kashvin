@@ -97,7 +97,9 @@ export default function Footer() {
               <li className="flex items-center gap-2"><Mail className="w-4 h-4 shrink-0" style={{ color:'#d4aeec' }} /> support@kashvin.in</li>
               <li className="flex items-center gap-2"><Phone className="w-4 h-4 shrink-0" style={{ color:'#d4aeec' }} /><a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="hover:underline">{phoneDisplay}</a></li>
               <li className="flex items-center gap-2"><MapPin className="w-4 h-4 shrink-0" style={{ color:'#d4aeec' }} /> Kashvin, India</li>
-              <li><a href={process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:3001'} target="_blank" rel="noreferrer" className="text-xs transition-colors" style={{ color:'rgba(255,255,255,.4)' }}>Admin login</a></li>
+              {process.env.NEXT_PUBLIC_DASHBOARD_URL && (
+                <li><a href={process.env.NEXT_PUBLIC_DASHBOARD_URL} target="_blank" rel="noreferrer" className="text-xs transition-colors" style={{ color:'rgba(255,255,255,.4)' }}>Admin login</a></li>
+              )}
             </ul>
           </div>
         </div>
