@@ -170,6 +170,54 @@ export default function Product() {
   const outOfStock = tracksStock && (Number(product.stock) || 0) <= 0;
   const lowStock = tracksStock && product.stock > 0 && product.stock <= 5;
 
+  // Structured data (JSON-LD) for rich Google results: Product (price,
+  // availability, real rating when present) + Breadcrumb trail. Built from live
+  // data only — aggregateRating is omitted unless there are real reviews.
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://kashvin.in';
+  const productUrl = `${SITE_URL}/product/${product.id}`;
+  const absImg = product.image
+    ? (product.image.startsWith('http') ? product.image : `${SITE_URL}${product.image}`)
+    : `${SITE_URL}/logo.png`;
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      image: [absImg],
+      description: product.description || `${product.name} — handmade, made to order by Dillora by Kashvin.`,
+      sku: product.id,
+      category: cat?.name,
+      brand: { '@type': 'Brand', name: 'Dillora by Kashvin' },
+      offers: {
+        '@type': 'Offer',
+        url: productUrl,
+        priceCurrency: 'INR',
+        price: Number(unitPrice) || 0,
+        availability: outOfStock ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        seller: { '@type': 'Organization', name: 'Dillora by Kashvin' },
+      },
+      ...(ratingSummary?.count > 0
+        ? {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: ratingSummary.avg,
+              reviewCount: ratingSummary.count,
+            },
+          }
+        : {}),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+        ...(cat ? [{ '@type': 'ListItem', position: 2, name: cat.name, item: `${SITE_URL}/c/${cat.id}` }] : []),
+        { '@type': 'ListItem', position: cat ? 3 : 2, name: product.name, item: productUrl },
+      ],
+    },
+  ];
+
   // Admin-managed colour variants (T-shirts, crochet, etc.). Shown as a swatch
   // picker whenever the product has any.
   const colorList = product.colorOptions || [];
@@ -249,6 +297,8 @@ export default function Product() {
 
   return (
     <div className="container section">
+      {/* Rich-result structured data (Product + Breadcrumb) */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* How-to-order popup (admin image or built-in illustrated design) */}
       <HowToOrderPopup />
       <nav className="mb-[18px] flex flex-wrap gap-2 text-[0.85rem] text-ink-soft [&_a:hover]:text-orchid-600">
