@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 
 import { dbConnection } from "./config/dbConnection.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+import { handleWebhook } from "./controllers/paymentController.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
@@ -69,6 +70,10 @@ app.use(
     credentials: true,
   }),
 );
+
+// Razorpay webhook needs the RAW request body to verify its signature, so it is
+// registered BEFORE the JSON parser (and is exempt from the rate limiters below).
+app.post("/api/payment/webhook", express.raw({ type: "application/json" }), handleWebhook);
 
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));

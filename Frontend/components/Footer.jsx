@@ -18,7 +18,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { LogoMark } from '@/components/UI';
 
 const DEFAULT_IG = 'https://www.instagram.com/dillora_by_kashvin';
-const DEFAULT_WA = '919004779954'; // 91 + 9004779954 (support / WhatsApp)
+const DEFAULT_WA = '918369830139'; // 91 + 8369830139 (support / WhatsApp)
 
 // "918369830139" -> "+91 83698 30139" for display.
 function prettyPhone(digits) {

@@ -168,6 +168,7 @@ export default function Checkout() {
       // 2) Ask the backend to create a Razorpay order. It recomputes the payable
       //    amount server-side from the cart — the client can't dictate the price.
       const rzp = await api.createPaymentOrder({
+        customer: orderPayload.customer,
         items: orderPayload.items,
         payment,
         coupon: coupon?.code || null,
