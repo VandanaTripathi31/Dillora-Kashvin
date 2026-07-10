@@ -41,9 +41,9 @@ per task/small group, keep this file's statuses current. Legend: ✅ done ·
 ## Phase 5 — Run the shop  (🟠 admin tools)
 | # | Task | Status |
 |---|------|--------|
-| 5.1 | Fix revenue/analytics accuracy — exclude Cancelled + uncollected-COD; add date ranges (`dashboard (dash)/page.jsx`) | ⏳ |
-| 5.2 | Admin password change/reset (backend endpoint + Settings UI) | ⏳ |
-| 5.3 | Team-management UI — add/remove admins, assign owner/manager/staff roles (wire existing `register`/`listAdmins`) | ⏳ |
+| 5.1 | Accurate revenue — exclude cancelled, show collected, date ranges (All/30d/7d/Today) | ✅ commit 777dcf9 |
+| 5.2 | Admin password change (PUT /auth/password + Settings section) | ✅ commit 0eaa8fd |
+| 5.3 | Team-management UI in Settings — list/add/remove admins with roles (+ DELETE /auth/admins/:id, owner-only) | ✅ verified (add/remove/self-guard) |
 
 ---
 

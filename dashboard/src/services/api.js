@@ -64,6 +64,9 @@ export const api = {
   async registerAdmin(data) {
     return req('/auth/register', { method: 'POST', body: data });
   },
+  async removeAdmin(id) {
+    return req(`/auth/admins/${id}`, { method: 'DELETE' });
+  },
 
   // ---- categories ----
   async getCategories() { return req('/categories'); },

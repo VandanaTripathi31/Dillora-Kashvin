@@ -50,6 +50,22 @@ export const changePassword = asyncHandler(async (req, res) => {
   res.json({ ok: true });
 });
 
+// DELETE /api/auth/admins/:id  (owner only) — remove a team member.
+export const removeAdmin = asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  if (String(req.admin._id) === String(id)) {
+    return res.status(400).json({ error: "You can't remove your own account." });
+  }
+  const target = await Admin.findById(id);
+  if (!target) return res.status(404).json({ error: "Admin not found." });
+  if (target.role === "owner") {
+    const owners = await Admin.countDocuments({ role: "owner" });
+    if (owners <= 1) return res.status(400).json({ error: "You can't remove the last owner." });
+  }
+  await Admin.findByIdAndDelete(id);
+  res.json({ ok: true });
+});
+
 const ROLES = ["owner", "manager", "staff"];
 
 // POST /api/auth/register  (protected — an existing admin can add another)
