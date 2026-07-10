@@ -34,9 +34,9 @@ per task/small group, keep this file's statuses current. Legend: ✅ done ·
 ## Phase 4 — Found on Google  (🟠 · biggest job)
 | # | Task | Status |
 |---|------|--------|
-| 4.1 | Server-render product + category + subcategory + policy pages with per-page `generateMetadata` (unique title/description, product-image OG, canonical) | ⏳ |
-| 4.2 | Product + BreadcrumbList JSON-LD (feed real rating summary into AggregateRating) | ⏳ |
-| 4.3 | Sitemap from the live DB (not the static catalog) | ⏳ |
+| 4.1 | Server-render product + category + subcategory + policy pages with per-page `generateMetadata` (unique title/description, product-image OG, canonical) | ✅ commits 89561a3 / 56f18c7 / (policy) |
+| 4.2 | Product + BreadcrumbList JSON-LD (feed real rating summary into AggregateRating) | ✅ commit 9f7e6dc (client-side, real rating only) |
+| 4.3 | Sitemap from the live DB (not the static catalog) | ✅ commit 9f7e6dc (108 products, hourly revalidate) |
 
 ## Phase 5 — Run the shop  (🟠 admin tools)
 | # | Task | Status |
