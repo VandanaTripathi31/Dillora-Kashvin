@@ -1420,3 +1420,16 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
 @media (prefers-reduced-motion: reduce) {
   [class*="heroUp"] { animation: none !important; }
 }
+
+/* ---------- Mobile motion budget ----------
+   Continuously moving a large blur(70px) layer is costly on phone GPUs and
+   drains battery, and the drift is barely perceptible on a small screen. On
+   phones, hold the blurred hero background blobs + halo still (they stay
+   blurred, just don't float) and halve the animating sparkles. Cheap
+   transform-only bobs on the hero art are kept. Placed at end-of-file so it
+   overrides the earlier .hero__halo / .hero__mesh animation rules. */
+@media (max-width: 720px) {
+  .hero__mesh,
+  .hero__halo { animation: none; }
+  .sparkle:nth-child(2n) { display: none; }
+}

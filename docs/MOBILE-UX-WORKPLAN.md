@@ -67,8 +67,8 @@ infinite spinners; no console errors.
 | 2.1 | Native View Transitions API for routes + `<Link>` prefetch | ⏳ | cheaper than JS libs on low-end Android; prefetch is required |
 | 2.2 | ScrollProgress → rAF write (stop per-frame React re-render) | ✅ | rewritten with ref + rAF, no state; verified bar tracks scroll, 0 re-renders. Commit dcc47a1 |
 | 2.3 | Gate hover behind `@media (hover:hover)` | ✅ | `future.hoverOnlyWhenSupported: true` in tailwind.config → ALL Tailwind hover utilities now compile inside `@media (hover:hover)` (verified 13/13 transform-hover rules gated). Desktop unaffected. `will-change` was a non-issue (`.product-card` CSS is dead/unused). transition-all + plain-CSS `:hover` + dead .product-card CSS → backlog (low value) |
-| 2.4 | Tokenized easing/duration (~250ms ease-out `cubic-bezier(.22,1,.36,1)`) | ⏳ | consistent premium feel |
-| 2.5 | Reduce heavy always-on hero animations on mobile (animated blur, many infinite loops) | ⏳ | battery/CPU |
+| 2.4 | Tokenized easing/duration | ✅ | **Already satisfied** — `--ease` (index.css) + `ease-brand` (tailwind) token exists and is used consistently (58 uses vs 7 plain `ease`); durations sensible per interaction. No change needed. |
+| 2.5 | Reduce heavy always-on hero animations on mobile | ✅ | `@media (max-width:720px)`: stop the float animation on the `blur(70px)` mesh blobs + `blur(26px)` halo (moving a big blur layer is costly on phone GPUs; still blurred, just static) + halve sparkles. Desktop unchanged. Verified mobile off / desktop on, 0 errors |
 | 2.6 | Sticky add-to-cart bar + bottom-sheet variant picker on PDP | ⏳ | ~8–15% mobile conversion lift; `.stickybar` scaffold exists |
 
 ---
