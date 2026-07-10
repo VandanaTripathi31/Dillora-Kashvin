@@ -720,6 +720,14 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
   border-radius: 999px;
   box-shadow: 0 0 0 2px #fdfbf7;
   line-height: 1;
+  /* Pops each time the count changes (badge is re-keyed) — tactile "added"
+     feedback. Disabled automatically under prefers-reduced-motion. */
+  animation: badgePop .32s var(--ease);
+}
+@keyframes badgePop {
+  0%   { transform: scale(.3);  opacity: 0; }
+  55%  { transform: scale(1.28); }
+  100% { transform: scale(1);   opacity: 1; }
 }
 
 /* ============================================================

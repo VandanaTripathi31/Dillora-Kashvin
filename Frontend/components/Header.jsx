@@ -96,7 +96,7 @@ export default function Header() {
             </button>
             <Link href="/wishlist" className="dlr-ic" aria-label="Wishlist">
               <Heart className="w-[20px] h-[20px]" strokeWidth={2} />
-              {mounted && wishCount > 0 && <span className="dlr-badge" style={{ background:'#e57fc4' }}>{wishCount}</span>}
+              {mounted && wishCount > 0 && <span key={wishCount} className="dlr-badge" style={{ background:'#e57fc4' }}>{wishCount}</span>}
             </Link>
             <Link href="/account" className="dlr-ic" aria-label={mounted && user ? `Account — ${user.name}` : 'Sign in'} title={mounted && user ? user.name : 'Sign in'}>
               {mounted && user ? (
@@ -110,7 +110,7 @@ export default function Header() {
             </Link>
             <Link href="/cart" className="dlr-ic" aria-label="Cart">
               <ShoppingBag className="w-[20px] h-[20px]" strokeWidth={2} />
-              {mounted && count > 0 && <span className="dlr-badge" style={{ background:'linear-gradient(135deg,#a64fd6,#7a4ff0)' }}>{count}</span>}
+              {mounted && count > 0 && <span key={count} className="dlr-badge" style={{ background:'linear-gradient(135deg,#a64fd6,#7a4ff0)' }}>{count}</span>}
             </Link>
           </div>
         </div>
