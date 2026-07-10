@@ -319,6 +319,8 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      <ChangePasswordSection />
+
       {/* Store link */}
       <section className="card adm__panel">
         <div className="adm__panelhead">
@@ -328,5 +330,48 @@ export default function SettingsPage() {
         <p className="muted adm__hint mt-0">The public customer website this dashboard manages.</p>
       </section>
     </div>
+  );
+}
+
+// Let a signed-in admin change their own password.
+function ChangePasswordSection() {
+  const [cur, setCur] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState({ type: '', text: '' });
+
+  const inputCls = 'w-full rounded-xl border-[1.5px] border-[#eee3f3] bg-white px-3.5 py-2.5 text-ink focus:border-orchid-500 focus:outline-none';
+
+  const save = async () => {
+    if (!cur || !next) { setMsg({ type: 'err', text: 'Enter your current and new password.' }); return; }
+    if (next.length < 6) { setMsg({ type: 'err', text: 'New password must be at least 6 characters.' }); return; }
+    if (next !== confirm) { setMsg({ type: 'err', text: 'New passwords do not match.' }); return; }
+    setBusy(true); setMsg({ type: '', text: '' });
+    try {
+      await api.changePassword(cur, next);
+      setMsg({ type: 'ok', text: 'Password changed successfully.' });
+      setCur(''); setNext(''); setConfirm('');
+    } catch (e) {
+      setMsg({ type: 'err', text: e.message || 'Could not change password.' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="card adm__panel mb-5">
+      <div className="adm__panelhead">
+        <h3>🔒 Change password</h3>
+      </div>
+      <p className="muted adm__hint mt-0">Update the password for your own admin account.</p>
+      <div className="mt-3 grid max-w-[420px] gap-3">
+        <input className={inputCls} type="password" autoComplete="current-password" value={cur} onChange={e => setCur(e.target.value)} placeholder="Current password" />
+        <input className={inputCls} type="password" autoComplete="new-password" value={next} onChange={e => setNext(e.target.value)} placeholder="New password (min 6 characters)" />
+        <input className={inputCls} type="password" autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Confirm new password" />
+        {msg.text && <p className={`text-sm font-semibold ${msg.type === 'ok' ? 'text-[#2e9e6b]' : 'text-[#c4495b]'}`}>{msg.text}</p>}
+        <button className="btn btn-primary justify-self-start" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Change password'}</button>
+      </div>
+    </section>
   );
 }

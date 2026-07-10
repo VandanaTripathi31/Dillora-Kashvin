@@ -30,6 +30,26 @@ export const listAdmins = asyncHandler(async (req, res) => {
   res.json(admins.map((a) => a.toJSON()));
 });
 
+// PUT /api/auth/password  { currentPassword, newPassword }  (protected)
+// Lets a signed-in admin change their own password (verifies the current one).
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!isNonEmptyString(currentPassword) || !isNonEmptyString(newPassword)) {
+    return res.status(400).json({ error: "Current and new password are required." });
+  }
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ error: "New password must be at least 6 characters." });
+  }
+  // req.admin is loaded without the password hash — re-fetch to verify.
+  const admin = await Admin.findById(req.admin._id);
+  if (!admin || !(await admin.matchPassword(currentPassword))) {
+    return res.status(401).json({ error: "Current password is incorrect." });
+  }
+  admin.password = newPassword; // the model's pre-save hook hashes it
+  await admin.save();
+  res.json({ ok: true });
+});
+
 const ROLES = ["owner", "manager", "staff"];
 
 // POST /api/auth/register  (protected — an existing admin can add another)
