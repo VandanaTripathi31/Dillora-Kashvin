@@ -154,7 +154,7 @@ export default function Header() {
               <X className="w-5 h-5 text-white" />
             </button>
           </div>
-          <nav className="p-3 flex flex-col gap-1 flex-1 overflow-y-auto">
+          <nav className="p-3 flex flex-col gap-1 flex-1 overflow-y-auto overscroll-contain">
             {categories.map((cat, i) => (
               <button key={cat.id} onClick={() => go(cat.id)}
                       className="flex items-center justify-between text-left px-4 py-3.5 rounded-xl text-ink font-semibold hover:text-orchid-600 transition-all duration-200"

@@ -73,16 +73,16 @@ infinite spinners; no console errors.
 
 ---
 
-## Phase 3 — Cross-device hardening + verify
+## Phase 3 — Cross-device hardening + verify  (3.1–3.4 done; 3.5 = owner task)
 *Make it robust on notched phones, tablets, tiny screens; measure before/after.*
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | `viewport-fit=cover` + full safe-area-inset audit | ⏳ | enables the sticky-bar safe padding; needs edge-element audit |
-| 3.2 | `100vh` → `100svh`/`dvh` (mobile toolbar cutoff) | ⏳ | drawer height, not-found, admin |
-| 3.3 | Horizontal-overflow sweep (decorative blobs, full-bleed rows) | ⏳ | #1 mobile bug class |
-| 3.4 | `overscroll-behavior: contain` on carousels/drawers | ⏳ | stop scroll-chaining / pull-to-refresh |
-| 3.5 | Real-device test matrix (≤360px Android, iPhone, tablet, desktop) + Lighthouse before/after | ⏳ | PSI needs API key or on-device run |
+| 3.1 | `viewport-fit=cover` + safe-area | ⏭️ | **Assessed — deliberately NOT enabling.** This is a normal website (not an installed PWA), so mobile browsers already inset content around the notch/home-indicator by default; the sticky bar sits safely without it. Enabling `cover` makes the design edge-to-edge and would require adding `env()` insets to every fixed edge element (header, drawer, floating WhatsApp) — real risk (elements under the notch) for marginal benefit. The `env(safe-area-inset-bottom)` already on `.stickybar` is a harmless no-op. Reconsider only if going full-bleed/PWA. |
+| 3.2 | `100vh` → `100svh` | ✅ | Only live storefront `100vh` was the `.nf` 404 page → now `100svh` with `100vh` fallback. (`.adm*` 100vh = dead admin CSS; pages otherwise flow naturally, no forced-height sections.) |
+| 3.3 | Horizontal-overflow sweep | ✅ | **Swept home/product/checkout at 420px — no real overflow.** All apparent offenders are inside clipped carousels/marquee or the off-screen closed drawer; `overflow-x: clip` on body guards the rest. No fix needed. |
+| 3.4 | `overscroll-behavior: contain` on scrollers | ✅ | Added to `.reels__track` (carousel), mobile drawer nav, and search results. Verified search results compute `overscroll-behavior: contain`. Stops scroll-chaining / pull-to-refresh. |
+| 3.5 | Real-device matrix + Lighthouse before/after | 🔵 | **Owner task** — PSI API quota blocks programmatic runs. Do via: (1) [pagespeed.web.dev](https://pagespeed.web.dev) on the live URL (before) → deploy → run again (after); (2) test on a real phone (≤360px Android, iPhone, tablet, desktop). See checklist below. |
 
 ---
 
