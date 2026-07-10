@@ -163,6 +163,7 @@ export function ProductCard({ product, priority = false }) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
   const { showDiscounts } = useSettings();
+  const [added, setAdded] = useState(''); // brief "Added to cart" toast on quick-add
   const off =
     showDiscounts && product.mrp && product.mrp > product.price
       ? Math.round((1 - product.price / product.mrp) * 100)
@@ -186,7 +187,10 @@ export function ProductCard({ product, priority = false }) {
       price: product.price,
       qty: 1,
     });
-    router.push("/cart");
+    // Keep the shopper browsing: confirm with a toast (+ the header badge pops)
+    // instead of yanking them to the cart.
+    setAdded("Added to cart");
+    setTimeout(() => setAdded(""), 1600);
   };
 
   const heart = (e) => {
@@ -195,6 +199,7 @@ export function ProductCard({ product, priority = false }) {
   };
 
   return (
+    <>
     <Link
       href={`/product/${product.id}`}
       className="group relative flex h-full flex-col overflow-hidden rounded-[18px] border border-transparent bg-white shadow-card transition-[transform,box-shadow] duration-300 ease-brand hover:-translate-y-1.5 hover:border-orchid-100 hover:shadow-glow-brand"
@@ -251,6 +256,8 @@ export function ProductCard({ product, priority = false }) {
         </div>
       </div>
     </Link>
+    <Toast message={added} />
+    </>
   );
 }
 
