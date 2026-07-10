@@ -7,6 +7,7 @@ const router = Router();
 router.post("/login", login);
 router.get("/me", protect, me);
 router.get("/admins", protect, requireRole("owner", "manager"), listAdmins);
-router.post("/register", protect, register);
+// Only owners/managers may add admins (prevents staff self-promotion).
+router.post("/register", protect, requireRole("owner", "manager"), register);
 
 export default router;

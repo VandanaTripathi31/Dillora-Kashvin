@@ -10,9 +10,10 @@ import { generateCoupon } from "../services/couponService.js";
 // whether the reviewer is a *verified buyer* (phone linked to a delivered order
 // for this product), which drives the "Verified buyer" badge but never blocks.
 async function isVerifiedBuyer(productId, phone) {
-  if (!phone) return false;
+  const ph = String(phone || "").trim(); // coerce — never let an object become a query operator
+  if (!ph) return false;
   const orders = await Order.find({
-    $or: [{ "customer.phone": phone }, { userPhone: phone }],
+    $or: [{ "customer.phone": ph }, { userPhone: ph }],
     status: "Delivered",
   });
   return orders.some((o) => (o.items || []).some((it) => it.productId === productId));

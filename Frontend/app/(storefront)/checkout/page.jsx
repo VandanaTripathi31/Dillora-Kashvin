@@ -159,8 +159,13 @@ export default function Checkout() {
       const ready = await loadRazorpayScript();
       if (!ready) throw new Error('Could not load the payment gateway. Check your connection and try again.');
 
-      // 2) Ask the backend to create a Razorpay order for the "pay now" amount.
-      const rzp = await api.createPaymentOrder(payNow);
+      // 2) Ask the backend to create a Razorpay order. It recomputes the payable
+      //    amount server-side from the cart — the client can't dictate the price.
+      const rzp = await api.createPaymentOrder({
+        items: orderPayload.items,
+        payment,
+        coupon: coupon?.code || null,
+      });
 
       // 3) Open Razorpay Checkout.
       const options = {

@@ -45,8 +45,12 @@ export const register = asyncHandler(async (req, res) => {
   if (exists) return res.status(409).json({ error: "An admin with that email already exists." });
 
   // New team members default to least-privilege "staff"; an explicit valid role
-  // may be supplied by the creating admin.
+  // may be supplied by the creating admin. Only an owner may create another
+  // owner, so a manager can't escalate someone above themselves.
   const nextRole = ROLES.includes(role) ? role : "staff";
+  if (nextRole === "owner" && req.admin?.role !== "owner") {
+    return res.status(403).json({ error: "Only an owner can create another owner." });
+  }
 
   const admin = await Admin.create({
     name: name.trim(),

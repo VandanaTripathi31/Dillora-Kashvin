@@ -215,9 +215,11 @@ export const api = {
   },
 
   // ---- payments (Razorpay) ----
-  // Create a Razorpay order for the given rupee amount. Returns { keyId, orderId, amount, currency }.
-  async createPaymentOrder(amount) {
-    return req('/payment/order', { method:'POST', body:{ amount } });
+  // Create a Razorpay order. The payable amount is recomputed server-side from
+  // the cart ({ items, payment, coupon }) — the client no longer sends a price.
+  // Returns { keyId, orderId, amount, currency }.
+  async createPaymentOrder(cart) {
+    return req('/payment/order', { method:'POST', body: cart });
   },
   // Verify the payment signature server-side and, on success, persist the order.
   // `payload` = { razorpay_order_id, razorpay_payment_id, razorpay_signature, order }.
