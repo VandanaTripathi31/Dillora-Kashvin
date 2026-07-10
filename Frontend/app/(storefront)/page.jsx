@@ -62,11 +62,11 @@ export default function Home() {
                 ))}
               </div>
               <div className="hero__socialtext">
-                <strong>8,000+</strong><span>happy customers</span>
+                <strong>Handmade</strong><span>to order in India</span>
               </div>
               <div className="hero__socialdiv" />
               <div className="hero__rate">
-                <b>★★★★★</b><span>4.8 average rating</span>
+                <b>🧵</b><span>made just for you</span>
               </div>
             </div>
           </div>
@@ -83,8 +83,8 @@ export default function Home() {
               <Image src="/images/crochet/coin-pouch/01.jpg" alt="" fill sizes="(max-width: 980px) 32vw, 15vw" placeholder="blur" blurDataURL={BLUR} className="object-cover" />
             </div>
             <div className="hero__badge hero__badge--rating">
-              <span className="hero__badgeicon">★</span>
-              <b>4.8</b><span>· 2,000+ reviews</span>
+              <span className="hero__badgeicon">✦</span>
+              <b>Handmade</b><span>· with love</span>
             </div>
             <div className="hero__badge hero__badge--made">🧶 100% Handmade</div>
           </div>
@@ -127,20 +127,20 @@ export default function Home() {
       <section className="bg-[linear-gradient(120deg,#f9f2fd,#fdf3fb)] py-14">
         <div className="container grid grid-cols-2 gap-x-4 gap-y-7 text-center sm:grid-cols-4 sm:gap-6">
           <div className="flex flex-col gap-1">
-            <AnimatedCounter end={8000} suffix="+" className={statNum} />
-            <span className={statLabel}>Happy customers</span>
+            <AnimatedCounter end={100} suffix="+" className={statNum} />
+            <span className={statLabel}>Handmade designs</span>
           </div>
           <div className="flex flex-col gap-1">
-            <AnimatedCounter end={1200} suffix="+" className={statNum} />
-            <span className={statLabel}>Handmade pieces</span>
+            <AnimatedCounter end={5} className={statNum} />
+            <span className={statLabel}>Craft collections</span>
           </div>
           <div className="flex flex-col gap-1">
-            <AnimatedCounter end={50} suffix="+" className={statNum} />
-            <span className={statLabel}>Cities delivered</span>
+            <AnimatedCounter end={100} suffix="%" className={statNum} />
+            <span className={statLabel}>Handmade &amp; original</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className={statNum}>4.8<span className="ml-0.5 text-[0.7em] text-[#e8a93a] [-webkit-text-fill-color:#e8a93a]">★</span></span>
-            <span className={statLabel}>Average rating</span>
+            <span className={statNum}>Free</span>
+            <span className={statLabel}>Shipping over ₹299</span>
           </div>
         </div>
       </section>
