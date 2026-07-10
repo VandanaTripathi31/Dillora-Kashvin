@@ -535,6 +535,22 @@ export default function Product() {
             );
           })()}
 
+          {/* Reassurance badges — trust cues at a glance */}
+          <div className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            {[
+              ['🔒', 'Secure checkout', 'Razorpay protected'],
+              ['🧶', '100% Handmade', 'Crafted by hand'],
+              ['✨', 'Made to order', 'Just for you'],
+              ['🚚', 'Pan-India', 'Fast delivery'],
+            ].map(([icon, title, sub]) => (
+              <div key={title} className="flex flex-col items-center gap-0.5 rounded-2xl border border-[#f0e6f8] bg-[#faf6fd] px-2 py-3 text-center transition-transform duration-200 [@media(hover:hover)]:hover:-translate-y-0.5">
+                <span className="text-[1.15rem]" aria-hidden="true">{icon}</span>
+                <span className="text-[0.78rem] font-bold leading-tight text-ink">{title}</span>
+                <span className="text-[0.68rem] leading-tight text-ink-soft">{sub}</span>
+              </div>
+            ))}
+          </div>
+
           {/* Collapsible info accordions (reference-site layout) */}
           <div className="mt-1">
             <details className="group border-t border-[#eee3f3] py-3" open>
@@ -595,10 +611,16 @@ export default function Product() {
 
       {/* Cross-sell: "Pair it with a charm" (covers) or "You may also like" (others) */}
       {related?.items?.length > 0 && (
-        <section className="mt-14">
-          <h2 className="mb-5 text-[clamp(1.4rem,2.4vw,1.9rem)] tracking-[-0.5px]">
-            {related.mode === 'charms' ? 'Pair it with a charm ✨' : 'You may also like'}
-          </h2>
+        <section className="mt-16 overflow-hidden rounded-[32px] border border-[rgba(166,79,214,.12)] bg-[linear-gradient(135deg,#faf5fe,#fdf3fb)] px-4 py-12 sm:px-8">
+          <div className="mb-8 text-center">
+            <h2 className="font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.5px]">
+              {related.mode === 'charms' ? 'Pair it with a charm ✨' : 'You may also like'}
+            </h2>
+            <div className="mx-auto mt-3 h-[3px] w-14 rounded-full bg-grad-brand" />
+            <p className="mt-2.5 text-sm text-ink-soft">
+              {related.mode === 'charms' ? 'Complete the look with a matching handmade charm' : "Handpicked pieces we think you'll love"}
+            </p>
+          </div>
           <div className="grid">
             {related.items.map((p, i) => (
               <Reveal key={p.id} delay={i * 60}><ProductCard product={p} /></Reveal>
@@ -610,8 +632,12 @@ export default function Product() {
 
       {/* Recently viewed */}
       {recent.length > 0 && (
-        <section className="mt-14">
-          <h2 className="mb-5 text-[clamp(1.4rem,2.4vw,1.9rem)] tracking-[-0.5px]">Recently viewed</h2>
+        <section className="mt-16">
+          <div className="mb-8 text-center">
+            <h2 className="font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.5px]">Recently viewed</h2>
+            <div className="mx-auto mt-3 h-[3px] w-14 rounded-full bg-grad-brand" />
+            <p className="mt-2.5 text-sm text-ink-soft">Pick up where you left off</p>
+          </div>
           <div className="grid">
             {recent.map(p => <ProductCard key={p.id} product={p} />)}
           </div>

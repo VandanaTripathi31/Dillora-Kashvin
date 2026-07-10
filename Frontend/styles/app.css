@@ -128,7 +128,7 @@
 
 /* ---------- PDP ---------- */
 .pdp { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
-.pdp__main { aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden; background: var(--cream-2); box-shadow: var(--shadow); }
+.pdp__main { aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden; background: var(--cream-2); box-shadow: 0 1px 2px rgba(44,35,64,.06), 0 18px 44px -20px rgba(166,79,214,.35); }
 .pdp__main img { width: 100%; height: 100%; object-fit: cover; }
 .pdp__thumbs { display: flex; gap: 10px; margin-top: 12px; }
 .pdp__thumb { width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 2px solid transparent; background: none; padding: 0; }
