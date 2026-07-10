@@ -20,7 +20,7 @@ export const getFeedbackSummary = asyncHandler(async (req, res) => {
 
 // GET /api/feedback/can?phone=...  -> can this signed-in customer submit? plus any existing feedback (to pre-fill / show status)
 export const canSubmitFeedback = asyncHandler(async (req, res) => {
-  const phone = req.query.phone || "";
+  const phone = String(req.query.phone || "");
   if (!phone) return res.json({ ok: false, reason: "login" });
   const existing = await Feedback.findOne({ phone });
   res.json({ ok: true, existing: existing ? existing.toJSON() : null });
@@ -28,7 +28,8 @@ export const canSubmitFeedback = asyncHandler(async (req, res) => {
 
 // POST /api/feedback  { name, phone, location, rating, text }  (signed-in customers only)
 export const submitFeedback = asyncHandler(async (req, res) => {
-  const { name, phone, location, rating, text } = req.body || {};
+  const { name, location, rating, text } = req.body || {};
+  const phone = String(req.body?.phone || "").trim();
   if (!phone) return res.json({ ok: false, reason: "login" });
 
   const r = Math.max(1, Math.min(5, Number(rating) || 0));

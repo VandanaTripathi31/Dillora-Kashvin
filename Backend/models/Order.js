@@ -106,4 +106,12 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Idempotency: a Razorpay payment can back at most one order, so a lost verify
+// response can't mint a duplicate on retry. Sparse so COD orders (no payment id)
+// are exempt.
+orderSchema.index(
+  { "paymentDetails.razorpayPaymentId": 1 },
+  { unique: true, sparse: true }
+);
+
 export default mongoose.model("Order", orderSchema);

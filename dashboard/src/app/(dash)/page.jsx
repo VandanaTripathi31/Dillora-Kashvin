@@ -12,6 +12,7 @@ import { StatusPill } from '@/components/StatusPill';
 export default function Dashboard() {
   const [orders, setOrders] = useState(null);
   const [products, setProducts] = useState(null);
+  const [range, setRange] = useState('all'); // all | today | week | month
 
   useEffect(() => {
     api.getOrders().then(setOrders);
@@ -20,24 +21,42 @@ export default function Dashboard() {
 
   if (!orders || !products) return <div className="adm__pad"><Spinner /></div>;
 
-  const revenue = orders.reduce((s, o) => s + o.total, 0);
-  const pending = orders.filter(o => o.status === 'Processing').length;
+  // Date-range filter for the headline stats.
+  const inRange = (o) => {
+    if (range === 'all') return true;
+    const t = Number(o.createdAt) || 0;
+    if (range === 'today') { const d = new Date(); d.setHours(0, 0, 0, 0); return t >= d.getTime(); }
+    if (range === 'week') return t >= Date.now() - 7 * 86400000;
+    if (range === 'month') return t >= Date.now() - 30 * 86400000;
+    return true;
+  };
+  const isCancelled = (o) => o.status === 'Cancelled';
+
+  const ranged = orders.filter(inRange);
+  const valid = ranged.filter(o => !isCancelled(o)); // exclude cancelled from money stats
+  // Revenue = booked value of valid orders; also surface money actually collected
+  // (advancePaid — full for online, 50% for half-COD, 0 for uncollected COD).
+  const revenue = valid.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const collected = valid.reduce((s, o) => s + (Number(o.advancePaid) || 0), 0);
+  const pending = ranged.filter(o => o.status === 'Processing').length;
+  const cancelledCount = ranged.filter(isCancelled).length;
+  const avgOrder = valid.length ? Math.round(revenue / valid.length) : 0;
   const lowStock = products.filter(p => (p.stock ?? 0) <= 8).length;
 
-  // simple 7-bar trend from order dates
+  // 7-bar trend (booked value, excluding cancelled)
   const days = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i));
     const key = d.toDateString();
-    const total = orders.filter(o => new Date(o.createdAt).toDateString() === key)
-                        .reduce((s, o) => s + o.total, 0);
+    const total = orders.filter(o => !isCancelled(o) && new Date(o.createdAt).toDateString() === key)
+                        .reduce((s, o) => s + (Number(o.total) || 0), 0);
     return { label: d.toLocaleDateString('en-IN', { weekday:'short' }), total };
   });
   const max = Math.max(...days.map(d => d.total), 1);
 
-  // Top products by units sold + revenue (from order items)
+  // Top products + categories by units + revenue (valid, ranged orders only)
   const prodMap = new Map();
   const catMap = new Map();
-  for (const o of orders) {
+  for (const o of valid) {
     for (const it of o.items) {
       const p = prodMap.get(it.name) || { name: it.name, units: 0, revenue: 0 };
       p.units += it.qty; p.revenue += it.price * it.qty; prodMap.set(it.name, p);
@@ -50,18 +69,33 @@ export default function Dashboard() {
   const topCats = Array.from(catMap.values()).sort((a, b) => b.revenue - a.revenue);
   const catMaxRev = Math.max(...topCats.map(c => c.revenue), 1);
 
+  const RANGES = [['all', 'All time'], ['month', '30 days'], ['week', '7 days'], ['today', 'Today']];
+
   return (
     <div className="adm__pad">
-      <header className="adm__head">
-        <h1>Overview</h1>
-        <p className="muted">A quick look at how the store is doing.</p>
+      <header className="adm__head flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1>Overview</h1>
+          <p className="muted">A quick look at how the store is doing.</p>
+        </div>
+        <div className="flex gap-1 rounded-full border border-[rgba(122,79,240,.14)] bg-white p-1">
+          {RANGES.map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setRange(id)}
+              className={`rounded-full px-3 py-1.5 text-[0.82rem] font-semibold transition-colors ${range === id ? 'bg-orchid-500 text-white' : 'text-ink-soft hover:bg-orchid-50'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </header>
 
       <div className="mb-6 grid grid-cols-2 gap-4 min-[901px]:grid-cols-4">
-        <Stat icon={Wallet} label="Revenue" value={`₹${revenue.toLocaleString('en-IN')}`} hint="All orders" />
-        <Stat icon={ShoppingBag} label="Orders" value={orders.length} hint={`${pending} processing`} />
+        <Stat icon={Wallet} label="Revenue" value={`₹${revenue.toLocaleString('en-IN')}`} hint={`₹${collected.toLocaleString('en-IN')} collected · excl. cancelled`} />
+        <Stat icon={ShoppingBag} label="Orders" value={ranged.length} hint={`${pending} processing · ${cancelledCount} cancelled`} />
         <Stat icon={Package} label="Products" value={products.length} hint={`${lowStock} low on stock`} />
-        <Stat icon={TrendingUp} label="Avg. order" value={`₹${Math.round(revenue/orders.length || 0).toLocaleString('en-IN')}`} hint="Per order" />
+        <Stat icon={TrendingUp} label="Avg. order" value={`₹${avgOrder.toLocaleString('en-IN')}`} hint="Per valid order" />
       </div>
 
       <div className="adm__row">

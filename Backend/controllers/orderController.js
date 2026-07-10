@@ -2,10 +2,11 @@ import Order from "../models/Order.js";
 import { asyncHandler } from "../utils/responseHandler.js";
 import { nextOrderId } from "../services/idService.js";
 import { issueInvoice } from "../services/invoiceService.js";
-import { adjustStock } from "../services/stockService.js";
-import { notifyOps, esc } from "../services/emailService.js";
+import { adjustStock, reserveStock } from "../services/stockService.js";
+import { notifyOps, notifyNewOrder, esc } from "../services/emailService.js";
 import { recordOfferUsage } from "../services/offerService.js";
 import { recordCouponUsage } from "../services/couponService.js";
+import { computeOrderPricing, sanitizeCustomer, PricingError } from "../services/pricingService.js";
 
 // Only mobile covers are cancellable, and only within this window.
 const CANCEL_CATEGORY = "mobile-covers";
@@ -66,30 +67,74 @@ export const getOrdersByPhone = asyncHandler(async (req, res) => {
   res.json(orders.map((o) => o.toJSON()));
 });
 
-// POST /api/orders
+// GET /api/orders/:id/track?phone=...  (public — ownership-verified)
+// Lets a guest re-open their order using the Order ID + the phone used at
+// checkout. Both must match, and a mismatch returns the same 404 as a missing
+// order so order IDs can't be enumerated and no one else's order leaks.
+export const trackOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findOne({ id: req.params.id });
+  const phone = String(req.query.phone || "").trim();
+  const owns = !!order && !!phone && (order.customer?.phone === phone || order.userPhone === phone);
+  if (!owns) {
+    return res.status(404).json({ error: "No order found with that ID and phone number." });
+  }
+  res.json(order.toJSON());
+});
+
+// POST /api/orders  (public — Cash-on-Delivery path only)
 export const createOrder = asyncHandler(async (req, res) => {
+  // Recompute the authoritative pricing from trusted DB prices. The client never
+  // dictates prices, totals, status or payment state — only the cart + customer.
+  let pricing;
+  try {
+    pricing = await computeOrderPricing({
+      items: req.body?.items,
+      payment: req.body?.payment,
+      coupon: req.body?.coupon,
+    });
+  } catch (err) {
+    if (err instanceof PricingError) return res.status(err.status).json({ error: err.message });
+    throw err;
+  }
+
   // Full COD is allowed only for mobile-cover-only carts (standard stock).
   // Handmade / made-to-order items require an online or advance payment.
-  // Enforced here so the storefront rule can't be bypassed by a crafted request.
-  if (req.body?.payment === "cod" && !isCoversOnly(req.body?.items)) {
+  if (pricing.payment === "cod" && !isCoversOnly(pricing.items)) {
     return res.status(400).json({ error: "Cash on delivery is available only for mobile cover orders." });
   }
+  // Anything with an online "pay now" amount must go through the verified
+  // Razorpay flow (/payment/*), never this endpoint — so no order can be marked
+  // paid without a confirmed payment.
+  if (pricing.payNow > 0) {
+    return res.status(400).json({ error: "This order requires online payment. Please choose the online payment option." });
+  }
+
   const id = await nextOrderId();
-  const breakdown = paymentBreakdown(req.body?.payment, req.body?.total);
+  const breakdown = paymentBreakdown(pricing.payment, pricing.total);
+  const customer = sanitizeCustomer(req.body?.customer);
   const order = await Order.create({
-    status: "Processing",
-    ...req.body,
-    ...breakdown,
     id,
     createdAt: Date.now(),
+    status: "Processing",
+    customer,
+    userPhone: customer.phone,
+    items: pricing.items,
+    subtotal: pricing.subtotal,
+    discount: pricing.discount,
+    total: pricing.total,
+    coupon: pricing.coupon,
+    offers: pricing.offers,
+    offerDiscount: pricing.offerDiscount,
+    payment: pricing.payment,
+    ...breakdown,
     timeline: [{ at: Date.now(), label: "Order placed", by: "customer" }],
   });
 
-  // Count promotional-offer + coupon redemptions (best-effort).
+  // Decrement tracked stock (best-effort), then usage counters + invoice.
+  await reserveStock(order.items, "order-cod");
   recordOfferUsage(order.offers).catch(() => {});
   if (order.coupon?.code) recordCouponUsage(order.coupon.code).catch(() => {});
-
-  // Generate + email the invoice (best-effort; never blocks the response).
+  notifyNewOrder(order).catch(() => {}); // alert the owner (best-effort)
   await issueInvoice(order);
 
   res.status(201).json(order.toJSON());

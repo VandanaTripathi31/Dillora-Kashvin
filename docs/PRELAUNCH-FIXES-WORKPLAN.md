@@ -1,0 +1,56 @@
+# Dillora — Pre-Launch Fixes Work Plan
+
+Fixes for the gaps found in the deep completeness audit (see memory
+`prelaunch-completeness-audit-2026-07`). Scope chosen by the owner: 🔴 #1,2,4,5,6
+plus SEO, stock display, email capture, admin analytics, admin password reset,
+team-management UI. (🔴 #3 — business address / Contact page / privacy — is NOT
+in this batch; it needs the owner's real address.)
+
+**Working rules:** one phase at a time, low-risk first, verify each task, commit
+per task/small group, keep this file's statuses current. Legend: ✅ done ·
+🟡 in progress · ⏳ todo · 🔵 needs owner input.
+
+---
+
+## Phase 1 — Trust & honesty  (🔴 launch-critical · quick, no input)
+| # | Task | Status |
+|---|------|--------|
+| 1.1 | Remove the "Demo sign-in …" text shown to customers (`account/page.jsx`) | ✅ |
+| 1.2 | Replace fabricated stats with honest copy (hero: "Handmade to order in India"; stats band: 100+ designs / 5 collections / 100% handmade / free shipping) | ✅ verified live, committed 5493790 |
+
+## Phase 2 — Don't lose orders  (🔴 launch-critical)
+| # | Task | Status |
+|---|------|--------|
+| 2.1 | Email the owner on every new order (COD + online) via `notifyNewOrder`/`notifyOps` | ✅ verified, commit 4b9637c |
+| 2.2 | Guest order retrieval — `GET /orders/:id/track?phone=` (leak-safe) + "Track your order" form on `order/[id]` | ✅ verified, commit 4b6e1a0 |
+| 2.3 | Stock / "Sold out" display on PDP + product card; disable add-to-cart when a tracked item is out of stock (resolve the stock===0 made-to-order ambiguity) | ⏳ |
+
+## Phase 3 — Measure & capture  (🔴 analytics · 🟠 email)
+| # | Task | Status |
+|---|------|--------|
+| 3.1 | Install GA4 + ecommerce events | ⏭️ deferred by owner (skip analytics for now) |
+| 3.2 | Email capture / newsletter — footer signup + backend `POST /api/newsletter` (Subscriber model, admin list export) | ✅ verified (valid/dup/invalid + live submit), commit below |
+
+## Phase 4 — Found on Google  (🟠 · biggest job)
+| # | Task | Status |
+|---|------|--------|
+| 4.1 | Server-render product + category + subcategory + policy pages with per-page `generateMetadata` (unique title/description, product-image OG, canonical) | ✅ commits 89561a3 / 56f18c7 / (policy) |
+| 4.2 | Product + BreadcrumbList JSON-LD (feed real rating summary into AggregateRating) | ✅ commit 9f7e6dc (client-side, real rating only) |
+| 4.3 | Sitemap from the live DB (not the static catalog) | ✅ commit 9f7e6dc (108 products, hourly revalidate) |
+
+## Phase 5 — Run the shop  (🟠 admin tools)
+| # | Task | Status |
+|---|------|--------|
+| 5.1 | Accurate revenue — exclude cancelled, show collected, date ranges (All/30d/7d/Today) | ✅ commit 777dcf9 |
+| 5.2 | Admin password change (PUT /auth/password + Settings section) | ✅ commit 0eaa8fd |
+| 5.3 | Team-management UI in Settings — list/add/remove admins with roles (+ DELETE /auth/admins/:id, owner-only) | ✅ verified (add/remove/self-guard) |
+
+---
+
+## Owner inputs still needed
+- **GA4 Measurement ID** (`G-XXXXXXXXXX`) for 3.1.
+- Decision on Phase 1.2 copy (default: honest "new store" framing).
+- (Separate, not in this batch) real **business address** + Contact page + expanded Privacy for Razorpay/legal.
+
+## Progress log
+- 2026-07-10 — Plan created from the completeness audit; phase-by-phase execution starting at Phase 1.

@@ -52,7 +52,7 @@ function LoginForm({ onLogin }) {
         {err && <p className="my-2 text-[0.9rem] font-semibold text-[#c4495b]">{err}</p>}
         <button className="btn btn-primary btn-block" onClick={submit}>Continue</button>
         <p className="mt-3.5 rounded-[10px] bg-cream-2 px-3 py-2.5 text-[0.82rem] text-ink-soft">
-          Demo sign-in — phone OTP verification will be added here later.
+          We use your phone number only to find and track your orders — no password needed.
         </p>
       </div>
     </div>
@@ -162,7 +162,11 @@ function Dashboard({ user, logout }) {
   const router = useRouter();
   const { add } = useCart();
 
-  const refresh = useCallback(() => api.getOrdersByPhone(user.phone).then(setOrders), [user.phone]);
+  // On failure show "no orders" rather than an endless spinner.
+  const refresh = useCallback(
+    () => api.getOrdersByPhone(user.phone).then(setOrders).catch(() => setOrders([])),
+    [user.phone]
+  );
   useEffect(() => { refresh(); }, [refresh]);
 
   const reorder = (order) => {

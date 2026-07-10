@@ -4,6 +4,13 @@ module.exports = {
     './app/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
   ],
+  // Compile every hover: / group-hover: utility inside @media (hover: hover) so
+  // hover effects (card lift, image zoom, button states) never "stick" after a
+  // tap on touch devices. Desktop is unaffected. (Tailwind v4 does this by
+  // default; this opts 3.4 into the same behaviour.)
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   corePlugins: {
     preflight: false, // don't reset existing app.css styles
     container: false,  // use the design's own .container (max-width 1240px) instead of Tailwind's 1536px one

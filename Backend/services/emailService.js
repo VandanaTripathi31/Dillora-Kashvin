@@ -104,3 +104,39 @@ export async function notifyOps({ subject, title, bodyHtml }) {
   const to = [...new Set([supportEmail(), adminAlertEmail()].filter(Boolean))];
   return sendMail({ to, subject, html: emailLayout(title, bodyHtml) });
 }
+
+/**
+ * Alert the shop owner that a new order was placed. Best-effort (never throws) —
+ * a failed email must not break order placement. So the owner knows immediately
+ * a sale came in without watching the dashboard.
+ */
+export async function notifyNewOrder(order) {
+  const rupees = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+  const payLabel =
+    order.payment === "cod" ? "Cash on Delivery" :
+    order.payment === "half-cod" ? "Half online + COD" : "Paid online";
+  const itemsHtml = (order.items || [])
+    .map((it) => `<tr>
+      <td style="padding:4px 8px;border-top:1px solid #eee;">${esc(it.name)}${it.options && it.options !== "—" ? ` <span style="color:#8b7fa0;">(${esc(it.options)})</span>` : ""}</td>
+      <td style="padding:4px 8px;border-top:1px solid #eee;text-align:center;">×${Number(it.qty) || 1}</td>
+      <td style="padding:4px 8px;border-top:1px solid #eee;text-align:right;">${rupees(it.price * (Number(it.qty) || 1))}</td>
+    </tr>`).join("");
+
+  const bodyHtml = `
+    <p>A new order just came in 🎉</p>
+    <table cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;">
+      <tr><td style="color:#8b7fa0;">Order</td><td><b>${esc(order.id)}</b></td></tr>
+      <tr><td style="color:#8b7fa0;">Customer</td><td>${esc(order.customer?.name || "")} · ${esc(order.customer?.phone || "")}</td></tr>
+      <tr><td style="color:#8b7fa0;">Address</td><td>${esc(order.customer?.address || "—")}</td></tr>
+      <tr><td style="color:#8b7fa0;">Payment</td><td>${payLabel}${order.paymentStatus ? ` · ${esc(order.paymentStatus)}` : ""}</td></tr>
+      <tr><td style="color:#8b7fa0;">Total</td><td><b>${rupees(order.total)}</b>${order.pendingAmount ? ` · ${rupees(order.pendingAmount)} due on delivery` : ""}</td></tr>
+    </table>
+    <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin-top:12px;">${itemsHtml}</table>
+    <p style="margin-top:14px;">Open the dashboard to process it.</p>`;
+
+  return notifyOps({
+    subject: `🎉 New order ${order.id} · ${rupees(order.total)}`,
+    title: "New order received",
+    bodyHtml,
+  });
+}

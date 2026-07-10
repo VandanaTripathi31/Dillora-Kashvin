@@ -15,7 +15,6 @@ export default function Header() {
   const [drawer, setDrawer] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { count } = useCart();
   const { count: wishCount } = useWishlist();
@@ -23,15 +22,14 @@ export default function Header() {
   const { user } = useAuth();
   const router = useRouter();
 
+  // Close the mobile drawer if the viewport grows past the mobile breakpoint
+  // (e.g. rotate to landscape / resize on desktop). Layout itself is chosen by
+  // CSS below — never by JS — so the correct bar shows on the very first paint.
   useEffect(() => {
-    const mql = window.matchMedia('(max-width: 899px)');
-    const check = () => {
-      setIsMobile(mql.matches);
-      if (!mql.matches) setDrawer(false);
-    };
-    check();
-    mql.addEventListener('change', check);
-    return () => mql.removeEventListener('change', check);
+    const mql = window.matchMedia('(min-width: 900px)');
+    const onChange = () => { if (mql.matches) setDrawer(false); };
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
   }, []);
 
   useEffect(() => { setMounted(true); }, []);
@@ -65,35 +63,31 @@ export default function Header() {
            style={{ background: scrolled ? 'rgba(253,251,247,.92)' : '#fdfbf7', backdropFilter: scrolled ? 'blur(10px)' : 'none', borderColor: scrolled ? 'transparent' : '#f3e9fb', boxShadow: scrolled ? '0 6px 24px rgba(122,79,240,.12)' : 'none' }}>
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-[74px] flex items-center justify-between gap-4">
 
-          {/* LEFT: burger (mobile) + logo */}
+          {/* LEFT: burger (mobile only, via CSS) + logo */}
           <div className="flex items-center gap-2">
-            {isMobile && (
-              <button className="flex items-center justify-center w-11 h-11 rounded-xl text-ink hover:bg-orchid-50 transition-colors"
-                      aria-label="Open menu" onClick={() => setDrawer(true)}>
-                <Menu className="w-6 h-6" />
-              </button>
-            )}
+            <button className="flex min-[900px]:hidden items-center justify-center w-11 h-11 rounded-xl text-ink hover:bg-orchid-50 transition-colors"
+                    aria-label="Open menu" onClick={() => setDrawer(true)}>
+              <Menu className="w-6 h-6" />
+            </button>
             <Logo size={40} />
           </div>
 
-          {/* CENTER: category links in a floating glass pill (desktop only) */}
-          {!isMobile && (
-            <nav
-              className="flex items-center gap-1 px-2 py-1.5 rounded-full"
-              style={{ background: 'rgba(255,255,255,.7)', border: '1px solid rgba(166,79,214,.18)', boxShadow: '0 4px 20px rgba(122,79,240,.10), inset 0 1px 0 rgba(255,255,255,.6)', backdropFilter: 'blur(8px)' }}
-              aria-label="Categories"
-            >
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => go(cat.id)}
-                  className="px-3 py-2 text-[0.84rem] font-semibold rounded-full transition-all duration-200 whitespace-nowrap dlr-navpill"
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </nav>
-          )}
+          {/* CENTER: category links in a floating glass pill (desktop only, via CSS) */}
+          <nav
+            className="hidden min-[900px]:flex items-center gap-1 px-2 py-1.5 rounded-full"
+            style={{ background: 'rgba(255,255,255,.7)', border: '1px solid rgba(166,79,214,.18)', boxShadow: '0 4px 20px rgba(122,79,240,.10), inset 0 1px 0 rgba(255,255,255,.6)', backdropFilter: 'blur(8px)' }}
+            aria-label="Categories"
+          >
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => go(cat.id)}
+                className="px-3 py-2 text-[0.84rem] font-semibold rounded-full transition-all duration-200 whitespace-nowrap dlr-navpill"
+              >
+                {cat.name}
+              </button>
+            ))}
+          </nav>
 
           {/* RIGHT: action icons — all identical boxes, perfectly centered */}
           <div className="flex items-center gap-1">
@@ -102,7 +96,7 @@ export default function Header() {
             </button>
             <Link href="/wishlist" className="dlr-ic" aria-label="Wishlist">
               <Heart className="w-[20px] h-[20px]" strokeWidth={2} />
-              {mounted && wishCount > 0 && <span className="dlr-badge" style={{ background:'#e57fc4' }}>{wishCount}</span>}
+              {mounted && wishCount > 0 && <span key={wishCount} className="dlr-badge" style={{ background:'#e57fc4' }}>{wishCount}</span>}
             </Link>
             <Link href="/account" className="dlr-ic" aria-label={mounted && user ? `Account — ${user.name}` : 'Sign in'} title={mounted && user ? user.name : 'Sign in'}>
               {mounted && user ? (
@@ -116,7 +110,7 @@ export default function Header() {
             </Link>
             <Link href="/cart" className="dlr-ic" aria-label="Cart">
               <ShoppingBag className="w-[20px] h-[20px]" strokeWidth={2} />
-              {mounted && count > 0 && <span className="dlr-badge" style={{ background:'linear-gradient(135deg,#a64fd6,#7a4ff0)' }}>{count}</span>}
+              {mounted && count > 0 && <span key={count} className="dlr-badge" style={{ background:'linear-gradient(135deg,#a64fd6,#7a4ff0)' }}>{count}</span>}
             </Link>
           </div>
         </div>
@@ -126,9 +120,10 @@ export default function Header() {
     </header>
 
     {/* Mobile slide menu — rendered OUTSIDE the sticky header so its fixed
-        backdrop/drawer always cover the full viewport, even when scrolled. */}
-    {isMobile && (
-      <>
+        backdrop/drawer always cover the full viewport, even when scrolled.
+        Hidden on desktop via CSS (min-[900px]:hidden) rather than JS gating, so
+        the correct layout is present from the first server-rendered paint. */}
+    <div className="min-[900px]:hidden">
         {/* backdrop (always mounted; fades in/out) */}
         <div
           onClick={() => setDrawer(false)}
@@ -159,7 +154,7 @@ export default function Header() {
               <X className="w-5 h-5 text-white" />
             </button>
           </div>
-          <nav className="p-3 flex flex-col gap-1 flex-1 overflow-y-auto">
+          <nav className="p-3 flex flex-col gap-1 flex-1 overflow-y-auto overscroll-contain">
             {categories.map((cat, i) => (
               <button key={cat.id} onClick={() => go(cat.id)}
                       className="flex items-center justify-between text-left px-4 py-3.5 rounded-xl text-ink font-semibold hover:text-orchid-600 transition-all duration-200"
@@ -172,8 +167,7 @@ export default function Header() {
             Dillora by Kashvin &middot; Handmade with love
           </div>
         </aside>
-      </>
-    )}
+    </div>
     </>
   );
 }

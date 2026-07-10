@@ -128,7 +128,7 @@
 
 /* ---------- PDP ---------- */
 .pdp { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
-.pdp__main { aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden; background: var(--cream-2); box-shadow: var(--shadow); }
+.pdp__main { aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden; background: var(--cream-2); box-shadow: 0 1px 2px rgba(44,35,64,.06), 0 18px 44px -20px rgba(166,79,214,.35); }
 .pdp__main img { width: 100%; height: 100%; object-fit: cover; }
 .pdp__thumbs { display: flex; gap: 10px; margin-top: 12px; }
 .pdp__thumb { width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 2px solid transparent; background: none; padding: 0; }
@@ -348,7 +348,7 @@
 
 /* Reels section */
 .reels { padding: 44px 0 20px; background: linear-gradient(180deg, transparent, var(--lilac-50) 40%, transparent); }
-.reels__track { display: flex; gap: 16px; overflow-x: auto; padding: 6px 20px 18px; scroll-snap-type: x mandatory; max-width: var(--maxw); margin: 0 auto; }
+.reels__track { display: flex; gap: 16px; overflow-x: auto; overscroll-behavior-x: contain; padding: 6px 20px 18px; scroll-snap-type: x mandatory; max-width: var(--maxw); margin: 0 auto; }
 .reel { position: relative; flex: 0 0 auto; width: 200px; aspect-ratio: 9/16; border-radius: var(--radius-lg); overflow: hidden; background: var(--lilac-100); cursor: pointer; scroll-snap-align: start; box-shadow: var(--shadow); }
 .reel--skeleton { background: linear-gradient(110deg, var(--lilac-100) 30%, var(--lilac-50) 50%, var(--lilac-100) 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
@@ -616,6 +616,13 @@
 @media (max-width: 720px) {
   .stickybar { display: flex; }
   .stats-band__grid { grid-template-columns: 1fr 1fr; gap: 28px 16px; }
+  /* On product pages the sticky add-to-cart bar owns the bottom-right zone.
+     Hide the floating WhatsApp button (redundant with the in-page CTA + bar),
+     reserve space so the bar never covers the footer, and lift the toast
+     above the bar. */
+  body:has(.stickybar) .floating-wa { display: none; }
+  body:has(.stickybar) { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  body:has(.stickybar) .toast { bottom: calc(90px + env(safe-area-inset-bottom)); }
 }
 
 /* ============================================================
@@ -720,6 +727,14 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
   border-radius: 999px;
   box-shadow: 0 0 0 2px #fdfbf7;
   line-height: 1;
+  /* Pops each time the count changes (badge is re-keyed) — tactile "added"
+     feedback. Disabled automatically under prefers-reduced-motion. */
+  animation: badgePop .32s var(--ease);
+}
+@keyframes badgePop {
+  0%   { transform: scale(.3);  opacity: 0; }
+  55%  { transform: scale(1.28); }
+  100% { transform: scale(1);   opacity: 1; }
 }
 
 /* ============================================================
@@ -1337,7 +1352,11 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
 
 /* 404 / not-found */
 .nf {
-  min-height: 100vh; display: grid; place-items: center; padding: 40px 20px; text-align: center;
+  /* 100svh (small viewport) avoids the mobile-toolbar cutoff; 100vh is the
+     fallback for browsers without svh support. */
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid; place-items: center; padding: 40px 20px; text-align: center;
   background: linear-gradient(165deg, #faf5fe 0%, #fdf3fb 55%, #fff5ef 100%);
 }
 .nf__inner { max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -1411,4 +1430,17 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
 }
 @media (prefers-reduced-motion: reduce) {
   [class*="heroUp"] { animation: none !important; }
+}
+
+/* ---------- Mobile motion budget ----------
+   Continuously moving a large blur(70px) layer is costly on phone GPUs and
+   drains battery, and the drift is barely perceptible on a small screen. On
+   phones, hold the blurred hero background blobs + halo still (they stay
+   blurred, just don't float) and halve the animating sparkles. Cheap
+   transform-only bobs on the hero art are kept. Placed at end-of-file so it
+   overrides the earlier .hero__halo / .hero__mesh animation rules. */
+@media (max-width: 720px) {
+  .hero__mesh,
+  .hero__halo { animation: none; }
+  .sparkle:nth-child(2n) { display: none; }
 }

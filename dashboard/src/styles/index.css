@@ -93,6 +93,21 @@ body {
 h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; color: var(--ink); }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
+/* Tailwind Preflight is disabled, so restore the SVG defaults it would set —
+   otherwise icons sit on the text baseline and drift off-centre inside buttons,
+   stat tiles and badges. */
+svg { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+/* `grid place-items-center` reliably centres a lone child vertically but not
+   horizontally; flex does both. Convert any grid/inline-grid tile whose content
+   is a single icon (lone <svg>) OR just text (an avatar initial, a "×" close
+   button, a page number) to centred flex so it sits dead-centre. Tiles that
+   contain other element children (e.g. icon + label) are left untouched. */
+:where(.grid, .inline-grid):has(> svg:only-child),
+:where(.grid, .inline-grid):not(:has(> *)) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 button { font-family: inherit; cursor: pointer; }
 input, select, textarea { font-family: inherit; font-size: 1rem; }
 

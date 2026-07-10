@@ -1,14 +1,16 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
 import { Sparkles, ArrowRight, Heart, Truck } from 'lucide-react';
 
 import { useCategories } from '@/context/CategoriesContext';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/data/api';
+import { useAsync } from '@/lib/useAsync';
+import { BLUR } from '@/lib/img';
 import AdminHero from '@/components/AdminHero';
-import { ProductCard, Spinner } from '@/components/UI';
+import { ProductCard, Loader, ProductGridSkeleton } from '@/components/UI';
 import Reveal from '@/components/Reveal';
 import CategoryStrip from '@/components/CategoryStrip';
 import AdBanners from '@/components/AdBanners';
@@ -24,11 +26,11 @@ const statNum = 'bg-grad-brand bg-clip-text font-display text-[clamp(2rem,4vw,3r
 const statLabel = 'text-[0.85rem] font-medium text-ink-soft';
 
 export default function Home() {
-  const [best, setBest] = useState(null);
+  const { data: best, error: bestErr, loading: bestLoading, retry: bestRetry } =
+    useAsync(() => api.getBestsellers(8), []);
   const { categories } = useCategories();
   const { settings } = useSettings();
   const hero = settings?.hero;
-  useEffect(() => { api.getBestsellers(8).then(setBest); }, []);
 
   return (
     <div className="home">
@@ -60,11 +62,11 @@ export default function Home() {
                 ))}
               </div>
               <div className="hero__socialtext">
-                <strong>8,000+</strong><span>happy customers</span>
+                <strong>Handmade</strong><span>to order in India</span>
               </div>
               <div className="hero__socialdiv" />
               <div className="hero__rate">
-                <b>★★★★★</b><span>4.8 average rating</span>
+                <b>🧵</b><span>made just for you</span>
               </div>
             </div>
           </div>
@@ -72,17 +74,17 @@ export default function Home() {
           <div className="hero__art" aria-hidden="true">
             <div className="hero__halo" />
             <div className="hero__blob hero__blob--main">
-              <img src="/images/resin-art/wall-clock/01.jpg" alt="" />
+              <Image src="/images/resin-art/wall-clock/01.jpg" alt="" fill sizes="(max-width: 980px) 55vw, 28vw" priority placeholder="blur" blurDataURL={BLUR} className="object-cover" />
             </div>
             <div className="hero__blob hero__blob--2">
-              <img src="/images/mobile-covers/soft-case/01.jpg" alt="" />
+              <Image src="/images/mobile-covers/soft-case/01.jpg" alt="" fill sizes="(max-width: 980px) 40vw, 18vw" placeholder="blur" blurDataURL={BLUR} className="object-cover" />
             </div>
             <div className="hero__blob hero__blob--3">
-              <img src="/images/crochet/coin-pouch/01.jpg" alt="" />
+              <Image src="/images/crochet/coin-pouch/01.jpg" alt="" fill sizes="(max-width: 980px) 32vw, 15vw" placeholder="blur" blurDataURL={BLUR} className="object-cover" />
             </div>
             <div className="hero__badge hero__badge--rating">
-              <span className="hero__badgeicon">★</span>
-              <b>4.8</b><span>· 2,000+ reviews</span>
+              <span className="hero__badgeicon">✦</span>
+              <b>Handmade</b><span>· with love</span>
             </div>
             <div className="hero__badge hero__badge--made">🧶 100% Handmade</div>
           </div>
@@ -100,7 +102,7 @@ export default function Home() {
       <section className="craft" id="about">
         <div className="container craft__inner">
           <Reveal className="craft__media shine-img">
-            <img src="/images/crochet/coin-pouch/d1.png" alt="Handmade crochet piece by Dillora by Kashvin" title="Handmade crochet piece by Dillora by Kashvin" />
+            <Image src="/images/crochet/coin-pouch/d1.png" alt="Handmade crochet piece by Dillora by Kashvin" title="Handmade crochet piece by Dillora by Kashvin" fill sizes="(max-width: 900px) 90vw, 45vw" placeholder="blur" blurDataURL={BLUR} className="object-cover" />
           </Reveal>
           <Reveal className="craft__copy" delay={120}>
             <span className="craft__eyebrow">About us · Our craft</span>
@@ -125,20 +127,20 @@ export default function Home() {
       <section className="bg-[linear-gradient(120deg,#f9f2fd,#fdf3fb)] py-14">
         <div className="container grid grid-cols-2 gap-x-4 gap-y-7 text-center sm:grid-cols-4 sm:gap-6">
           <div className="flex flex-col gap-1">
-            <AnimatedCounter end={8000} suffix="+" className={statNum} />
-            <span className={statLabel}>Happy customers</span>
+            <AnimatedCounter end={100} suffix="+" className={statNum} />
+            <span className={statLabel}>Handmade designs</span>
           </div>
           <div className="flex flex-col gap-1">
-            <AnimatedCounter end={1200} suffix="+" className={statNum} />
-            <span className={statLabel}>Handmade pieces</span>
+            <AnimatedCounter end={5} className={statNum} />
+            <span className={statLabel}>Craft collections</span>
           </div>
           <div className="flex flex-col gap-1">
-            <AnimatedCounter end={50} suffix="+" className={statNum} />
-            <span className={statLabel}>Cities delivered</span>
+            <AnimatedCounter end={100} suffix="%" className={statNum} />
+            <span className={statLabel}>Handmade &amp; original</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className={statNum}>4.8<span className="ml-0.5 text-[0.7em] text-[#e8a93a] [-webkit-text-fill-color:#e8a93a]">★</span></span>
-            <span className={statLabel}>Average rating</span>
+            <span className={statNum}>Free</span>
+            <span className={statLabel}>Shipping over ₹299</span>
           </div>
         </div>
       </section>
@@ -155,13 +157,13 @@ export default function Home() {
           <h2>Loved by everyone</h2>
           <span className="muted">Our most-ordered pieces</span>
         </div>
-        {!best ? <Spinner /> : (
+        <Loader loading={bestLoading} error={bestErr} onRetry={bestRetry} fallback={<ProductGridSkeleton count={8} />}>
           <div className="grid">
-            {best.map((p, i) => (
+            {(best || []).map((p, i) => (
               <Reveal key={p.id} delay={i * 60}><ProductCard product={p} /></Reveal>
             ))}
           </div>
-        )}
+        </Loader>
       </section>
 
       {/* Testimonials */}
@@ -198,8 +200,10 @@ const CAT_THEME = {
 };
 
 function CategorySection({ cat }) {
-  const [items, setItems] = useState(null);
-  useEffect(() => { api.getByCategory(cat.id).then(list => setItems(list.slice(0, 4))); }, [cat.id]);
+  const { data: items, error, loading, retry } = useAsync(
+    () => api.getByCategory(cat.id).then((list) => list.slice(0, 4)),
+    [cat.id]
+  );
 
   const t = CAT_THEME[cat.id] || CAT_THEME['mobile-covers'];
 
@@ -243,13 +247,13 @@ function CategorySection({ cat }) {
         </div>
 
         {/* products */}
-        {!items ? <Spinner /> : (
+        <Loader loading={loading} error={error} onRetry={retry} fallback={<ProductGridSkeleton count={4} />}>
           <div className="grid relative">
-            {items.map((p, i) => (
+            {(items || []).map((p, i) => (
               <Reveal key={p.id} delay={i * 70}><ProductCard product={p} /></Reveal>
             ))}
           </div>
-        )}
+        </Loader>
       </div>
     </section>
   );

@@ -95,6 +95,27 @@ export async function logStockChange({
  * @param {string} [p.actor]
  * @returns {Promise<object|null>} { product, log } or null if product missing.
  */
+/**
+ * Decrement stock for the items in a newly-placed order (best-effort, atomic).
+ * Only products that actually track inventory (current stock > 0) are decremented,
+ * so made-to-order items (stock 0) are left alone and can't go negative. Never
+ * throws — a stock-logging hiccup must not fail an order that's already paid.
+ */
+export async function reserveStock(items = [], actor = "order") {
+  for (const it of items) {
+    const qty = Math.max(0, Math.floor(Number(it?.qty) || 0));
+    if (!it?.productId || !qty) continue;
+    try {
+      const p = await Product.findOne({ id: it.productId }).select("stock").lean();
+      if (p && Number(p.stock) > 0) {
+        await adjustStock({ productId: it.productId, delta: -qty, reason: "order-placed", actor });
+      }
+    } catch (err) {
+      console.error(`[stock] reserve failed for ${it.productId}:`, err.message);
+    }
+  }
+}
+
 export async function adjustStock({ productId, delta, reason = "manual", actor = "system" }) {
   const change = Number(delta) || 0;
   if (!change) return null;

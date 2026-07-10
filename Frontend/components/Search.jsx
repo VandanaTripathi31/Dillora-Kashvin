@@ -14,7 +14,7 @@ export default function Search({ open, onClose }) {
   const { categories } = useCategories();
   const catName = (id) => categories.find(c => c.id === id)?.name || '';
 
-  useEffect(() => { if (open) api.getProducts().then(setAll); }, [open]);
+  useEffect(() => { if (open) api.getSearchIndex().then(setAll).catch(() => {}); }, [open]);
   useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 50); else setQ(''); }, [open]);
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -47,7 +47,7 @@ export default function Search({ open, onClose }) {
                  placeholder="Search covers, charms, crochet, resin art…" />
           <button className="border-none bg-transparent text-[1.1rem] text-ink-soft" onClick={onClose} aria-label="Close search">✕</button>
         </div>
-        <div className="max-h-[50vh] overflow-y-auto">
+        <div className="max-h-[50vh] overflow-y-auto overscroll-contain">
           {term && results.length === 0 && (
             <div className="flex flex-col items-center gap-2.5 px-5 py-10 text-center text-ink-soft">
               <span className="grid h-12 w-12 place-items-center rounded-[14px] bg-[linear-gradient(135deg,#f9f2fd,#f1e2fb)] text-orchid-600"><SearchX className="h-6 w-6" /></span>

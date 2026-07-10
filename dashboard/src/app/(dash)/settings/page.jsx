@@ -319,6 +319,10 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      <TeamSection />
+
+      <ChangePasswordSection />
+
       {/* Store link */}
       <section className="card adm__panel">
         <div className="adm__panelhead">
@@ -328,5 +332,126 @@ export default function SettingsPage() {
         <p className="muted adm__hint mt-0">The public customer website this dashboard manages.</p>
       </section>
     </div>
+  );
+}
+
+// Team management — list admins, add members with a role, remove them (owner).
+function TeamSection() {
+  const [me, setMe] = useState(null);
+  const [admins, setAdmins] = useState(null);
+  const [accessible, setAccessible] = useState(true);
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'staff' });
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState({ type: '', text: '' });
+
+  const load = () => api.getAdmins().then(setAdmins).catch(() => { setAccessible(false); setAdmins([]); });
+  useEffect(() => { api.me().then(r => setMe(r.admin)).catch(() => {}); load(); }, []);
+
+  const canManage = me?.role === 'owner' || me?.role === 'manager';
+  const isOwner = me?.role === 'owner';
+  const inputCls = 'rounded-xl border-[1.5px] border-[#eee3f3] bg-white px-3.5 py-2.5 text-ink focus:border-orchid-500 focus:outline-none';
+  const roleColor = { owner: '#a64fd6', manager: '#7a4ff0', staff: '#8b7fa0' };
+
+  const addMember = async () => {
+    if (!form.name || !form.email || !form.password) { setMsg({ type: 'err', text: 'Fill name, email and password.' }); return; }
+    setBusy(true); setMsg({ type: '', text: '' });
+    try {
+      await api.registerAdmin(form);
+      setMsg({ type: 'ok', text: `Added ${form.name}.` });
+      setForm({ name: '', email: '', password: '', role: 'staff' });
+      load();
+    } catch (e) { setMsg({ type: 'err', text: e.message || 'Could not add team member.' }); }
+    finally { setBusy(false); }
+  };
+
+  const remove = async (a) => {
+    if (!window.confirm(`Remove ${a.name} (${a.email})?`)) return;
+    try { await api.removeAdmin(a.id); load(); }
+    catch (e) { setMsg({ type: 'err', text: e.message || 'Could not remove.' }); }
+  };
+
+  if (admins === null || !accessible) return null; // loading, or a staff account (hidden)
+
+  return (
+    <section className="card adm__panel mb-5">
+      <div className="adm__panelhead"><h3>👥 Team</h3></div>
+      <p className="muted adm__hint mt-0">Admins who can access this dashboard.</p>
+      <div className="mt-3 flex flex-col gap-2">
+        {admins.map(a => (
+          <div key={a.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#eee3f3] px-3.5 py-2.5">
+            <div>
+              <div className="font-semibold text-ink">{a.name} {me?.id === a.id && <span className="text-ink-soft">(you)</span>}</div>
+              <div className="text-[0.85rem] text-ink-soft">{a.email}</div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="rounded-full px-2.5 py-1 text-[0.72rem] font-bold uppercase text-white" style={{ background: roleColor[a.role] || '#8b7fa0' }}>{a.role}</span>
+              {isOwner && me?.id !== a.id && (
+                <button className="text-[0.85rem] font-semibold text-[#c4495b] hover:underline" onClick={() => remove(a)}>Remove</button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {canManage && (
+        <div className="mt-4 border-t border-[#eee3f3] pt-4">
+          <p className="mb-2 font-semibold text-ink">Add a team member</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Name" />
+            <input className={inputCls} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email" />
+            <input className={inputCls} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Password (min 6)" />
+            <select className={inputCls} value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
+              <option value="staff">Staff</option>
+              <option value="manager">Manager</option>
+              {isOwner && <option value="owner">Owner</option>}
+            </select>
+          </div>
+          {msg.text && <p className={`mt-2 text-sm font-semibold ${msg.type === 'ok' ? 'text-[#2e9e6b]' : 'text-[#c4495b]'}`}>{msg.text}</p>}
+          <button className="btn btn-primary mt-3" onClick={addMember} disabled={busy}>{busy ? 'Adding…' : 'Add member'}</button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// Let a signed-in admin change their own password.
+function ChangePasswordSection() {
+  const [cur, setCur] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState({ type: '', text: '' });
+
+  const inputCls = 'w-full rounded-xl border-[1.5px] border-[#eee3f3] bg-white px-3.5 py-2.5 text-ink focus:border-orchid-500 focus:outline-none';
+
+  const save = async () => {
+    if (!cur || !next) { setMsg({ type: 'err', text: 'Enter your current and new password.' }); return; }
+    if (next.length < 6) { setMsg({ type: 'err', text: 'New password must be at least 6 characters.' }); return; }
+    if (next !== confirm) { setMsg({ type: 'err', text: 'New passwords do not match.' }); return; }
+    setBusy(true); setMsg({ type: '', text: '' });
+    try {
+      await api.changePassword(cur, next);
+      setMsg({ type: 'ok', text: 'Password changed successfully.' });
+      setCur(''); setNext(''); setConfirm('');
+    } catch (e) {
+      setMsg({ type: 'err', text: e.message || 'Could not change password.' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="card adm__panel mb-5">
+      <div className="adm__panelhead">
+        <h3>🔒 Change password</h3>
+      </div>
+      <p className="muted adm__hint mt-0">Update the password for your own admin account.</p>
+      <div className="mt-3 grid max-w-[420px] gap-3">
+        <input className={inputCls} type="password" autoComplete="current-password" value={cur} onChange={e => setCur(e.target.value)} placeholder="Current password" />
+        <input className={inputCls} type="password" autoComplete="new-password" value={next} onChange={e => setNext(e.target.value)} placeholder="New password (min 6 characters)" />
+        <input className={inputCls} type="password" autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Confirm new password" />
+        {msg.text && <p className={`text-sm font-semibold ${msg.type === 'ok' ? 'text-[#2e9e6b]' : 'text-[#c4495b]'}`}>{msg.text}</p>}
+        <button className="btn btn-primary justify-self-start" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Change password'}</button>
+      </div>
+    </section>
   );
 }

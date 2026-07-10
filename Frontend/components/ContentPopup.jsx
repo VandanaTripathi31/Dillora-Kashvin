@@ -72,7 +72,7 @@ export default function ContentPopup({ data, storageKey, canShow = true }) {
       aria-label={data.heading || 'Popup'}
     >
       <div
-        className="relative w-full max-w-[400px] overflow-hidden rounded-[24px] text-center shadow-[0_30px_80px_rgba(0,0,0,.4)] animate-[admPop_.28s_ease]"
+        className="relative max-h-[90vh] w-full max-w-[400px] overflow-y-auto rounded-[24px] text-center shadow-[0_30px_80px_rgba(0,0,0,.4)] animate-[admPop_.28s_ease]"
         style={{ background: data.bgColor || 'linear-gradient(160deg,#f4ecff 0%,#fdeaf5 55%,#ffeede 100%)' }}
         onClick={(e) => e.stopPropagation()}
       >

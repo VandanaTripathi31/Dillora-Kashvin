@@ -93,6 +93,23 @@ body {
 h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; color: var(--ink); }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
+/* Tailwind Preflight is disabled, so restore the SVG defaults it would set.
+   Without this, icons render as inline elements sitting on the text baseline and
+   drift off-centre inside buttons, badges and icon tiles. inline-block keeps
+   icons usable inline with text while removing the baseline gap; flex/grid
+   parents blockify them so they centre cleanly. */
+svg { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+/* `grid place-items-center` reliably centres a lone child vertically but not
+   horizontally; flex does both. Convert any grid/inline-grid tile whose content
+   is a single icon (lone <svg>) OR just text (an avatar initial, a "×" close
+   button, a page number) to centred flex so it sits dead-centre. Tiles that
+   contain other element children (e.g. icon + label) are left untouched. */
+:where(.grid, .inline-grid):has(> svg:only-child),
+:where(.grid, .inline-grid):not(:has(> *)) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 button { font-family: inherit; cursor: pointer; }
 input, select, textarea { font-family: inherit; font-size: 1rem; }
 
@@ -124,7 +141,31 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 .price { font-weight: 700; color: var(--ink); }
 .strike { color: var(--ink-soft); text-decoration: line-through; font-weight: 500; margin-left: 8px; font-size: .9em; }
 
+/* Shimmer skeleton — a content-shaped placeholder shown while data loads. Feels
+   faster than a spinner and reserves the exact space so there's no layout shift.
+   The shimmer stops automatically under prefers-reduced-motion (global rule). */
+.skel {
+  background: linear-gradient(110deg, var(--lilac-100) 30%, var(--lilac-50) 50%, var(--lilac-100) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 8px;
+}
+
 :focus-visible { outline: 3px solid var(--lilac-300); outline-offset: 2px; border-radius: 6px; }
+
+/* ---- Touch interaction baseline: instant, branded tap feel on mobile ----
+   Touch devices have no :hover, so a tap on most controls currently gives no
+   feedback and shows the browser's grey flash. This makes every interactive
+   element feel instant and on-brand. */
+a, button, [role="button"], input, select, textarea, label, summary {
+  touch-action: manipulation;               /* removes the legacy ~300ms tap delay */
+  -webkit-tap-highlight-color: transparent; /* drop the unbranded grey flash (replaced below) */
+}
+/* Give every control an instant press state. Opacity only (GPU-friendly and
+   never shifts layout) so it can't fight transform-positioned UI. Buttons using
+   .btn keep their extra translateY press from the rule above. */
+button:active, [role="button"]:active, a[class*="btn"]:active,
+.dlr-ic:active, .dlr-navpill:active, .card:active { opacity: .68; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

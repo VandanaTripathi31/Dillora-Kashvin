@@ -10,9 +10,10 @@ import { generateCoupon } from "../services/couponService.js";
 // whether the reviewer is a *verified buyer* (phone linked to a delivered order
 // for this product), which drives the "Verified buyer" badge but never blocks.
 async function isVerifiedBuyer(productId, phone) {
-  if (!phone) return false;
+  const ph = String(phone || "").trim(); // coerce — never let an object become a query operator
+  if (!ph) return false;
   const orders = await Order.find({
-    $or: [{ "customer.phone": phone }, { userPhone: phone }],
+    $or: [{ "customer.phone": ph }, { userPhone: ph }],
     status: "Delivered",
   });
   return orders.some((o) => (o.items || []).some((it) => it.productId === productId));
@@ -34,6 +35,36 @@ export const getRatingSummary = asyncHandler(async (req, res) => {
   if (!reviews.length) return res.json({ avg: 0, count: 0 });
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
   res.json({ avg: Math.round(avg * 10) / 10, count: reviews.length });
+});
+
+// GET /api/reviews/summary?ids=p1,p2,...  -> { p1:{avg,count}, p2:{...}, ... }
+// Batched rating summaries (approved only) so a product grid fetches every
+// card's rating in ONE request instead of one call per card. Ids not found are
+// returned as { avg:0, count:0 } so the frontend always gets an entry per id.
+export const getRatingSummaries = asyncHandler(async (req, res) => {
+  const ids = [
+    ...new Set(
+      String(req.query.ids || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    ),
+  ].slice(0, 200); // cap to keep the query bounded
+
+  const out = {};
+  for (const id of ids) out[id] = { avg: 0, count: 0 };
+
+  if (ids.length) {
+    const rows = await Review.aggregate([
+      { $match: { productId: { $in: ids }, approved: { $ne: false } } },
+      { $group: { _id: "$productId", avg: { $avg: "$rating" }, count: { $sum: 1 } } },
+    ]);
+    for (const r of rows) {
+      out[r._id] = { avg: Math.round(r.avg * 10) / 10, count: r.count };
+    }
+  }
+
+  res.json(out);
 });
 
 // GET /api/reviews/:productId/can?phone=...  — anyone may review; this only

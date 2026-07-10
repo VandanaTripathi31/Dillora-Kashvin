@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getProducts,
   getBestsellers,
+  getSearchIndex,
   getByCategory,
   getProduct,
   getRelated,
@@ -21,6 +22,7 @@ const router = Router();
 // Public reads — specific paths BEFORE the "/:id" catch-all.
 router.get("/", getProducts);
 router.get("/bestsellers", getBestsellers);
+router.get("/search-index", getSearchIndex);
 router.get("/category/:catId", getByCategory);
 
 // Admin writes

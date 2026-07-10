@@ -76,7 +76,11 @@ export default function Checkout() {
   // Customized items (resin / reference-photo orders) can be reserved with 50% advance.
   const hasCustom = items.some(l => l.refPhoto || l.category === 'resin-art');
   // Full COD is offered only when the whole cart is mobile covers (standard stock).
-  const allCovers = items.length > 0 && items.every(l => l.category === 'mobile-covers');
+  // Match the category id ('mobile-covers') and tolerate the display name
+  // ('Mobile Covers') for items already in a cart from before the id was stored
+  // consistently, so COD shows correctly either way.
+  const isCoverItem = (l) => ['mobile-covers', 'mobile covers'].includes(String(l.category || '').toLowerCase());
+  const allCovers = items.length > 0 && items.every(isCoverItem);
   const availablePayments = PAYMENTS.filter(p => !p.coversOnly || allCovers);
 
   // If COD was selected but the cart is no longer covers-only, fall back to online.
@@ -101,11 +105,17 @@ export default function Checkout() {
 
   const applyCoupon = async () => {
     setChecking(true); setCouponMsg('');
-    const res = await api.validateCoupon(couponInput, subtotal, items);
-    setChecking(false);
-    if (!res.ok) { setCoupon(null); setCouponMsg(res.reason); return; }
-    setCoupon({ code: res.coupon.code, discount: res.discount });
-    setCouponMsg('');
+    try {
+      const res = await api.validateCoupon(couponInput, subtotal, items);
+      if (!res.ok) { setCoupon(null); setCouponMsg(res.reason); return; }
+      setCoupon({ code: res.coupon.code, discount: res.discount });
+      setCouponMsg('');
+    } catch {
+      setCoupon(null);
+      setCouponMsg('Could not check that code right now. Please try again.');
+    } finally {
+      setChecking(false); // never leave the button stuck on "…"
+    }
   };
 
   const removeCoupon = () => { setCoupon(null); setCouponInput(''); setCouponMsg(''); };
@@ -159,8 +169,14 @@ export default function Checkout() {
       const ready = await loadRazorpayScript();
       if (!ready) throw new Error('Could not load the payment gateway. Check your connection and try again.');
 
-      // 2) Ask the backend to create a Razorpay order for the "pay now" amount.
-      const rzp = await api.createPaymentOrder(payNow);
+      // 2) Ask the backend to create a Razorpay order. It recomputes the payable
+      //    amount server-side from the cart — the client can't dictate the price.
+      const rzp = await api.createPaymentOrder({
+        customer: orderPayload.customer,
+        items: orderPayload.items,
+        payment,
+        coupon: coupon?.code || null,
+      });
 
       // 3) Open Razorpay Checkout.
       const options = {

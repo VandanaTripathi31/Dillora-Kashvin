@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getReviews,
   getRatingSummary,
+  getRatingSummaries,
   canReview,
   addReview,
   uploadReviewMedia,
@@ -22,6 +23,9 @@ router.put("/admin/:id/reply", protect, replyReview);
 router.delete("/admin/:id", protect, deleteReview);
 
 // Public — reviews are a customer-facing feature.
+// NOTE: "/summary" MUST be declared before "/:productId" or it is shadowed
+// (":productId" would capture the literal "summary").
+router.get("/summary", getRatingSummaries);
 router.get("/:productId", getReviews);
 router.get("/:productId/summary", getRatingSummary);
 router.get("/:productId/can", canReview);

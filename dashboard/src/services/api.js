@@ -58,6 +58,15 @@ export const api = {
     return req('/auth/me');
   },
   async getAdmins() { return req('/auth/admins'); },
+  async changePassword(currentPassword, newPassword) {
+    return req('/auth/password', { method: 'PUT', body: { currentPassword, newPassword } });
+  },
+  async registerAdmin(data) {
+    return req('/auth/register', { method: 'POST', body: data });
+  },
+  async removeAdmin(id) {
+    return req(`/auth/admins/${id}`, { method: 'DELETE' });
+  },
 
   // ---- categories ----
   async getCategories() { return req('/categories'); },

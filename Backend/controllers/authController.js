@@ -30,6 +30,42 @@ export const listAdmins = asyncHandler(async (req, res) => {
   res.json(admins.map((a) => a.toJSON()));
 });
 
+// PUT /api/auth/password  { currentPassword, newPassword }  (protected)
+// Lets a signed-in admin change their own password (verifies the current one).
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!isNonEmptyString(currentPassword) || !isNonEmptyString(newPassword)) {
+    return res.status(400).json({ error: "Current and new password are required." });
+  }
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ error: "New password must be at least 6 characters." });
+  }
+  // req.admin is loaded without the password hash — re-fetch to verify.
+  const admin = await Admin.findById(req.admin._id);
+  if (!admin || !(await admin.matchPassword(currentPassword))) {
+    return res.status(401).json({ error: "Current password is incorrect." });
+  }
+  admin.password = newPassword; // the model's pre-save hook hashes it
+  await admin.save();
+  res.json({ ok: true });
+});
+
+// DELETE /api/auth/admins/:id  (owner only) — remove a team member.
+export const removeAdmin = asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  if (String(req.admin._id) === String(id)) {
+    return res.status(400).json({ error: "You can't remove your own account." });
+  }
+  const target = await Admin.findById(id);
+  if (!target) return res.status(404).json({ error: "Admin not found." });
+  if (target.role === "owner") {
+    const owners = await Admin.countDocuments({ role: "owner" });
+    if (owners <= 1) return res.status(400).json({ error: "You can't remove the last owner." });
+  }
+  await Admin.findByIdAndDelete(id);
+  res.json({ ok: true });
+});
+
 const ROLES = ["owner", "manager", "staff"];
 
 // POST /api/auth/register  (protected — an existing admin can add another)
@@ -45,8 +81,12 @@ export const register = asyncHandler(async (req, res) => {
   if (exists) return res.status(409).json({ error: "An admin with that email already exists." });
 
   // New team members default to least-privilege "staff"; an explicit valid role
-  // may be supplied by the creating admin.
+  // may be supplied by the creating admin. Only an owner may create another
+  // owner, so a manager can't escalate someone above themselves.
   const nextRole = ROLES.includes(role) ? role : "staff";
+  if (nextRole === "owner" && req.admin?.role !== "owner") {
+    return res.status(403).json({ error: "Only an owner can create another owner." });
+  }
 
   const admin = await Admin.create({
     name: name.trim(),

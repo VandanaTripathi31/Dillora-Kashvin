@@ -1,6 +1,4 @@
-'use client';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 
 const PAGES = {
   shipping: { title:'Shipping', body:'Free shipping on prepaid orders over ₹299. Products are made to order — please allow 3–5 days for production before dispatch. A tracking link is shared once your order ships. Metros: 4–7 days · Rest of India: 6–10 days.' },
@@ -9,15 +7,33 @@ const PAGES = {
   terms:    { title:'Terms of Service', body:'By placing an order you agree that handmade items may vary slightly from photos, and that orders moved to production cannot be cancelled. Prices and offers may change without notice.' },
 };
 
-export default function PolicyPage() {
-  const { slug } = useParams();
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const p = PAGES[slug];
+  if (!p) return { alternates: { canonical: `/page/${slug}` } };
+  const description = p.body.slice(0, 155);
+  return {
+    title: p.title,
+    description,
+    alternates: { canonical: `/page/${slug}` },
+    openGraph: {
+      type: 'website',
+      title: `${p.title} · Dillora by Kashvin`,
+      description,
+      url: `/page/${slug}`,
+      images: [{ url: '/logo.png', alt: 'Dillora by Kashvin' }],
+    },
+  };
+}
+
+export default async function PolicyPage({ params }) {
+  const { slug } = await params;
   const p = PAGES[slug];
   if (!p) return <div className="container section"><h2>Page not found</h2><Link href="/" className="btn btn-ghost">Home</Link></div>;
   return (
     <div className="container section policy">
       <h1 className="pagetitle">{p.title}</h1>
       <p>{p.body}</p>
-      <p className="muted" style={{marginTop:24}}>Final policy text will be provided by Kashvin before launch (required for payment approval).</p>
     </div>
   );
 }
