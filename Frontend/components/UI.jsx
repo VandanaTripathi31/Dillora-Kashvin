@@ -73,7 +73,7 @@ export function Logo({ size = 26, light = false }) {
       {/* Wide banner logo: smaller on phones so it fits beside the menu button +
           action icons, full size from 440px up. */}
       <LogoMark
-        className="h-[30px] min-[440px]:h-[46px] transition-transform duration-300 group-hover:scale-[1.04]"
+        className="h-[26px] min-[360px]:h-[30px] min-[440px]:h-[46px] transition-transform duration-300 group-hover:scale-[1.04]"
       />
     </Link>
   );

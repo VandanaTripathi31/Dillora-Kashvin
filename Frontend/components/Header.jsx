@@ -61,7 +61,7 @@ export default function Header() {
       {/* Main bar */}
       <div className="border-b transition-all duration-300"
            style={{ background: scrolled ? 'rgba(253,251,247,.92)' : '#fdfbf7', backdropFilter: scrolled ? 'blur(10px)' : 'none', borderColor: scrolled ? 'transparent' : '#f3e9fb', boxShadow: scrolled ? '0 6px 24px rgba(122,79,240,.12)' : 'none' }}>
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-[74px] flex items-center justify-between gap-4">
+        <div className="max-w-[1280px] mx-auto px-3 sm:px-6 h-[74px] flex items-center justify-between gap-1.5 sm:gap-4">
 
           {/* LEFT: burger (mobile only, via CSS) + logo */}
           <div className="flex items-center gap-2">

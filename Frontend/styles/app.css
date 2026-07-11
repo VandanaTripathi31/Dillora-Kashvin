@@ -704,6 +704,11 @@ body { background: linear-gradient(180deg, #fffdfb 0%, #fdfaff 100%); }
   cursor: pointer;
   transition: background .25s ease, color .25s ease, transform .2s ease;
 }
+/* Shrink the header action icons on narrow phones so the logo + menu button +
+   4 icons all fit without clipping the cart on the right edge. */
+@media (max-width: 480px) { .dlr-ic { width: 40px; height: 40px; } }
+@media (max-width: 360px) { .dlr-ic { width: 36px; height: 36px; } }
+
 .dlr-ic:hover {
   color: #fff;
   background: linear-gradient(135deg, #a64fd6, #7a4ff0);
