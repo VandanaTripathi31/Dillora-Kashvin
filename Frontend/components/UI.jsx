@@ -63,10 +63,17 @@ export function Logo({ size = 26, light = false }) {
     <Link
       href="/"
       className="dilora-logo group"
-      style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        textDecoration: "none",
+      }}
       aria-label="Dillora by Kashvin — home"
     >
-      <LogoMark size={size} className="transition-transform duration-300 group-hover:scale-[1.04]" />
+      <LogoMark
+        size={size}
+        className="transition-transform duration-300 group-hover:scale-[1.04]"
+      />
     </Link>
   );
 }
@@ -82,7 +89,7 @@ export function LogoMark({ size = 40, className = "" }) {
       style={{ height: size, width: size * 3.7, position: "relative" }}
     >
       <img
-        src="/Dillora.png"
+        src="/dl.png"
         alt="Dillora by Kashvin"
         style={{
           position: "absolute",
@@ -163,7 +170,7 @@ export function ProductCard({ product, priority = false }) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
   const { showDiscounts } = useSettings();
-  const [added, setAdded] = useState(''); // brief "Added to cart" toast on quick-add
+  const [added, setAdded] = useState(""); // brief "Added to cart" toast on quick-add
   const off =
     showDiscounts && product.mrp && product.mrp > product.price
       ? Math.round((1 - product.price / product.mrp) * 100)
@@ -172,7 +179,8 @@ export function ProductCard({ product, priority = false }) {
   const wished = has(product.id);
   // Only mobile-covers carry real stock; everything else is made to order and
   // always available — so "Sold out" only ever applies to covers.
-  const soldOut = product.category === "mobile-covers" && (Number(product.stock) || 0) <= 0;
+  const soldOut =
+    product.category === "mobile-covers" && (Number(product.stock) || 0) <= 0;
 
   const quickAdd = (e) => {
     e.preventDefault();
@@ -204,73 +212,73 @@ export function ProductCard({ product, priority = false }) {
 
   return (
     <>
-    <Link
-      href={`/product/${product.id}`}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[18px] border border-transparent bg-white shadow-card transition-[transform,box-shadow] duration-300 ease-brand hover:-translate-y-1.5 hover:border-orchid-100 hover:shadow-glow-brand"
-    >
-      <div className="relative aspect-square overflow-hidden bg-cream-2">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          sizes="(max-width: 600px) 50vw, 25vw"
-          placeholder="blur"
-          blurDataURL={BLUR}
-          priority={priority}
-          className={`object-cover transition-transform duration-[550ms] ease-brand group-hover:scale-[1.07] ${soldOut ? "opacity-70" : ""}`}
-        />
-        {soldOut ? (
-          <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-[11px] py-[5px] text-[0.72rem] font-bold text-white shadow-[0_4px_12px_rgba(0,0,0,.2)]">
-            Sold out
-          </span>
-        ) : off > 0 ? (
-          <span className="absolute left-3 top-3 rounded-full bg-violet-500 px-[11px] py-[5px] text-[0.72rem] font-bold text-white shadow-[0_4px_12px_rgba(122,79,240,.3)]">
-            {off}% off
-          </span>
-        ) : null}
-        <button
-          onClick={heart}
-          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
-          className={`absolute right-2.5 top-2.5 z-[3] grid h-[34px] w-[34px] place-items-center rounded-full bg-white/[.92] shadow-soft backdrop-blur-[6px] transition duration-150 hover:scale-[1.08] hover:text-violet-500 ${wished ? "text-violet-500" : "text-ink-soft"}`}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill={wished ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinejoin="round"
-          >
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-        </button>
-        {soldOut ? (
-          <span className="absolute inset-x-3 bottom-3 z-[3] rounded-full bg-white/[.96] py-[9px] text-center text-[0.85rem] font-semibold text-ink-soft shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px]">
-            Sold out
-          </span>
-        ) : (
+      <Link
+        href={`/product/${product.id}`}
+        className="group relative flex h-full flex-col overflow-hidden rounded-[18px] border border-transparent bg-white shadow-card transition-[transform,box-shadow] duration-300 ease-brand hover:-translate-y-1.5 hover:border-orchid-100 hover:shadow-glow-brand"
+      >
+        <div className="relative aspect-square overflow-hidden bg-cream-2">
+          <Image
+            src={product.image}
+            alt={product.name}
+            fill
+            sizes="(max-width: 600px) 50vw, 25vw"
+            placeholder="blur"
+            blurDataURL={BLUR}
+            priority={priority}
+            className={`object-cover transition-transform duration-[550ms] ease-brand group-hover:scale-[1.07] ${soldOut ? "opacity-70" : ""}`}
+          />
+          {soldOut ? (
+            <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-[11px] py-[5px] text-[0.72rem] font-bold text-white shadow-[0_4px_12px_rgba(0,0,0,.2)]">
+              Sold out
+            </span>
+          ) : off > 0 ? (
+            <span className="absolute left-3 top-3 rounded-full bg-violet-500 px-[11px] py-[5px] text-[0.72rem] font-bold text-white shadow-[0_4px_12px_rgba(122,79,240,.3)]">
+              {off}% off
+            </span>
+          ) : null}
           <button
-            onClick={quickAdd}
-            className="absolute inset-x-3 bottom-3 z-[3] translate-y-0 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-100 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 [@media(hover:hover)]:translate-y-3.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
+            onClick={heart}
+            aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+            className={`absolute right-2.5 top-2.5 z-[3] grid h-[34px] w-[34px] place-items-center rounded-full bg-white/[.92] shadow-soft backdrop-blur-[6px] transition duration-150 hover:scale-[1.08] hover:text-violet-500 ${wished ? "text-violet-500" : "text-ink-soft"}`}
           >
-            {needsOptions ? "Choose options" : "+ Quick add"}
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill={wished ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            >
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
           </button>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col px-[18px] pb-5 pt-4">
-        <h3 className="mb-1.5 line-clamp-2 min-h-[2.6em] font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">
-          {product.name}
-        </h3>
-        <div className="mb-1.5 mt-0.5">
-          <Rating id={product.id} showCount={false} />
+          {soldOut ? (
+            <span className="absolute inset-x-3 bottom-3 z-[3] rounded-full bg-white/[.96] py-[9px] text-center text-[0.85rem] font-semibold text-ink-soft shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px]">
+              Sold out
+            </span>
+          ) : (
+            <button
+              onClick={quickAdd}
+              className="absolute inset-x-3 bottom-3 z-[3] translate-y-0 rounded-full bg-white/[.96] py-[9px] text-[0.85rem] font-semibold text-ink opacity-100 shadow-[0_8px_20px_rgba(80,40,140,.18)] backdrop-blur-[8px] transition duration-200 [@media(hover:hover)]:translate-y-3.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 hover:bg-grad-brand hover:text-white"
+            >
+              {needsOptions ? "Choose options" : "+ Quick add"}
+            </button>
+          )}
         </div>
-        <div className="mt-auto">
-          <Price price={product.price} mrp={product.mrp} />
+        <div className="flex flex-1 flex-col px-[18px] pb-5 pt-4">
+          <h3 className="mb-1.5 line-clamp-2 min-h-[2.6em] font-body text-[1.02rem] font-semibold leading-[1.3] tracking-[-0.2px]">
+            {product.name}
+          </h3>
+          <div className="mb-1.5 mt-0.5">
+            <Rating id={product.id} showCount={false} />
+          </div>
+          <div className="mt-auto">
+            <Price price={product.price} mrp={product.mrp} />
+          </div>
         </div>
-      </div>
-    </Link>
-    <Toast message={added} />
+      </Link>
+      <Toast message={added} />
     </>
   );
 }
@@ -340,7 +348,12 @@ export function ProductCardSkeleton() {
 // A grid of card skeletons — drop-in loading fallback for a product section.
 export function ProductGridSkeleton({ count = 8 }) {
   return (
-    <div className="grid" role="status" aria-busy="true" aria-label="Loading products">
+    <div
+      className="grid"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading products"
+    >
       {Array.from({ length: count }).map((_, i) => (
         <ProductCardSkeleton key={i} />
       ))}
