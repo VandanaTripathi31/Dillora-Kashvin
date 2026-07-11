@@ -95,7 +95,7 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             {/* Brand logo — shown on a light chip so the colourful wordmark reads on the dark footer */}
             <Link href="/" aria-label="Dillora by Kashvin — home" className="inline-flex rounded-2xl bg-white px-4 py-2.5 shadow-[0_6px_18px_rgba(0,0,0,.18)]">
-              <LogoMark size={34} />
+              <LogoMark className="h-[34px]" />
             </Link>
             <p className="font-display text-lg font-bold mt-3 text-white">Dillora by Kashvin</p>
             <p className="text-sm leading-relaxed mt-3 max-w-xs" style={{ color:'rgba(255,255,255,.65)' }}>

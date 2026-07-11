@@ -70,9 +70,10 @@ export function Logo({ size = 26, light = false }) {
       }}
       aria-label="Dillora by Kashvin — home"
     >
+      {/* Wide banner logo: smaller on phones so it fits beside the menu button +
+          action icons, full size from 440px up. */}
       <LogoMark
-        size={size}
-        className="transition-transform duration-300 group-hover:scale-[1.04]"
+        className="h-[30px] min-[440px]:h-[46px] transition-transform duration-300 group-hover:scale-[1.04]"
       />
     </Link>
   );
@@ -82,25 +83,16 @@ export function Logo({ size = 26, light = false }) {
 // wordmark in the x[87–415], y[204–280] band (measured from its alpha channel);
 // these offsets crop to that band so it renders large & crisp at height `size`.
 // Used inside the header logo link and the footer chip for one consistent mark.
-export function LogoMark({ size = 40, className = "" }) {
+export function LogoMark({ className = "" }) {
+  // dillora-logo.png is the floral banner wordmark, trimmed of white padding
+  // (~3.4:1). Its height comes from the caller's className (so it can be
+  // responsive); width scales automatically. Used in the header + footer chip.
   return (
-    <span
-      className={`block overflow-hidden ${className}`}
-      style={{ height: size, width: size * 3.7, position: "relative" }}
-    >
-      <img
-        src="/dl.png"
-        alt="Dillora by Kashvin"
-        style={{
-          position: "absolute",
-          height: size * 5.26,
-          width: size * 5.26,
-          left: -size * 0.79,
-          top: -size * 2.05,
-          maxWidth: "none",
-        }}
-      />
-    </span>
+    <img
+      src="/dillora-logo.png"
+      alt="Dillora by Kashvin"
+      className={`block w-auto max-w-none ${className}`}
+    />
   );
 }
 

@@ -69,7 +69,7 @@ export default function Header() {
                     aria-label="Open menu" onClick={() => setDrawer(true)}>
               <Menu className="w-6 h-6" />
             </button>
-            <Logo size={40} />
+            <Logo size={46} />
           </div>
 
           {/* CENTER: category links in a floating glass pill (desktop only, via CSS) */}
