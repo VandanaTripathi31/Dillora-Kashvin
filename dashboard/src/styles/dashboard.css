@@ -8,8 +8,16 @@
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(1200px 600px at 20% -10%, rgba(166, 79, 214, 0.14), transparent 60%),
-    radial-gradient(1000px 500px at 100% 110%, rgba(122, 79, 240, 0.14), transparent 60%),
+    radial-gradient(
+      1200px 600px at 20% -10%,
+      rgba(166, 79, 214, 0.14),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 100% 110%,
+      rgba(122, 79, 240, 0.14),
+      transparent 60%
+    ),
     #fdfbf7;
 }
 
@@ -36,4 +44,11 @@
 .btn-block {
   width: 100%;
   justify-content: center;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
